@@ -1,0 +1,87 @@
+diff -Nrup dbt2-0.39.orig/scripts/oracle/install/genasmctrl.sh dbt2-0.39/scripts/oracle/install/genasmctrl.sh
+--- dbt2-0.39.orig/scripts/oracle/install/genasmctrl.sh	2010-02-01 09:50:40.000000000 -0800
++++ dbt2-0.39/scripts/oracle/install/genasmctrl.sh	2010-02-03 11:01:28.000000000 -0800
+@@ -35,8 +35,13 @@ shutdown abort ;
+ startup pfile=${WSCONFIG}/asm.ora nomount ;
+ select path from v\\\$asm_disk ;
+ alter diskgroup ${ASMGROUPNAME} mount ;
+-exit sql.sqlcode
+ EOF
++if [ "x${l_oracle_release}" = "x11.2.0.1.0" -a "x${ocrvotetype}" = "xASM_STORAGE" ]
++then
++        echo "alter diskgroup DATA1 mount ;" >>${ISWARE}/asmstart.sh
++fi
++
++echo "exit sql.sqlcode;" >>${ISWARE}/asmstart.sh
+ }
+ 
+ generate_asm_grpcreate()
+@@ -96,11 +101,6 @@ EOF
+ generate_asm_initora()
+ {
+ echo " Generating asm init.ora files...."	
+-# Find the Oracle version 
+-if test -f ${ORACLE_HOME}/bin/sqlplus;then
+-	export ORACLE_HOME=${ORACLE_HOME} 
+-       	l_oracle_release=`${ORACLE_HOME}/bin/sqlplus -? | awk '/Release/ {print $3}'`
+-fi
+ typeset ora_major=`echo ${l_oracle_release} | awk -F"." '{print $1}'`
+ if [ ${ora_major} -lt 10 ];then
+ 	echo "ASM not supported in this release of Oracle - ${l_oracle_release}" | tee  ${WORKHOME}/setup_fail 
+@@ -114,7 +114,10 @@ for i in $SERVERS;do
+ 	echo "asm_power_limit=11" 		 >  ${ASMINITORAFILE}
+ 	echo "instance_type=asm"		 >>  ${ASMINITORAFILE}
+ 	echo "remote_login_passwordfile=NONE"	 >>  ${ASMINITORAFILE}
+-	echo "cluster_database=true"		 >>  ${ASMINITORAFILE}
++        if [ "x${l_oracle_release}" != "x11.2.0.1.0" ]
++        then
++		echo "cluster_database=true"		 >>  ${ASMINITORAFILE}
++	fi
+ 	echo "instance_number=${count}"		 >>  ${ASMINITORAFILE}
+ 	echo "asm_diskstring='$DISKSTRING'"      >>  ${ASMINITORAFILE}
+ 	if [ ${ora_major} -ge 11 ];then
+@@ -135,10 +138,6 @@ generate_asm_envfile ()
+ {
+ echo " Generating asm env file files...."	
+ declare -i count=1
+-if test -f ${ORACLE_HOME}/bin/sqlplus;then
+-        export ORACLE_HOME=${ORACLE_HOME}
+-        l_oracle_release=`${ORACLE_HOME}/bin/sqlplus -? | awk '/Release/ {print $3}'`
+-fi
+ typeset ora_major=`echo ${l_oracle_release} | awk -F"." '{print $1}'`
+ if [ ${ora_major} -ge 11 ];then
+ 	SYSASM="sysasm"
+@@ -149,13 +148,20 @@ fi
+ for i in $SERVERS;do
+ 	ASMENVFILE="${ISCONFIG}/asm.env"
+ 	test $RAC = "true" && ASMENVFILE="${ISCONFIG}/$i/asm.env"
+-	echo "export ORACLE_HOME=${ORACLE_HOME} " 			>  ${ASMENVFILE}
++        if [ "x${l_oracle_release}" = "x11.2.0.1.0" ]
++        then
++		echo "export ORACLE_HOME=${CLUSTERWAREHOME} " 			>  ${ASMENVFILE}
++                echo "export ORACLE_SID=+ASM${count}"                           >> ${ASMENVFILE}
++        else
++		echo "export ORACLE_HOME=${ORACLE_HOME} " 			>  ${ASMENVFILE}
++                echo "export ORACLE_SID=ASM${count}"                            >> ${ASMENVFILE}
++        fi
++
+ 	echo "PATH=\$ORACLE_HOME/bin:\$PATH "     			>> ${ASMENVFILE}
+ 	echo "LD_LIBRARY_PATH=\$ORACLE_HOME/lib:\$LD_LIBRARY_PATH "     >> ${ASMENVFILE}
+ 	echo "export SEQLPLUS=sqlplus"					>> ${ASMENVFILE}
+ 	echo "export connect_initate_string=\"/nolog\" "		>> ${ASMENVFILE}	
+ 	echo "export SYS_CONNECTION_STRING=\"connect \\\\/ as $SYSASM\"" >> ${ASMENVFILE}
+-	echo "export ORACLE_SID=Asm${count}"				>> ${ASMENVFILE}			
+ 	count=${count}+1 
+ done	
+ }
+@@ -213,6 +219,10 @@ for i in $ASMDISKLIST3;do
+ 	count=$count+1
+ done
+ ASMDISKLIST3="${asmdisklist}"
++if test -f ${ORACLE_HOME}/bin/sqlplus;then
++        export ORACLE_HOME=${ORACLE_HOME}
++        export l_oracle_release=`${ORACLE_HOME}/bin/sqlplus -? | awk '/Release/ {print $3}'`
++fi
+ 
+ generate_asm_envfile 
+ generate_asm_initora 
