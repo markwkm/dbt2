@@ -1,3 +1,13 @@
+vX.Y.Z (YYYY-MM-YY)
+
+- Added support for Oracle Single Instance and Real Application Clusters.
+- Added directory scripts/oracle, which includes all oracle related scripts and
+  templates.
+- Added directory src/oracle, which include oracle oci implementation.
+- Added header files src/include/oracle_* for oracle oci implementation.
+- Change in generic odbc layer to add support for Oracle and performance
+  enhancements.
+
 v0.61.6 (2024-09-09)
 
 - Fix exit bug when building AppImage outside of the container

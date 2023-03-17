@@ -9,9 +9,80 @@
 
 #include <odbc_order_status.h>
 
+#ifdef ORACLEODBC
+struct ordstatusctx {
+	int c_id;
+	int c_w_id;
+	int c_d_id;
+	char c_last[C_LAST_LEN+1];
+
+	SQLHSTMT curo1;
+};
+
+typedef struct ordstatusctx ordstatusctx;
+
+int init_order_status_txn (struct db_context_t *odbcc)
+{
+	SQLRETURN rc;
+	int i = 1;
+
+	odbcc->octx = (ordstatusctx*) malloc(sizeof(ordstatusctx));
+
+	if (odbcc->octx == NULL)
+		return ERROR;
+
+	/* allocate statement handle */
+	rc = SQLAllocHandle(SQL_HANDLE_STMT, odbcc->hdbc, &odbcc->octx->curo1);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->octx->curo1);
+		return ERROR;
+	}
+
+	/* Perpare statement for New Order transaction. */
+	rc = SQLPrepare(odbcc->octx->curo1, (SQLCHAR *)STMT_ORDER_STATUS, SQL_NTS);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->octx->curo1);
+		return ERROR;
+	}
+
+	/* Bind variables for New Order transaction. */
+	rc = SQLBindParameter(odbcc->octx->curo1,
+		i++, SQL_PARAM_INPUT_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->octx->c_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->octx->curo1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->octx->curo1,
+		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->octx->c_w_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->octx->curo1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->octx->curo1,
+		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->octx->c_d_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->octx->curo1);
+		return ERROR;
+	}
+
+	return OK;
+}
+#endif /* ORACLEODBC */
+
 int execute_order_status(
 		struct db_context_t *odbcc, struct order_status_t *data) {
 	SQLRETURN rc;
+
+#ifdef ORACLEODBC
+	/* Input variables. */
+	odbcc->octx->c_id = data->c_id;
+	odbcc->octx->c_w_id = data->c_w_id;
+	odbcc->octx->c_d_id = data->c_d_id;
+	strncpy (odbcc->octx->c_last, data->c_last, C_LAST_LEN+1);
+#else
 	int i = 1;
 	int j;
 
@@ -141,6 +212,7 @@ int execute_order_status(
 			return ERROR;
 		}
 	}
+#endif /* ORACLEODBC */
 
 	/* Execute stored procedure. */
 	rc = SQLExecute(odbcc->library.odbc.hstmt);

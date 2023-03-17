@@ -9,8 +9,115 @@
 
 #include <odbc_payment.h>
 
+#ifdef ORACLEODBC
+struct paymentctx {
+	int w_id;
+	int d_id;
+	int c_id;
+	int c_w_id;
+	int c_d_id;
+	
+	char c_last[C_LAST_LEN+1];
+
+	float h_amount;
+
+	SQLHSTMT curp1;
+};
+
+typedef struct paymentctx paymentctx;
+
+int init_payment_txn (struct db_context_t *odbcc)
+{
+	SQLRETURN rc;
+	int i = 1;
+
+	odbcc->pctx = (paymentctx*) malloc(sizeof(paymentctx));
+
+	if (odbcc->pctx == NULL)
+		return ERROR;
+
+	/* allocate statement handle */
+	rc = SQLAllocHandle(SQL_HANDLE_STMT, odbcc->hdbc, &odbcc->pctx->curp1);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+
+	/* Perpare statement for Payment transaction. */
+	rc = SQLPrepare(odbcc->pctx->curp1, (SQLCHAR *)STMT_PAYMENT, SQL_NTS);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+
+	/* Bind variables for Payment transaction. */
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->pctx->w_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->pctx->d_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->pctx->c_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->pctx->c_w_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&odbcc->pctx->c_d_id, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0,
+		odbcc->pctx->c_last, sizeof(odbcc->pctx->c_last), NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->pctx->curp1,
+		i++, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
+		&odbcc->pctx->h_amount, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->pctx->curp1);
+		return ERROR;
+	}
+
+	return OK;
+}
+#endif /* ORACLEODBC */
+
 int execute_payment(struct db_context_t *odbcc, struct payment_t *data) {
 	SQLRETURN rc;
+
+#ifdef ORACLEODBC
+	/* Input variables. */
+	odbcc->pctx->w_id = data->w_id;
+	odbcc->pctx->d_id = data->d_id;
+	odbcc->pctx->c_id = data->c_id;
+	odbcc->pctx->c_w_id = data->c_w_id;
+	odbcc->pctx->c_d_id = data->c_d_id;
+	strncpy (odbcc->pctx->c_last, data->c_last, C_LAST_LEN+1);
+	odbcc->pctx->h_amount = data->h_amount;
+#else
 	int i = 1;
 
 	/* Perpare statement for Payment transaction. */
@@ -259,6 +366,7 @@ int execute_payment(struct db_context_t *odbcc, struct payment_t *data) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
+#endif /* ORACLEODBC */
 
 	/* Execute stored procedure. */
 	rc = SQLExecute(odbcc->library.odbc.hstmt);

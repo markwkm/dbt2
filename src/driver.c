@@ -34,6 +34,8 @@
 
 #include "entropy.h"
 
+#define fopen fopen64
+
 #define MIX_LOG_NAME "mix.log"
 
 void *terminal_worker(void *data);
@@ -54,6 +56,9 @@ int fork_per_processor = 1; /* Not used by this driver. */
 
 FILE *log_mix = NULL;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
+#ifdef WITH_DELAY
+pthread_mutex_t mutex_wait_for_all = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 int terminal_state[3][TRANSACTION_MAX] = {
 		{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}};
@@ -240,6 +245,12 @@ int start_driver() {
 			break;
 		}
 	}
+
+#ifdef WITH_DELAY
+	/* all the threads are created, allow threads to start transactions */
+	pthread_mutex_unlock(&mutex_wait_for_all);
+#endif
+
 	printf("terminals started...\n");
 
 	/* Note that the driver has started up all threads in the log. */
@@ -310,6 +321,12 @@ void *terminal_worker(void *data) {
 		pthread_exit(NULL);
 	}
 
+#ifdef WITH_DELAY
+	/* Wait for all the threads to get created */
+	pthread_mutex_lock(&mutex_wait_for_all);
+	pthread_mutex_unlock(&mutex_wait_for_all);
+#endif
+
 	do {
 		if (mode_altered == 1) {
 			/*
@@ -377,28 +394,28 @@ void *terminal_worker(void *data) {
 		}
 
 		/* Keying time... */
-		pthread_mutex_lock(
+		/* pthread_mutex_lock(
 				&mutex_terminal_state[KEYING][client_data.transaction]);
 		++terminal_state[KEYING][client_data.transaction];
 		pthread_mutex_unlock(
-				&mutex_terminal_state[KEYING][client_data.transaction]);
+				&mutex_terminal_state[KEYING][client_data.transaction]); */
 		if (time(NULL) < stop_time) {
 			sleep(keying_time);
 		} else {
 			break;
 		}
-		pthread_mutex_lock(
+		/* pthread_mutex_lock(
 				&mutex_terminal_state[KEYING][client_data.transaction]);
 		--terminal_state[KEYING][client_data.transaction];
 		pthread_mutex_unlock(
-				&mutex_terminal_state[KEYING][client_data.transaction]);
+				&mutex_terminal_state[KEYING][client_data.transaction]);*/
 
 		/* Note this thread is executing a transation. */
-		pthread_mutex_lock(
+		/* pthread_mutex_lock(
 				&mutex_terminal_state[EXECUTING][client_data.transaction]);
 		++terminal_state[EXECUTING][client_data.transaction];
 		pthread_mutex_unlock(
-				&mutex_terminal_state[EXECUTING][client_data.transaction]);
+				&mutex_terminal_state[EXECUTING][client_data.transaction]);*/
 		/* Execute transaction and record the response time. */
 		if (gettimeofday(&rt0, NULL) == -1) {
 			perror("gettimeofday");

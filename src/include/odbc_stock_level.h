@@ -15,5 +15,6 @@
 #define STMT_STOCK_LEVEL "CALL stock_level (?, ?, ?, ?)"
 
 int execute_stock_level(struct db_context_t *odbcc, struct stock_level_t *data);
+int init_stock_level_txn (struct db_context_t *odbcc);
 
 #endif /* _ODBC_STOCK_LEVEL_H_ */

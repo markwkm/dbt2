@@ -15,5 +15,6 @@
 #define STMT_DELIVERY "CALL delivery (?, ?)"
 
 int execute_delivery(struct db_context_t *odbcc, struct delivery_t *data);
+int init_delivery_txn (struct db_context_t *odbcc);
 
 #endif /* _ODBC_DELIVERY_H_ */
