@@ -63,6 +63,10 @@ struct sql_result_mysql {
 };
 #endif /* HAVE_MYSQL */
 
+#ifdef LIBORACLE
+#include "oracle_common.h"
+#endif /* LIBORACLE */
+
 #ifdef HAVE_ODBC
 #ifdef IODBC
 #include <isql.h>
@@ -198,6 +202,11 @@ int sql_close_cursor_mysql(struct db_context_t *, struct sql_result_t *);
 int sql_fetchrow_mysql(struct db_context_t *, struct sql_result_t *);
 char *sql_getvalue_mysql(struct db_context_t *, struct sql_result_t *, int);
 #endif /* HAVE_MYSQL */
+
+#ifdef LIBORACLE
+int db_init(char * _oracle_dbname, char *_oracle_host, char * _oracle_user,
+            char * _oracle_pass, char * _oracle_port);
+#endif /* LIBORACLE */
 
 int disconnect_from_db(struct db_context_t *);
 int process_transaction(int, struct db_context_t *, union transaction_data_t *);

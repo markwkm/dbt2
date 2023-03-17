@@ -1,5 +1,12 @@
 vX.Y.Z (YYYY-MM-DD)
 
+- Added support for Oracle Single Instance and Real Application Clusters.
+- Added directory scripts/oracle, which includes all oracle related scripts and
+  templates.
+- Added directory src/oracle, which include oracle oci implementation.
+- Added header files src/include/oracle_* for oracle oci implementation.
+- Change in generic odbc layer to add support for Oracle and performance
+  enhancements.
 - pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
   and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
   and s_remote_cnt, applies the +91 quantity adjustment only when stock does

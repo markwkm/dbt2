@@ -1,0 +1,81 @@
+##############################################################################
+# This file is released under the terms of the Artistic License.  Please see
+# the file LICENSE, included in this package, for details.
+# Copyright (C) 2006-2008 Gurudas Pai & Oracle Corporation. All rights reserved.
+
+##############################################################################
+
+Run all steps as oracle user.
+
+Setup 
+1. Setup passwordless ssh for Oracle user across all participant machines
+  (clients to server and vice versa. Machine where dbt2 is installed 
+   to clients and servers and vice versa ).
+
+2. Unpack the kit . This should create a directory named dbt2.
+
+3. cd dbt2/scripts/oracle/install/
+
+4. ./setup.sh 
+   User can use responsefile, template is available rsp-rac and rsp-sn 
+   for RAC and single node respectively.This step will generate all 
+   scripts/config files based on user parameters.
+
+
+Run
+
+1. On server node (In case of RAC,on master node)
+   cd <workhome>/dbt2-work/server/warehouse80 
+	
+   Where
+	<workhome> is the work directory entered by user during Setup step 3.
+	80 is the number of warehouses entered by user during Setup step 3.
+
+2. ./oracle-dbt2.sh to create oracle database and run oracle dbt2 test.
+
+  Usage:
+	oracle-dbt2.sh  [-d ]--> To create database
+                        [-r ]--> To run the test
+                        [-u users]--> Number of users
+                        [-n testname]--> Testname
+                        [-t duration]--> Duration in seconds
+                        [-h ]--> print this mesage
+                        [-nodb]---> do not start oracle db/asm instance
+                        [-nolsnr]--> do not start oracle listener
+                        [-debug]--> For debug on
+                        [-nocfg]--> Do not change init.ora based on number of users
+                        [-osstat]--> To collect os-statistics
+                        [-nosp]--> To disable statspack collection
+			
+  eg:
+	To create database		
+	./oracle-dbt2.sh -d
+	
+	To run the test 
+	./oracle-dbt2.sh -r -n mytest -t 3600 -u 300
+
+
+
+Configuration files , Log and Result locations:
+
+
+1.All server config files are available on server nodes @ <workhome>/dbt2-work/server/config
+  ls
+  asm.env  asm.ora  build.ora  create.ora  listener.ora  run.ora  server.env  testsetup.env  user.env
+
+2.All client config files are available on client node @ <workhome>/dbt2-work/client/config
+  ls
+  client.env  tnsnames.ora
+
+3.Dbcreation logs and alert logs on server node @ <workhome>/dbt2-work/server/result
+  ls
+  log ora-alert
+
+4.Metrics (TPM) will be available under on server node @ <workhome>/dbt2-work/server/result/<testname>/
+  ls
+  metrics analyze
+
+
+
+
+

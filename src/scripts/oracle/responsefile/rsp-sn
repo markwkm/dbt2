@@ -1,0 +1,25 @@
+##############################################################################
+# This file is released under the terms of the Artistic License.  Please see
+# the file LICENSE, included in this package, for details.
+# Copyright (C) 2006-2008 Gurudas Pai & Oracle Corporation. All rights reserved.
+
+##############################################################################
+	
+
+	export TESTCASE=cpu_erp
+	export WORKHOME=/home/oracle
+	export STORAGETYPE=filesystem
+	export DATAFILESLOC=/local-storage/db-files
+	export WAREHOUSE=80
+	export ARCHIVE=true
+	export ARCHIVELOC=/local-storage/archive/
+	export DBBLOCKSIZE=2048
+	export SGA=1
+	export AIO=true
+	export DIO=true
+	export SERVERS="machine1"
+	export CLIENTS="machine1"
+	export SERVERORAHOME=/home/oracle/dbhome/
+	export CLIENTORAHOME=/home/oracle/dbhome/
+	export RAC=false
+	export DRIVER=oci

@@ -76,6 +76,10 @@ void *db_worker(void *data) {
 		exit(1);
 	}
 
+#ifdef LIBORACLE
+       printf("connected to oracle server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s|\n", sname, oracle_host, oracle_user, oracle_pass, oracle_port_t);
+#endif /* LIBORACLE */
+
 	while (!exiting) {
 		/*
 		 * I know this loop will prevent the program from exiting

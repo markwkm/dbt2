@@ -19,8 +19,16 @@ SQLCHAR servername[SNAMELEN + 1];
 SQLCHAR username[32];
 SQLCHAR authentication[32];
 
-int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc) {
+#ifdef ORACLEODBC
+extern int init_delivery_txn (struct db_context_t *odbcc);
+extern int init_integrity_txn (struct db_context_t *odbcc);
+extern int init_nord_txn (struct db_context_t *odbcc);
+extern int init_order_status_txn (struct db_context_t *odbcc);
+extern int init_payment_txn (struct db_context_t *odbcc);
+extern int init_stock_level_txn (struct db_context_t *odbcc);
+#endif /* ORACLEODBC */
 
+int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc) {
 	if (rc == SQL_SUCCESS) {
 		return OK;
 	} else if (rc == SQL_SUCCESS_WITH_INFO) {
@@ -64,7 +72,9 @@ int commit_transaction(struct db_context_t *dbc) {
 
 	i = SQLEndTran(SQL_HANDLE_DBC, dbc->library.odbc.hdbc, SQL_COMMIT);
 	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO) {
+#ifndef ORACLEODBC
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->library.odbc.hstmt);
+#endif /* ORACLEODBC */
 		return ERROR;
 	}
 	return OK;
@@ -93,6 +103,7 @@ int _connect_to_db(struct db_context_t *odbcc) {
 		return ERROR;
 	}
 
+#ifndef ORACLEODBC
 	rc = SQLSetConnectAttr(
 			odbcc->library.odbc.hdbc, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF,
 			0);
@@ -117,7 +128,38 @@ int _connect_to_db(struct db_context_t *odbcc) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	pthread_mutex_unlock(&db_source_mutex);
+#else
+	rc = SQLSetConnectAttr(odbcc->library.odbc.hdbc, SQL_ATTR_AUTOCOMMIT,
+			SQL_AUTOCOMMIT_OFF, 0);
+#endif /* ORACLEODBC */
+
+#ifdef ORACLEODBC
+
+	if ( (rc = init_delivery_txn (odbcc)) != OK ) {
+		LOG_ERROR_MESSAGE("Delivery context initialization failed");
+		return ERROR;
+	}
+	if ( (rc = init_integrity_txn (odbcc)) != OK ) {
+		LOG_ERROR_MESSAGE("Integrity context initialization failed");
+		return ERROR;
+	}
+	if ( (rc = init_nord_txn (odbcc)) != OK ) {
+		LOG_ERROR_MESSAGE("Neworder context initialization failed");
+		return ERROR;
+	}
+	if ( (rc = init_order_status_txn (odbcc)) != OK ) {
+		LOG_ERROR_MESSAGE("Orderstatus context initialization failed");
+		return ERROR;
+	}
+	if ( (rc = init_payment_txn (odbcc)) != OK ) {
+		LOG_ERROR_MESSAGE("Payment context initialization failed");
+		return ERROR;
+	}
+	if ( (rc = init_stock_level_txn (odbcc)) != OK ) {
+		LOG_ERROR_MESSAGE("Stocklevel context initialization failed");
+		return ERROR;
+	}
+#endif /* ORACLEODBC */
 
 	return OK;
 }
@@ -141,11 +183,38 @@ int odbc_disconnect(struct db_context_t *odbcc) {
 		LOG_ODBC_ERROR(SQL_HANDLE_DBC, odbcc->library.odbc.hdbc);
 		return ERROR;
 	}
+#ifdef ORACLEODBC
+	if (odbcc->dctx) {
+		free(odbcc->dctx);
+		//LOG_ERROR_MESSAGE("Freed dctx");
+	}
+	if (odbcc->ictx) {
+		free(odbcc->ictx);
+		//LOG_ERROR_MESSAGE("Freed ictx");
+	}
+	if (odbcc->nctx) {
+		free(odbcc->nctx);
+		//LOG_ERROR_MESSAGE("Freed nctx");
+	}
+	if (odbcc->octx) {
+		free(odbcc->octx);
+		//LOG_ERROR_MESSAGE("Freed octx");
+	}
+	if (odbcc->pctx) {
+		free(odbcc->pctx);
+		//LOG_ERROR_MESSAGE("Freed pctx");
+	}
+	if (odbcc->sctx) {
+		free(odbcc->sctx);
+		//LOG_ERROR_MESSAGE("Freed sctx");
+	}
+#else
 	rc = SQLFreeHandle(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 	if (rc != SQL_SUCCESS) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
+#endif /* ORACLEODBC */
 	pthread_mutex_unlock(&db_source_mutex);
 	return OK;
 }
@@ -178,7 +247,9 @@ int rollback_transaction(struct db_context_t *dbc) {
 
 	i = SQLEndTran(SQL_HANDLE_DBC, dbc->library.odbc.hdbc, SQL_ROLLBACK);
 	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO) {
+#ifndef ORACLEODBC
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->library.odbc.hstmt);
+#endif /* ORACLEODBC */
 		return ERROR;
 	}
 	return STATUS_ROLLBACK;
@@ -187,6 +258,7 @@ int rollback_transaction(struct db_context_t *dbc) {
 int dbt2_sql_execute(
 		struct db_context_t *dbc, char *query, struct sql_result_t *sql_result,
 		char *query_name) {
+#ifndef ORACLEODBC
 	int i;
 	SQLCHAR colname[32];
 	SQLSMALLINT coltype;
@@ -235,12 +307,16 @@ int dbt2_sql_execute(
 	}
 
 	return 1;
+#else
+	return 0;
+#endif /* ORACLEODBC */
 }
 
 int dbt2_sql_close_cursor(
 		struct db_context_t *dbc, struct sql_result_t *sql_result) {
-	SQLRETURN rc;
-
+#ifndef ORACLEODBC
+	SQLRETURN   rc;
+   
 	if (sql_result->library.odbc.lengths) {
 		free(sql_result->library.odbc.lengths);
 		sql_result->library.odbc.lengths = NULL;
@@ -252,12 +328,16 @@ int dbt2_sql_close_cursor(
 		return 0;
 	}
 	return 1;
+#else
+	return 0;
+#endif /* ORACLEODBC */
 }
 
 int dbt2_sql_fetchrow(
 		struct db_context_t *dbc, struct sql_result_t *sql_result) {
-	SQLRETURN rc;
-
+#ifndef ORACLEODBC
+	SQLRETURN  rc;
+   
 	rc = SQLFetch(dbc->library.odbc.hstmt);
 
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
@@ -268,10 +348,14 @@ int dbt2_sql_fetchrow(
 	}
 
 	return 1;
+#else
+	return 0;
+#endif /* ORACLEODBC */
 }
 
 char *dbt2_sql_getvalue(
 		struct db_context_t *dbc, struct sql_result_t *sql_result, int field) {
+#ifndef ORACLEODBC
 	SQLRETURN rc;
 	char *tmp;
 
@@ -304,4 +388,7 @@ char *dbt2_sql_getvalue(
 #endif
 	}
 	return tmp;
+#else
+	return (char*)0;
+#endif /* ORACLEODBC */
 }
