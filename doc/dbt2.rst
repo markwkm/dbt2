@@ -48,6 +48,7 @@ Database Management System Notes
 
 .. include:: cockroachdb.rst
 .. include:: mysql.rst
+.. include:: oracle.rst
 .. include:: postgresql.rst
 .. include:: sqlite.rst
 .. include:: yugabytedb.rst
