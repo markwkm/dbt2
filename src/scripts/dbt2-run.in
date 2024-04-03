@@ -656,11 +656,11 @@ if [ "${CONFIGFILE}" = "" ]; then
 		exit 1
 	fi
 
-    # Since this code path is running the driver on the current system, we will
-    # have all the data to calculate the primary metric.
+	# Since this code path is running the driver on the current system, we will
+	# have all the data to calculate the primary metric.
 	if ! which rsync > /dev/null 2>&1; then
 		printf "WARNING: rsync required on current system in order to "
-        echo "retrieve data from any remote systems"
+		echo "retrieve data from any remote systems"
 	fi
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
@@ -1275,7 +1275,8 @@ if [ "${CONFIGFILE}" = "" ]; then
 	fi
 
 	# Retrieve test data from all remote systems.
-	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ ${STATS} -eq 1 ] && [ -n "${DB_HOSTNAME}" ] && \
+			[ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		# If a database system is specified, rsync all the logs back to the
 		# driver system after creating the sar csv data.  There will only be a
 		# sar output file if the database is on a separate system.
