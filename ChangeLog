@@ -7,6 +7,7 @@ vX.Y.Z (YYYY-MM-YY)
 - Added header files src/include/oracle_* for oracle oci implementation.
 - Change in generic odbc layer to add support for Oracle and performance
   enhancements.
+- oracle: update CMakeList.txt to search for oci.h and libclntsh
 
 v0.61.6 (2024-09-09)
 
