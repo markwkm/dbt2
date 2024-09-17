@@ -23,6 +23,10 @@
 #include <wchar.h>
 
 #include <errno.h>
+#ifndef __USE_MISC
+/* This seems to be necessary on older distros, but not sure why... */
+#define __USE_MISC
+#endif /* __USE_MISC */
 #include <sys/stat.h>
 #include <sys/types.h>
 

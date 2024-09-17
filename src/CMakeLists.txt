@@ -144,6 +144,41 @@ if (ODBC_FOUND)
 endif (ODBC_FOUND)
 
 #
+# Check for Oracle
+#
+
+message (STATUS "Checking for Oracle header file 'oci.h'")
+find_path(ORACLE_INCLUDE_DIR
+    NAMES oci.h
+    HINTS $ENV{ORACLE_HOME}/sdk/include
+)
+
+message (STATUS "Checking for Oracle library file 'libclntsh'")
+find_library(ORACLE_LIBRARY
+    NAMES clntsh
+    HINTS $ENV{ORACLE_HOME}/lib
+)
+
+if (ORACLE_INCLUDE_DIR AND ORACLE_LIBRARY)
+    message(STATUS "  Found Oracle header and library")
+    set(ORACLE_FOUND TRUE)
+endif (ORACLE_INCLUDE_DIR AND ORACLE_LIBRARY)
+
+if (ORACLE_FOUND)
+    set (DB_SOURCE
+        ${DB_SOURCE}
+        oracle/dbc_common.c
+        oracle/dbc_new_order.c
+        oracle/dbc_payment.c
+        oracle/dbc_order_status.c
+        oracle/dbc_delivery.c
+        oracle/dbc_stock_level.c
+        oracle/dbc_integrity.c
+    )
+    set (DBCFLAGS "${DBCFLAGS} -DHAVE_ORACLE -I${ORACLE_INCLUDE_DIR}")
+endif (ORACLE_FOUND)
+
+#
 # Check for sqlite3
 #
 
@@ -341,6 +376,12 @@ if (ODBC_FOUND)
     target_link_libraries (${DRIVER3} ${ODBC_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${ODBC_LIBRARIES})
 endif (ODBC_FOUND)
+if (ORACLE_FOUND)
+    target_link_libraries (${CLIENT} ${ORACLE_LIBRARY})
+    target_link_libraries (${CLIENT2} ${ORACLE_LIBRARY})
+    target_link_libraries (${DRIVER3} ${ORACLE_LIBRARY})
+    target_link_libraries (${TXN_TEST} ${ORACLE_LIBRARY})
+endif (ORACLE_FOUND)
 if (SQLITE3_FOUND)
     target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
     target_link_libraries (${CLIENT2} ${SQLITE3_LIBRARIES})

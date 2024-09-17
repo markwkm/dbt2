@@ -1,0 +1,31 @@
+# Build a development environment for Oracle.
+
+FROM container-registry.oracle.com/database/express:21.3.0-xe
+
+USER root
+
+RUN yum -y update && \
+    yum -y install oracle-epel-release-el7 && \
+    yum clean all
+
+RUN yum -y update && \
+    yum -y install curl \
+                   gcc \
+                   gcc-c++ \
+                   libev-devel \
+                   make && \
+    yum clean all
+
+ARG ARCH="x86_64"
+
+ARG CMAKEVER="3.7.2"
+RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
+         https://github.com/Kitware/CMake/releases/download/v${CMAKEVER}/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz && \
+    tar -C /usr --strip-components=1 \
+        -xf /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz
+
+USER root
+
+# podman build --isolation=chroot -t dbt2-oracle -f Containerfile.oracle .
+# podman run -d -v .:/home/oracle/dbt2:rw,Z -e ORACLE_PWD=dbt2 -w /home/oracle/dbt2 --name dbt2ora --shm-size=2g -p 1521:1521 dbt2-oracle
+# podman exec -u root -it dbt2ora /bin/bash
