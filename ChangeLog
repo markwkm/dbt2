@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- run: support enabling software profiling in the config file
+
 v0.61.7 (2025-07-01)
 
 - pgsql: fix load-stored-procs script logic for checking for necessary

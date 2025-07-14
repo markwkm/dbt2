@@ -735,6 +735,11 @@ else
 	else
 		DRIVER3=0
 	fi
+
+	TMP="$(toml get --raw "${CONFIGFILE}" profile)"
+	if [ "${TMP}" = "1" ]; then
+		PROFILE=1
+	fi
 fi
 
 # Enable altered execution mode only if DRIVER3 is enabled.

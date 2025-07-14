@@ -22,6 +22,9 @@ duration = 120
 # Client configuration: create a [[client]] (Array of Tables) entry for each
 # instance of a "client" to start.  Client are only needed for "mode" 1.
 
+# Enable software profiling by setting profile to 1.
+#profile = 1
+
 [[client]]
 # These settings are required
 
