@@ -17,7 +17,7 @@ duration = 120
 # Optional general settings:
 
 # Database user name, if not default
-#dbuser: dbt2
+#dbuser = "dbt2"
 
 # Client configuration: create a [[client]] (Array of Tables) entry for each
 # instance of a "client" to start.  Client are only needed for "mode" 1.
