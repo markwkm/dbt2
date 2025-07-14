@@ -725,9 +725,20 @@ else
 		exit 98
 	fi
 
-	DBNAME="$(toml get "${CONFIGFILE}" . | jq -r '.database_name')"
-	DURATION="$(toml get "${CONFIGFILE}" . | jq -r '.duration')"
-	WAREHOUSES="$(toml get "${CONFIGFILE}" . | jq -r '.warehouses')"
+	TMP="$(toml get --raw "${CONFIGFILE}" database_name)"
+	if [ ! "${TMP}" = "" ]; then
+		DBNAME=${TMP}
+	fi
+
+	TMP="$(toml get --raw "${CONFIGFILE}" duration)"
+	if [ ! "${TMP}" = "" ]; then
+		DURATION=${TMP}
+	fi
+
+	TMP="$(toml get --raw "${CONFIGFILE}" warehouses)"
+	if [ ! "${TMP}" = "" ]; then
+		WAREHOUSES=${TMP}
+	fi
 
 	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.mode')"
 	if [ "${TMP}" = "3" ]; then

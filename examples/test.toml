@@ -1,6 +1,6 @@
 # DBT-2 Execution Configuration
 
-# Required general settings:
+# General settings:
 
 # Test mode, see driver documentation for details.  Use 1 or 3.
 mode = 3
@@ -13,8 +13,6 @@ warehouses = 1
 
 # Test duration in seconds
 duration = 120
-
-# Optional general settings:
 
 # Database user name, if not default
 #dbuser = "dbt2"
