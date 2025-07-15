@@ -778,7 +778,8 @@ if [ "${CONFIGFILE}" = "" ]; then
 		HOSTNAME=$(eval "${DB_COMMAND} hostname")
 		eval "${DB_COMMAND} dbt2 get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
 	else
-		dbt2 get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
+		HOSTNAME=$(hostname)
+		dbt2 get-os-info -o "${DB_OUTPUT_DIR}/${HOSTNAME}"
 	fi
 
 	if [ $PRIVILEGED -eq 1 ]; then
@@ -790,6 +791,10 @@ if [ "${CONFIGFILE}" = "" ]; then
 		eval "${DB_COMMAND} dbt2 ${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
 				-o ${DB_OUTPUT_DIR}" || exit 1
 	fi
+
+	mkdir -p "${DB_OUTPUT_DIR}/${HOSTNAME}"
+	dbt2 "${DBMS}-plans" -h "${HOSTNAME}" -d "${DBNAME}" \
+			-o "${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
 fi
 
 #
@@ -958,10 +963,6 @@ if [ "${CONFIGFILE}" = "" ]; then
 
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
-	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} dbt2 ${DBMS}-plans -d ${DBNAME} \
-				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
-	fi
 else
 	if [ ! "${DRIVER3}" = "1" ]; then
 		CLIENTS="$(toml get "${CONFIGFILE}" . | jq -r '.client | length')"
@@ -1265,6 +1266,16 @@ fi
 
 # Start collecting system statistics while we ramp up the test.
 stat_collection
+
+for SYSTEM in ${DBLIST}; do
+	if [ "${SYSTEM}" = "localhost" ]; then
+		DIR="${DB_OUTPUT_DIR}/$(hostname)"
+	else
+		DIR="${DB_OUTPUT_DIR}/${SYSTEM}"
+	fi
+	mkdir -p "${DIR}"
+	dbt2 "${DBMS}-plans" -h "${SYSTEM}" -d "${DBNAME}" -o "${DIR}/plan0.txt" &
+done
 
 printf "Waiting for driver(s) to ramp up, "
 do_sleep $DRIVER_RAMPUP_TIME

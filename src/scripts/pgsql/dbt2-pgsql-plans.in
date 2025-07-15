@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -10,23 +11,87 @@
 # If the SQL in funcs.c is updated, this file should be updated to match.
 #
 
-explain() {
-	SQL="EXPLAIN ${@}"
-	psql ${PORTARG} -e -d ${DBT2DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) PostgreSQL plan collector.
+
+Usage:
+  $(basename "${0}") [OPTION]
+
+Options:
+  -h ADDRESS, --db-host=ADDRESS
+                 ADDRESS of database system
+  -d NAME, --db-name=NAME
+                 NAME of the database
+  -l PORT, --db-port=PORT
+                 database listening PORT number
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
-while getopts "d:l:o:" opt; do
-	case ${opt} in
-	d)
-		DBT2DBNAME=$OPTARG
+explain() {
+	SQL="EXPLAIN ${@}"
+	eval "psql ${HOSTNAMEARG} ${PORTARG} -e -d ${DBT2DBNAME} -c \"${SQL}\"" \
+			>> ${OUTPUT_FILE} 2>&1
+}
+
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d?*)
+		DBT2DBNAME="${1#*-d}"
 		;;
-	l)
-		PORT=${OPTARG}
+	(-d | --db-name)
+		shift
+		DBT2DBNAME=${1}
 		;;
-	o)
-		OUTPUT_FILE=${OPTARG}
+	(--db-name=?*)
+		DBT2DBNAME=${1#*--db-name=}
+		;;
+	(-h?*)
+		HOSTNAMEARG="-h ${1#*-h}"
+		;;
+	(-h | --db-host)
+		shift
+		HOSTNAMEARG="-h ${1}"
+		;;
+	(--db-host=?*)
+		HOSTNAMEARG="-h ${1#*--db-host=}"
+		;;
+	(-l?*)
+		PORT="${1#*-l}"
+		;;
+	(-l | --db-port)
+		shift
+		PORT="${1}"
+		;;
+	(--db-port=?*)
+		PORT="${1#*--db-port=}"
+		;;
+	(-o?*)
+		PORT="${1#*-o}"
+		;;
+	(-o)
+		shift
+		OUTPUT_FILE="${1}"
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
 		;;
 	esac
+	shift
 done
 
 if [ "x${DBT2DBNAME}" = "x" ]; then

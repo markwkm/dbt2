@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
+- pgsql-plans: update usage and command line arguments
 
 v0.61.7 (2025-07-01)
 
