@@ -222,6 +222,11 @@ Datum delivery(PG_FUNCTION_ARGS) {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 								errmsg("DELIVERY_6 failed")));
 			}
+			if (ol_amount == NULL) {
+				/* An order with no order lines; do not crash numeric_in. */
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+								errmsg("DELIVERY_6 returned no amount")));
+			}
 			args[0] = DirectFunctionCall3(
 					numeric_in, CStringGetDatum(ol_amount),
 					ObjectIdGetDatum(InvalidOid),
@@ -257,11 +262,8 @@ Datum delivery(PG_FUNCTION_ARGS) {
 
 		int32 **pp = (int32 **) funcctx->user_fctx;
 
-		values[0] = (char *) palloc(11 * sizeof(char));
-		values[1] = (char *) palloc(11 * sizeof(char));
-
-		snprintf(values[0], 10, "%d", pp[funcctx->call_cntr][0]);
-		snprintf(values[1], 10, "%d", pp[funcctx->call_cntr][1]);
+		values[0] = psprintf("%d", pp[funcctx->call_cntr][0]);
+		values[1] = psprintf("%d", pp[funcctx->call_cntr][1]);
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);
 		result = HeapTupleGetDatum(tuple);
