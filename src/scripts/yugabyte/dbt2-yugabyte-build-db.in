@@ -66,7 +66,7 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-l ${PORT}"
 fi
 
@@ -88,7 +88,7 @@ dbt2 yugabyte-load-db "${PORTARG}" -s "${SEED}" -w "${WAREHOUSES}" || exit 1
 dbt2 pgsql-create-indexes "${PORTARG}" "${TABLESPACES_FLAG}" || exit 1
 dbt2 pgsql-load-stored-procs "${PORTARG}" -t "${UDF_TYPE}" || exit 1
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 

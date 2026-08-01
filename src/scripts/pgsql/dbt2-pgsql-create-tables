@@ -26,13 +26,13 @@ while getopts "l:t" OPT; do
 	esac
 done
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 PSQL="psql -X ${PORTARG} -e -d ${DBT2DBNAME}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	if [ "x${DBT2TSDIR}" = "x" ]; then
+	if [ "${DBT2TSDIR}" = "" ]; then
 		echo "DBT2TSDIR is not set."
 		exit 1
 	fi

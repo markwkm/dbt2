@@ -74,7 +74,7 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	export PGPORT="${PORT}"
 fi
 
@@ -83,7 +83,7 @@ if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
 fi
 
 # Generate a seed randomly if one is not provided.
-if [ "x${SEED}" = "x" ]; then
+if [ "${SEED}" = "" ]; then
 	SEED=$(dbt2 rand -1 1 15)
 fi
 

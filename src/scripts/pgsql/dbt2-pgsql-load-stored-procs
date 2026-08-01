@@ -6,7 +6,7 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ "x${DBT2DBNAME}" = "x" ]; then
+if [ "${DBT2DBNAME}" = "" ]; then
 	echo "DBT2DBNAME not defined."
 	exit 1
 fi
@@ -54,7 +54,7 @@ if [ -z "${TYPE}" ]; then
 	exit 1
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 

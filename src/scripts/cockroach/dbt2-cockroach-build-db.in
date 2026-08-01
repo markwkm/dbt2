@@ -69,7 +69,7 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-l ${PORT}"
 fi
 

@@ -16,7 +16,7 @@ if [ -z ${DBT2DBNAME} ]; then
     exit 1
 fi
 
-if [ ! "x$DBT2XLOGDIR" = "x" ]; then
+if [ ! "$DBT2XLOGDIR" = "" ]; then
 	INITDBFLAGS="-X $DBT2XLOGDIR"
 fi
 

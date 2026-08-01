@@ -62,7 +62,7 @@ if ! $ENGINE inspect $CONTAINER_TAG > /dev/null; then
 	"${CONTAINERDIR}/build-client" "$DBMS" || exit 1
 fi
 
-if [ "x$DBMS" = "xpgsql" ]; then
+if [ "$DBMS" = "pgsql" ]; then
 	$ENGINE run \
 		$ENGINEARGS \
 		-d \

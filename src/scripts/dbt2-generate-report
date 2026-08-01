@@ -272,12 +272,12 @@ if [ ! -f "$SUMMARY" ]; then
 fi
 
 DBMS=$(grep RDBMS $INDIR/readme.txt | cut -d " " -f 2)
-if [ "x$DBMS" = "x" ]; then
+if [ "$DBMS" = "" ]; then
 	error "Could not determine what RDBMS used from results"
 fi
 
 DBNAME=$(grep "Database Name" $INDIR/readme.txt | cut -d " " -f 3)
-if [ "x$DBNAME" = "x" ]; then
+if [ "$DBNAME" = "" ]; then
 	warning "Could not determine what the database name used from results"
 fi
 
@@ -429,7 +429,7 @@ if which rst2html5 > /dev/null 2>&1; then
 	RST2HTML5="rst2html5"
 fi
 
-if [ ! "x${RST2HTML5}" = "x" ]; then
+if [ ! "${RST2HTML5}" = "" ]; then
 	# pandoc can't properly convert multi-cell table headings from rst but
 	# Sphinx's rst2html can. Then pandoc can convert multi-cell table headings
 	# from html to pdf.

@@ -40,7 +40,7 @@ if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
 	exit 0
 fi
 
-if [ "x${PARAMETERS}" = "x" ]; then
+if [ "${PARAMETERS}" = "" ]; then
 	pg_ctl -D ${DBT2PGDATA} -w -l ${OUTDIR}/${LOGFILE} start
 else
 	pg_ctl -D ${DBT2PGDATA} -w -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start

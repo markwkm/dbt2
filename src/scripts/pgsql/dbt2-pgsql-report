@@ -195,7 +195,7 @@ done
 wait
 
 DBNAME=$(grep "Database Name" ${INDIR}/readme.txt | cut -d " " -f 3)
-if [ "x${DBNAME}" = "x" ]; then
+if [ "${DBNAME}" = "" ]; then
 	echo "ERROR: Could not determine what the database name used from results"
 	exit 1
 fi

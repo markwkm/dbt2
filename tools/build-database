@@ -166,11 +166,11 @@ if [ "$ENGINE" = "podman" ]; then
 fi
 
 CREATE_RC=0
-if [ "x${DBMS}" = "xcockroach" ]; then
+if [ "${DBMS}" = "cockroach" ]; then
 	create_cockroach || CREATE_RC=1
-elif [ "x${DBMS}" = "xpgsql" ]; then
+elif [ "${DBMS}" = "pgsql" ]; then
 	create_pgsql || CREATE_RC=1
-elif [ "x${DBMS}" = "xyugabyte" ]; then
+elif [ "${DBMS}" = "yugabyte" ]; then
 	create_yugabyte || CREATE_RC=1
 else
 	echo "ERROR: unknown DBMS $DBMS"

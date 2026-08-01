@@ -123,7 +123,7 @@ else
 	export DBT2DBNAME="${DBNAME}"
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-l ${PORT}"
 fi
 
@@ -160,7 +160,7 @@ eval "dbt2 pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
 eval "dbt2 pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} -t ${UDF_TYPE}" \
 		|| exit 1
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 

@@ -32,8 +32,8 @@ fi
 DBT2_TAG="$1"
 
 if [ $# -eq 1 ]; then
-	if [ ! "x$DBT2_TAG" = "xdbt2-base" ] && \
-			[ ! "x$DBT2_TAG" = "xdbt2-driver" ]; then
+	if [ ! "$DBT2_TAG" = "dbt2-base" ] && \
+			[ ! "$DBT2_TAG" = "dbt2-driver" ]; then
 		usage
 		exit 1
 	fi
@@ -42,7 +42,7 @@ fi
 
 DBMS="$2"
 if [ $# -eq 2 ]; then
-	if [ ! "x$DBT2_TAG" = "xdbt2-client" ]; then
+	if [ ! "$DBT2_TAG" = "dbt2-client" ]; then
 		usage
 		exit 1
 	fi
@@ -51,7 +51,7 @@ fi
 
 SF="$3"
 if [ $# -eq 3 ]; then
-	if [ ! "x$DBT2_TAG" = "xdbt2-database" ]; then
+	if [ ! "$DBT2_TAG" = "dbt2-database" ]; then
 		usage
 		exit 1
 	fi

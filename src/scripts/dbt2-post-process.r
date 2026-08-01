@@ -14,7 +14,7 @@ if [ $# -lt 1 ]; then
 	echo
 fi
 
-if [ ! "x$VERBOSE" = "x1" ]; then
+if [ ! "$VERBOSE" = "1" ]; then
 	VERBOSE=0
 fi
 
