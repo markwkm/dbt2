@@ -93,9 +93,12 @@ recv_data_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
 	if (client_data.status == ERROR) {
 		printf("process_transaction() error on %s\n",
 			   transaction_name[client_data.transaction]);
-		return;
 	}
 
+	/*
+	 * Always send a response, even on error, since the driver
+	 * waits for one before issuing the next transaction.
+	 */
 	length =
 			_send(ri->socket, (void *) &client_data,
 				  sizeof(struct client_transaction_t));
@@ -142,7 +145,17 @@ recv_sock_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
 				"[%d] recvmsg() error waiting for socket\n", getpid());
 		return;
 	}
+	if (length == 0) {
+		/* The parent closed the socket pair; stop watching it. */
+		ev_io_stop(loop, watcher);
+		return;
+	}
 	thissock = ((int *) CMSG_DATA(cmsg))[0];
+	if (thissock < 1 || thissock > max_driver_connections) {
+		LOG_ERROR_MESSAGE(
+				"[%d] received unusable descriptor %d", getpid(), thissock);
+		return;
+	}
 
 	/* Create new watcher on the new connection. */
 	if (io_vds[thissock - 1].socket != 0) {
@@ -191,7 +204,14 @@ accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;
 	((int *) CMSG_DATA(cmsg))[0] = newsfd;
-	sendmsg(pcsock[0], &msghdr, 0);
+	if (sendmsg(pcsock[0], &msghdr, 0) == -1) {
+		LOG_ERROR_MESSAGE("sendmsg() error handing off socket %d", newsfd);
+	}
+	/*
+	 * The child received its own copy of the descriptor; close the
+	 * parent's so it does not accumulate one per connection.
+	 */
+	close(newsfd);
 }
 
 /* The child processes do all the work. */
