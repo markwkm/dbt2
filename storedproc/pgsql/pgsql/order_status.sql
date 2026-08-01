@@ -45,7 +45,13 @@ BEGIN
 		WHERE customer.c_w_id = order_status.c_w_id
 		  AND customer.c_d_id = order_status.c_d_id
 		  AND customer.c_last = order_status.c_last
-		ORDER BY c_first ASC;
+		ORDER BY c_first ASC
+		OFFSET ((SELECT count(*)
+		         FROM customer
+		         WHERE customer.c_w_id = order_status.c_w_id
+		           AND customer.c_d_id = order_status.c_d_id
+		           AND customer.c_last = order_status.c_last) - 1) / 2
+		LIMIT 1;
 	ELSE
 		tmp_c_id = c_id;
 	END IF;

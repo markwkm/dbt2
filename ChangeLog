@@ -24,6 +24,8 @@ vX.Y.Z (YYYY-MM-DD)
   decimal places, per TPC-C Clause 2.5.2
 - pl/c: order status selects the median customer matching a last name
   instead of one past the median, per TPC-C Clause 2.6.2
+- pl/pgsql: order status selects the median customer matching a last name
+  instead of the first, per TPC-C Clause 2.6.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
