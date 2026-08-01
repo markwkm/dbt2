@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 @SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
@@ -74,16 +74,16 @@ for TABLE in $TABLES ; do
 
   echo "Loading table $TABLE"
 
-  if [ "$TABLE" == "orders" ]; then
+  if [ "$TABLE" = "orders" ]; then
     FN="order"
   else
     FN="$TABLE"
   fi
 
 
-  if [ "${TABLE}" == "order_line" ]; then
+  if [ "${TABLE}" = "order_line" ]; then
     EXTRA="(ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, @ol_delivery_d, ol_quantity, ol_amount, ol_dist_info) SET ol_delivery_d = nullif(@ol_delivery_d, '')"
-  elif [ "${TABLE}" == "orders" ]; then
+  elif [ "${TABLE}" = "orders" ]; then
     EXTRA="(o_id, o_d_id, o_w_id, o_c_id, o_entry_d, @o_carrier_id, o_ol_cnt, o_all_local) SET o_carrier_id = nullif(@o_carrier_id, '')"
   fi
 
@@ -98,7 +98,7 @@ done
 create_tables()
 {
 
-if [ "$DB_SCHEME" == "OPTIMIZED" ]; then
+if [ "$DB_SCHEME" = "OPTIMIZED" ]; then
 
 CUSTOMER="CREATE TABLE customer (
   c_id int(11) NOT NULL default '0',
@@ -481,7 +481,7 @@ while [ "${#}" -gt 0 ] ; do
 done
 
 # Check parameters.
-if [ "$DB_PATH" == "" ]; then
+if [ "$DB_PATH" = "" ]; then
   usage "specify path where dataset txt files are located - using -f <absolute path>"
   exit 1
 fi

@@ -20,6 +20,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Use build/ instead of builds/ for out of source builds, conforming to more
   common conventions
 - Fix bashisms in the POSIX shell scripts
+- Convert the remaining bash scripts to POSIX shell
 
 v0.61.7 (2025-07-01)
 

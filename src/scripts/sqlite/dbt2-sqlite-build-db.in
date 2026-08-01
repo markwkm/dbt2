@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 @SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
@@ -60,7 +60,7 @@ for TABLE in $TABLES ; do
 
   echo "Loading table $TABLE"
 
-  if [ "$TABLE" == "orders" ]; then
+  if [ "$TABLE" = "orders" ]; then
     FN="order"
   else
     FN="$TABLE"
@@ -76,7 +76,7 @@ done
 create_tables()
 {
 
-if [ "$DB_SCHEME" == "OPTIMIZED" ]; then
+if [ "$DB_SCHEME" = "OPTIMIZED" ]; then
 
 CUSTOMER="CREATE TABLE customer (
   c_id int(11) NOT NULL default '0',
@@ -418,7 +418,7 @@ while [ "${#}" -gt 0 ] ; do
 done
 
 # Check parameters.
-if [ "$DB_PATH" == "" ]; then
+if [ "$DB_PATH" = "" ]; then
   usage "specify path where dataset txt files are located - using -f <absolute path>"
   exit 1
 fi

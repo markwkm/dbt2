@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 @SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
@@ -136,7 +136,7 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-if [ "$DB_NAME" == "" ]; then
+if [ "$DB_NAME" = "" ]; then
   usage "specify database name using -d #"
   exit 1
 fi
