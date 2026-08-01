@@ -173,7 +173,7 @@ VACUUM_JOBS=1
 # Based on server version, enable vaccumdb parallelism if that version
 # is greater than or equal to 9.5.
 PG_VERSION_NUM=$(psql ${PORTARG} -At -d ${DBT2DBNAME} -c "SHOW server_version_num")
-PG_VERSION_NUM=$(( $PG_VERSION_NUM + 0 ))
+PG_VERSION_NUM=$(( PG_VERSION_NUM + 0 ))
 if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# Set default vacuum jobs to 9 because this is the number of tables
 	# present in the database. Setting the number of job to a value
@@ -183,7 +183,7 @@ if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# number to that number of CPUs.
 	if [ -f "/proc/stat" ]; then
 		CPUS=$(grep cpu /proc/stat | wc -l)
-		CPUS=$(( $CPUS - 1 ))
+		CPUS=$(( CPUS - 1 ))
 		if [ $CPUS -lt $VACUUM_JOBS ]; then
 			VACUUM_JOBS=$CPUS
 		fi

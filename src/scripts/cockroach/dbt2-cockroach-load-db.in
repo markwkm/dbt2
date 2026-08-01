@@ -93,7 +93,7 @@ load_table() {
 	SEED=$3
 
 	# simulate ceiling function
-	T=$(( ($WAREHOUSES + $RATE - 1) / $RATE ))
+	T=$(( (WAREHOUSES + RATE - 1) / RATE ))
 	P=$(seq 1 ${T})
 	for i in ${P}; do
 		run_datagen $T $i $TABLE $WAREHOUSES $SEED
