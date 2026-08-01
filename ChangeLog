@@ -70,6 +70,8 @@ vX.Y.Z (YYYY-MM-DD)
   per TPC-C Clause 2.1.6
 - driver2: think time is drawn from the negative exponential distribution
   instead of a constant mean, per TPC-C Clause 5.2.5.4
+- driver3: think time is drawn from the negative exponential distribution
+  instead of a constant mean, per TPC-C Clause 5.2.5.4
 - datagen: generated values cover the spec's inclusive ranges instead of
   stopping one value short of each maximum, per TPC-C Clause 4.3.3.1
 - datagen: the o_c_id permutation can place any customer last instead of always
