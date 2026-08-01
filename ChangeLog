@@ -10,6 +10,8 @@ vX.Y.Z (YYYY-MM-DD)
 - appimage: fix AppStream metadata to match the component identifier and
   desktop file naming
 - appimage: fix AppRun quoting, empty ARGV0 handling, and usage output
+- appimage: move Containerfile.appimage to appimage/Containerfile so all
+  AppImage related files are in the appimage/ directory
 
 v0.61.7 (2025-07-01)
 

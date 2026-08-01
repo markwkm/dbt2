@@ -19,5 +19,5 @@ cd "$CONTAINER_DIR/.." && \
 				--isolation=chroot \
 				--build-arg ARCH="${ARCH}" \
 				-t $CONTAINER_TAG \
-				-f Containerfile.appimage \
+				-f appimage/Containerfile \
 				.
