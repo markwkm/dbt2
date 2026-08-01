@@ -43,7 +43,7 @@ links_index_metrics()
 			sed -e "s/.png$//" | sort | uniq)
 
 	for METRIC in $INDEXMETRICS; do
-		echo -n "\`$METRIC <db/${NAME}/dbstat/index-stat/i_$METRIC/>\`__ "
+		printf "%s" "\`$METRIC <db/${NAME}/dbstat/index-stat/i_$METRIC/>\`__ "
 	done
 }
 
@@ -67,7 +67,7 @@ links_table_metrics()
 			sed -e "s/.png$//" | sort | uniq)
 
 	for METRIC in $TABLEMETRICS; do
-		echo -n "\`$METRIC <db/${NAME}/dbstat/table-stat/t_${METRIC}/>\`__ "
+		printf "%s" "\`$METRIC <db/${NAME}/dbstat/table-stat/t_${METRIC}/>\`__ "
 	done
 }
 

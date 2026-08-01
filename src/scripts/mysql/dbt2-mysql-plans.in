@@ -76,25 +76,25 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-if [ "$OUTPUT_FILE" == "" ]; then
+if [ "$OUTPUT_FILE" = "" ]; then
    usage "specify ouput filename -o <outfile>"
    exit 1
 fi
 
-if [ "$MYSQL" == "" ]; then
+if [ "$MYSQL" = "" ]; then
   MYSQL="mysql"
 fi
 
-if [ "$DB_SOCKET" == "" ]; then
+if [ "$DB_SOCKET" = "" ]; then
   usage "specify socket file using -s <file>"
   exit 1
 fi
 
-if [ "$DB_HOST" == "" ]; then
+if [ "$DB_HOST" = "" ]; then
   DB_HOST="localhost"
 fi
 
-if [ "$DB_NAME" == "" ]; then
+if [ "$DB_NAME" = "" ]; then
   usage "specify database name using -d #"
   exit 1
 fi
