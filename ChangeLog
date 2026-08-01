@@ -22,6 +22,11 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- tools: run-test invokes the current dbt2 run interface instead of the
+  removed run-workload script, starts the CockroachDB cluster containers
+  that build-database actually creates, stops its containers when a test
+  fails or is interrupted, and reports that 3-tier container tests are not
+  currently supported
 - tools: build the client and driver images before the database image,
   whose data load runs through the driver image, and propagate build
   failures; name the yugabyte and driver containers after the warehouse

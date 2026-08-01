@@ -3,10 +3,11 @@
 stop_containers()
 {
 	$ENGINE stop dbt2-driver-0
-	if [ "$TIERS" = "3" ]; then
-		$ENGINE stop dbt2-client-0
+	if [ "$DBMS" = "cockroach" ]; then
+		$ENGINE stop dbt2-cockroach-1 dbt2-cockroach-2 dbt2-cockroach-3
+	else
+		$ENGINE stop "$CONTAINER_NAME"
 	fi
-	$ENGINE stop "$CONTAINER_NAME"
 }
 
 DBMS="pgsql"
@@ -21,11 +22,14 @@ if [ $# -ge 2 ]; then
 fi
 
 if [ "$TIERS" = "" ]; then
-	TIERS=3
+	TIERS=2
 fi
 
-if [ "$TIERS" = "2" ]; then
-	RUNARGS="$RUNARGS --env DRIVER3=1"
+if [ ! "$TIERS" = "2" ]; then
+	# A 3-tier test needs the driver to reach a client started in another
+	# container, which dbt2 run currently only knows how to do over ssh.
+	echo "ERROR: only TIERS=2 tests are currently supported"
+	exit 1
 fi
 
 CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
@@ -71,10 +75,16 @@ fi
 CONTAINER_TAG="dbt2-database-${DBMS}-${WAREHOUSES}w"
 CONTAINER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
 
-trap stop_containers INT TERM
+trap 'stop_containers; exit 1' INT TERM
 
 if [ "$DBMS" = "yugabyte" ]; then
-	$ENGINE start "$CONTAINER_NAME"
+	$ENGINE start "$CONTAINER_NAME" || exit 1
+elif [ "$DBMS" = "cockroach" ]; then
+	# build-database starts a persistent three node cluster rather than
+	# creating an image.
+	$ENGINE start dbt2-cockroach-1 dbt2-cockroach-2 dbt2-cockroach-3 || \
+			exit 1
+	DBCONTAINER="dbt2-cockroach-1"
 else
 	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
 	$ENGINE run \
@@ -82,17 +92,11 @@ else
 			-d \
 			--rm \
 			--name "$CONTAINER_NAME" \
-			"$CONTAINER_TAG"
+			"$CONTAINER_TAG" || exit 1
 fi
 
-if [ "$TIERS" = "3" ]; then
-	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
-	$ENGINE run \
-			$ENGINEARGS \
-			-d \
-			--rm \
-			--name "dbt2-client-0" \
-			"dbt2-client"
+if [ "$DBCONTAINER" = "" ]; then
+	DBCONTAINER="$CONTAINER_NAME"
 fi
 
 # shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
@@ -101,28 +105,15 @@ $ENGINE run \
 		-d \
 		--rm \
 		--name "dbt2-driver-0" \
-		"dbt2-driver"
+		"dbt2-driver" || exit 1
 
 if [ "$ENGINE" = "podman" ]; then
-	DBIPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
-	if [ "$TIERS" = "3" ]; then
-		CLIPADDRESS=$($ENGINE inspect dbt2-client-0 | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
-	fi
+	DBIPADDRESS=$($ENGINE inspect "$DBCONTAINER" | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
 elif [ "$ENGINE" = "docker" ]; then
-	DBIPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r '.[0].NetworkSettings.IPAddress')
-	if [ "$TIERS" = "3" ]; then
-		CLIPADDRESS=$($ENGINE inspect dbt2-client-0 | jq -r '.[0].NetworkSettings.IPAddress')
-	fi
-fi
-
-if [ "$TIERS" = "3" ]; then
-	EXTRAARGS="$EXTRAARGS -C $CLIPADDRESS"
+	DBIPADDRESS=$($ENGINE inspect "$DBCONTAINER" | jq -r '.[0].NetworkSettings.IPAddress')
 fi
 
 echo "Database IP Address: $DBIPADDRESS"
-if [ "$TIERS" = "3" ]; then
-	echo "Client IP Address: $CLIPADDRESS"
-fi
 
 if [ "$DBMS" = "cockroach" ]; then
 	OSUSER="root"
@@ -135,37 +126,43 @@ sleep 10
 
 RESULTSDIR="/home/${OSUSER}/${RESULTSNAME}"
 
+# CockroachDB and YugabyteDB speak the PostgreSQL protocol on their own
+# ports.
+RUNDBMS="$DBMS"
+PORTARG=""
+ENVARGS=""
 if [ "$DBMS" = "cockroach" ]; then
-	DBMS="pgsql"
-	EXTRAARGS="$EXTRAARGS -l 26257"
-	RUNARGS="$RUNARGS --env PGHOST=$DBIPADDRESS --env PGPORT=26257"
+	RUNDBMS="pgsql"
+	PORTARG="--db-port=26257"
+	ENVARGS="--env PGPORT=26257"
 elif [ "$DBMS" = "yugabyte" ]; then
-	DBMS="pgsql"
-	EXTRAARGS="$EXTRAARGS -l 5433"
-	RUNARGS="$RUNARGS --env PGHOST=$DBIPADDRESS --env PGPORT=5433"
+	RUNDBMS="pgsql"
+	PORTARG="--db-port=5433"
+	ENVARGS="--env PGPORT=5433"
 fi
 
-# shellcheck disable=SC2086 # RUNARGS and EXTRAARGS are intentionally
-# word split
-$ENGINE exec \
-		-it \
-		$RUNARGS \
+# shellcheck disable=SC2086 # ENVARGS and PORTARG are intentionally word split
+if ! $ENGINE exec \
+		-i \
+		$ENVARGS \
+		--env PGHOST="$DBIPADDRESS" \
 		-u "$OSUSER" \
 		dbt2-driver-0 \
-		dbt2-run-workload \
-				$EXTRAARGS \
-				-u \
-				-a "$DBMS" \
-				-c 10 \
-				-d 120 \
-				-D dbt2 \
-				-H "$DBIPADDRESS" \
-				-o "$RESULTSDIR" \
-				-s 100 \
-				-w "$WAREHOUSES"
+		dbt2 run \
+				--connection-delay=100 \
+				--db-host="$DBIPADDRESS" \
+				--db-name=dbt2 \
+				--duration=120 \
+				--warehouses="$WAREHOUSES" \
+				$PORTARG \
+				"$RUNDBMS" "$RESULTSDIR"; then
+	echo "ERROR: test failed"
+	stop_containers
+	exit 1
+fi
 
 $ENGINE exec \
-		-it \
+		-i \
 		-u "$OSUSER" \
 		dbt2-driver-0 \
 		dbt2-generate-report -i "$RESULTSDIR"
