@@ -28,7 +28,8 @@ BEGIN
 		WHERE no_w_id = in_w_id
 		  AND no_d_id = d_id
 		ORDER BY no_o_id ASC
-		LIMIT 1;
+		LIMIT 1
+		FOR UPDATE;
 
 		IF FOUND THEN
 			DELETE FROM new_order
@@ -49,7 +50,7 @@ BEGIN
 			  AND ol_w_id = in_w_id
 			  AND ol_d_id = d_id;
 
-			SELECT SUM(ol_amount * ol_quantity)
+			SELECT SUM(ol_amount)
 			INTO tmp_ol_amount
 			FROM order_line
 			WHERE ol_o_id = delivery.o_id
