@@ -221,7 +221,7 @@ int new_order_nonsp(
 			break;
 		}
 
-		if (atoi(s_quantity[i]) > ol_quantity[i] + 10) {
+		if (atoi(s_quantity[i]) >= ol_quantity[i] + 10) {
 			sprintf(query, NEW_ORDER_9, ol_quantity[i], ol_i_id[i], w_id);
 		} else {
 			sprintf(query, NEW_ORDER_9, ol_quantity[i] - 91, ol_i_id[i], w_id);

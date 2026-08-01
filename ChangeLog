@@ -51,6 +51,8 @@ vX.Y.Z (YYYY-MM-DD)
 - cockroach: stock level no longer transposes the warehouse and district ids,
   examines the last 20 orders instead of an empty order id range, and reports
   the counted low stock value, per TPC-C Clause 2.8.2
+- nonsp: new order applies the +91 quantity adjustment only when stock does not
+  exceed the ordered quantity by 10 or more, per TPC-C Clause 2.4.2
 - nonsp: payment searches by last name in the customer's warehouse and
   district, selects the median matching customer, and stores the bad credit
   payment information in c_data, per TPC-C Clause 2.5.2
