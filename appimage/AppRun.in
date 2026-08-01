@@ -1,6 +1,10 @@
 #!/bin/sh
 @SHELLOPTIONS@
 
+# ARGV0 is only set by the AppImage runtime; fall back to $0 when running
+# from an extracted AppDir.
+ARGV0="${ARGV0:-${0}}"
+
 usage() {
 	cat << EOF
 Database Test 2 (DBT-2) wrapped up in an AppImage.
@@ -9,16 +13,23 @@ Usage:
   $(basename "${ARGV0}") COMMAND [OPTION]
 
 Options:
-  The OPTION choices are depdent on the COMMAND specified.  The -h flag will
+  The OPTION choices depend on the COMMAND specified.  The -h flag will
   display the available options.
 
+  -? | --help     Display this usage message, then exit.
+  -V | --version  Display the kit version, then exit.  Use with --verbose
+                  to also display versions of programs bundled in the
+                  AppImage.
+
 Help command:
-  man   This COMMAND will display the man page for any of the general commands
-        below when given as its OPTION.  (Note: man pages are not available for
-		all available commands, yet.)
+  man   This COMMAND displays the man page for any of the general commands
+        below when given as its OPTION, or the dbt2 man page when no OPTION
+        is given.  (Note: man pages are not available for all available
+        commands, yet.)
 
 Commands:
-$(find "${APPDIR}/usr/bin" -maxdepth 1 -type f -name "dbt2-*" -printf "%f\n" | sed -e "s/dbt2-/  /")
+$(find "${APPDIR}/usr/bin" -maxdepth 1 -type f -name "dbt2-*" \
+	-printf "%f\n" | sort | sed -e "s/dbt2-/  /")
 
 
 @HOMEPAGE@
@@ -26,7 +37,7 @@ EOF
 }
 
 if [ "${APPDIR}" = "" ]; then
-    APPDIR="$(cd -- "$(dirname -- "${0}")" && pwd)"
+	APPDIR="$(cd -- "$(dirname -- "${0}")" && pwd)"
 fi
 
 if [ $# -eq 0 ]; then
@@ -46,7 +57,11 @@ while [ "${#}" -gt 0 ] ; do
 		else
 			export MANPATH="${APPDIR}/usr/share/man:${MANPATH}"
 		fi
-		man "dbt2-${2}"
+		if [ "${2}" = "" ]; then
+			man dbt2
+		else
+			man "dbt2-${2}"
+		fi
 		exit $?
 		;;
 	(--verbose)
@@ -92,15 +107,20 @@ if [ "$PGHOST" = "" ]; then
 	export PGHOST="/tmp,/var/run/postgresql"
 fi
 
-export PERL5LIB="${APPDIR}/etc/perl"
+if [ "${PERL5LIB}" = "" ]; then
+	export PERL5LIB="${APPDIR}/etc/perl"
+else
+	export PERL5LIB="${APPDIR}/etc/perl:${PERL5LIB}"
+fi
 
 COMMAND="${APPDIR}/usr/bin/dbt2-${1}"
 
 if [ ! -f "$COMMAND" ]; then
-	echo "COMMAND '${1}' not found, run '$(basename "${ARGV0}")' without arguments for usage."
+	echo "COMMAND '${1}' not found, run '$(basename "${ARGV0}")' without" \
+			"arguments for usage."
 	exit 1
 fi
 
 shift
 
-$COMMAND "$@"
+exec "${COMMAND}" "$@"
