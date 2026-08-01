@@ -71,6 +71,12 @@ done
 
 DIRECTORY="${1}"
 
+if [ "${DIRECTORY}" = "" ] || [ ! -d "${DIRECTORY}" ]; then
+	echo "ERROR: specify a valid results DIRECTORY, try \"$(basename "${0}")"
+	echo "--help\" for more information"
+	exit 1
+fi
+
 if [ "$DBT2LANG" = "R" ]; then
 	PPEXT="r"
 elif [ "$DBT2LANG" = "sqlite3" ]; then

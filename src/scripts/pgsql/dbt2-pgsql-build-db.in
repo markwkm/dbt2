@@ -116,7 +116,6 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-shift "$(( OPTIND - 1 ))"
 if [ ! "$1" = "" ]; then
 	export DBT2DBNAME="$1"
 else

@@ -18,19 +18,27 @@ while getopts "o:" opt; do
 	esac
 done
 
+if [ "${OUTPUT_DIR}" = "" ]; then
+	OUTPUT_DIR="."
+fi
+
 echo "$(uname -o) $(uname -m) $(uname -r)" > "${OUTPUT_DIR}/uname.txt"
 
-SYSCTL="/sbin/sysctl"
-if [ ! -f "${SYSCTL}" ]; then
-	SYSCTL=true
+# sysctl is often in a sbin directory that is not on unprivileged PATHs.
+if command -v sysctl > /dev/null 2>&1; then
+	SYSCTL="sysctl"
+elif [ -x "/sbin/sysctl" ]; then
+	SYSCTL="/sbin/sysctl"
+elif [ -x "/usr/sbin/sysctl" ]; then
+	SYSCTL="/usr/sbin/sysctl"
+else
+	SYSCTL=""
 fi
 
 # I don't think capturing error messages is important here.
 OS=$(uname -s)
-if [ -f ${SYSCTL} ]; then
-	if [ "${OS}" = "Linux" ]; then
-		${SYSCTL} -a 2> /dev/null | sort > "${OUTPUT_DIR}/proc.txt"
-	elif [ "${OS}" = "SunOS" ]; then
+if [ ! "${SYSCTL}" = "" ]; then
+	if [ "${OS}" = "Linux" ] || [ "${OS}" = "SunOS" ]; then
 		${SYSCTL} -a 2> /dev/null | sort > "${OUTPUT_DIR}/proc.txt"
 	else
 		echo "Unknown OS: ${OS}"

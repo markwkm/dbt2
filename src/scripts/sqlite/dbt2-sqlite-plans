@@ -30,7 +30,7 @@ explain() {
 			"$SQLITE_BIN" -batch "$DB_NAME" >> "$OUTPUT_FILE"
 }
 
-while getopts "o:d:c:s:h:" opt; do
+while getopts "o:d:c:h:" opt; do
 	case $opt in
 	o)
 		OUTPUT_FILE=$OPTARG
