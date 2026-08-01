@@ -71,7 +71,9 @@ int connect_to_db(struct db_context_t *dbc) {
 		++retry_count;
 		rc = (*dbc->connect)(dbc);
 		if (rc == OK) {
-			LOG_ERROR_MESSAGE("%d retries to reconnect", retry_count);
+			if (retry_count > 1) {
+				LOG_ERROR_MESSAGE("%d retries to reconnect", retry_count);
+			}
 			break;
 		}
 		ts0.tv_sec = dbc->ts_retry.tv_sec;
@@ -111,7 +113,11 @@ int process_transaction(
 	int txn_count = 0;
 	struct timespec ts0, rem0;
 
-	while (txn_count++ < 1) {
+	/*
+	 * Execute the transaction, allowing one more attempt after an
+	 * unexpected status forces a reconnect.
+	 */
+	while (txn_count++ < 2) {
 		int rc2;
 		int retry_count = 0;
 
@@ -179,7 +185,7 @@ int process_transaction(
 		/* Retry until the calculated stop time. */
 		while (1) {
 			time_t tt = time(NULL);
-			if (dbc->stop_time == 0 || tt > dbc->stop_time) {
+			if (dbc->stop_time != 0 && tt > dbc->stop_time) {
 				return ERROR;
 			}
 
