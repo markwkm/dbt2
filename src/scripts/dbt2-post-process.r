@@ -12,6 +12,7 @@ if [ $# -lt 1 ]; then
 	echo "Usage:"
 	echo "  $(basename "$0") mix.log [mix-1.log [...]]"
 	echo
+	exit 1
 fi
 
 if [ ! "$VERBOSE" = "1" ]; then
@@ -45,7 +46,7 @@ end <- min(mix\$ctime[mix\$txn == "TERMINATED"])
 total_txn <- sum(mix\$ctime > start & mix\$ctime < end)
 
 duration = end - start
-errors <- sum(mix\$status == "E")
+errors <- sum(mix\$status == "E" & mix\$ctime > start & mix\$ctime < end)
 
 cat(paste("============  ======  =========  =========  ===========  ",
           "===========  ======\n", sep = ""))
@@ -108,7 +109,8 @@ if ($VERBOSE == 1) {
   for (i in wid_min:wid_max) {
     # FIXME: Should know district range used for test as opposed to hard code
     #        to 10.
-    E_d <- O_w / 10
+    W_total <- sum(mix\$wid == i & mix\$ctime > start & mix\$ctime < end)
+    E_d <- W_total / 10
     chi_square_d <- 0
     for (j in 1:10) {
       O_d <- sum(mix\$wid == i & mix\$did == j & mix\$ctime > start &

@@ -22,6 +22,10 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- post-process: fix the R analyzer's per-warehouse district chi-square
+  using a stale count, count unknown errors within the steady state window
+  like the sqlite3 analyzer, align the sqlite3 90th percentile rank with
+  the R quantile definition, and clean up temporary files on any exit
 - test-connection-scaling: apply the documented processor-count default for
   --stop (a default invocation previously ran zero tests), stop forgetting
   --dbaas, forward --db-name, accept --stop=N, stop the series when a test

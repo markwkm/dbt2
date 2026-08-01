@@ -26,7 +26,7 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-trap cleanup INT QUIT ABRT TERM
+trap cleanup EXIT INT QUIT ABRT TERM
 
 VERBOSE=0
 
@@ -185,7 +185,7 @@ for TXNLINE in $TXNDATA; do
 		  AND time < $ENDTIME
 		ORDER BY response ASC
 		LIMIT 1
-		OFFSET $TXNCOUNT * 9 / 10;
+		OFFSET ($TXNCOUNT * 9 + 9) / 10 - 1;
 	EOF
 	)
 
