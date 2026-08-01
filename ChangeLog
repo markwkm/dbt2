@@ -22,6 +22,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- pgsql: load-db stops with an error when any parallel data loading process
+  fails instead of continuing with a partially loaded database
 - pgsql: create-indexes actually creates tablespaces again and reports
   failed index or primary key creation instead of always exiting 0
 - appimage: fix the libnsl symlink for aarch64 container image builds and

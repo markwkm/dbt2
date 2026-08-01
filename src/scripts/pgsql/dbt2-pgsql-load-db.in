@@ -138,10 +138,14 @@ load_table() {
 	fi
 
 	$PSQL -c "ALTER TABLE $TABLE SET (autovacuum_enabled = false, toast.autovacuum_enabled = false);"
+	LOADPIDS=""
 	for i in $P; do
 		run_datagen "$T" "$i" "$TABLE" "$WAREHOUSES" "$SEED" &
+		LOADPIDS="${LOADPIDS} ${!}"
 	done
-	wait
+	for PID in ${LOADPIDS}; do
+		wait "${PID}" || exit 1
+	done
 	$PSQL -c "ALTER TABLE $TABLE SET (autovacuum_enabled = true, toast.autovacuum_enabled = true);"
 }
 
