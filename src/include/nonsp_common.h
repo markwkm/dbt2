@@ -20,7 +20,9 @@ int dbt2_free_values(char **values, int max_values);
   "SELECT no_o_id\n"                                                           \
   "FROM new_order\n"                                                           \
   "WHERE no_w_id = %d\n"                                                       \
-  "  AND no_d_id = %d"
+  "  AND no_d_id = %d\n"                                                       \
+  "ORDER BY no_o_id ASC\n"                                                     \
+  "LIMIT 1"
 
 #define DELIVERY_2                                                             \
   "DELETE FROM new_order\n"                                                    \
@@ -50,7 +52,7 @@ int dbt2_free_values(char **values, int max_values);
   "  AND ol_d_id = %d"
 
 #define DELIVERY_6                                                             \
-  "SELECT SUM(ol_amount * ol_quantity)\n"                                      \
+  "SELECT SUM(ol_amount)\n"                                                    \
   "FROM order_line\n"                                                          \
   "WHERE ol_o_id = %s\n"                                                       \
   "  AND ol_w_id = %d\n"                                                       \

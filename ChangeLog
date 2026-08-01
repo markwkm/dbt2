@@ -54,6 +54,9 @@ vX.Y.Z (YYYY-MM-DD)
 - nonsp: payment searches by last name in the customer's warehouse and
   district, selects the median matching customer, and stores the bad credit
   payment information in c_data, per TPC-C Clause 2.5.2
+- nonsp: delivery credits the customer with the sum of ol_amount instead of
+  ol_amount * ol_quantity and processes the oldest undelivered order instead of
+  an arbitrary one, per TPC-C Clause 2.7.4
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
