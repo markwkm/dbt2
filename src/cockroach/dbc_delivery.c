@@ -74,8 +74,8 @@ int execute_delivery_cockroach(
 	int j;
 #endif /* DEBUG */
 
-	snprintf(o_carrier_id, O_CARRIER_ID_LEN, "%d", data->o_carrier_id);
-	snprintf(w_id, W_ID_LEN, "%d", data->w_id);
+	snprintf(o_carrier_id, sizeof(o_carrier_id), "%d", data->o_carrier_id);
+	snprintf(w_id, sizeof(w_id), "%d", data->w_id);
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -86,7 +86,7 @@ int execute_delivery_cockroach(
 	PQclear(res);
 
 	for (i = 0; i < D_ID_MAX; i++) {
-		snprintf(d_id, D_ID_LEN, "%d", i + 1);
+		snprintf(d_id, sizeof(d_id), "%d", i + 1);
 
 		paramValues[0] = w_id;
 		paramValues[1] = d_id;
@@ -103,7 +103,7 @@ int execute_delivery_cockroach(
 			PQclear(res);
 			continue;
 		}
-		strncpy(o_id, PQgetvalue(res, 0, 0), O_ID_LEN);
+		snprintf(o_id, sizeof(o_id), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE(
@@ -138,7 +138,7 @@ int execute_delivery_cockroach(
 			return ERROR;
 		}
 		if (PQntuples(res) == 1) {
-			strncpy(o_c_id, PQgetvalue(res, 0, 0), C_ID_LEN);
+			snprintf(o_c_id, sizeof(o_c_id), "%s", PQgetvalue(res, 0, 0));
 		} else {
 			LOG_ERROR_MESSAGE("D3 unexpected rows %d", PQntuples(res));
 			LOG_ERROR_MESSAGE(
@@ -176,7 +176,7 @@ int execute_delivery_cockroach(
 			PQclear(res);
 			return ERROR;
 		}
-		strncpy(ol_amount, PQgetvalue(res, 0, 0), OL_AMOUNT_LEN);
+		snprintf(ol_amount, sizeof(ol_amount), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE("D5[%d][%d] sum %s", i, j, PQgetvalue(res, j, 0));

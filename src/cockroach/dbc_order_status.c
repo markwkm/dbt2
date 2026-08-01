@@ -60,9 +60,9 @@ int execute_order_status_cockroach(
 	int i;
 #endif /* DEBUG */
 
-	snprintf(c_d_id, D_ID_LEN, "%d", data->c_d_id);
+	snprintf(c_d_id, sizeof(c_d_id), "%d", data->c_d_id);
 	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
-	snprintf(c_w_id, W_ID_LEN, "%d", data->c_w_id);
+	snprintf(c_w_id, sizeof(c_w_id), "%d", data->c_w_id);
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -95,7 +95,9 @@ int execute_order_status_cockroach(
 			PQclear(res);
 			return ERROR;
 		}
-		strncpy(c_id, PQgetvalue(res, (PQntuples(res) - 1) / 2, 0), C_ID_LEN);
+		snprintf(
+				c_id, sizeof(c_id), "%s",
+				PQgetvalue(res, (PQntuples(res) - 1) / 2, 0));
 #ifdef DEBUG
 		for (i = 0; i < PQntuples(res); i++) {
 			LOG_ERROR_MESSAGE("OS1[%d] c_id %s", i, PQgetvalue(res, i, 0));
@@ -103,7 +105,7 @@ int execute_order_status_cockroach(
 #endif /* DEBUG */
 		PQclear(res);
 	} else {
-		snprintf(c_id, C_ID_LEN, "%d", data->c_id);
+		snprintf(c_id, sizeof(c_id), "%d", data->c_id);
 	}
 
 	paramValues[2] = c_id;
@@ -156,7 +158,7 @@ int execute_order_status_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
-	strncpy(o_id, PQgetvalue(res, 0, 0), O_ID_LEN);
+	snprintf(o_id, sizeof(o_id), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(

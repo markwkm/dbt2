@@ -90,11 +90,11 @@ int execute_payment_cockroach(
 	char w_name[W_NAME_LEN + 1];
 
 	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
-	snprintf(c_d_id, D_ID_LEN, "%d", data->c_d_id);
-	snprintf(c_w_id, W_ID_LEN, "%d", data->c_w_id);
-	snprintf(d_id, D_ID_LEN, "%d", data->d_id);
-	snprintf(w_id, W_ID_LEN, "%d", data->w_id);
-	snprintf(h_amount, H_AMOUNT_LEN, "%f", data->h_amount);
+	snprintf(c_d_id, sizeof(c_d_id), "%d", data->c_d_id);
+	snprintf(c_w_id, sizeof(c_w_id), "%d", data->c_w_id);
+	snprintf(d_id, sizeof(d_id), "%d", data->d_id);
+	snprintf(w_id, sizeof(w_id), "%d", data->w_id);
+	snprintf(h_amount, sizeof(h_amount), "%f", data->h_amount);
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -123,7 +123,7 @@ int execute_payment_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
-	strncpy(w_name, PQgetvalue(res, 0, 0), W_NAME_LEN);
+	snprintf(w_name, sizeof(w_name), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -161,7 +161,7 @@ int execute_payment_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
-	strncpy(d_name, PQgetvalue(res, 0, 0), D_NAME_LEN);
+	snprintf(d_name, sizeof(d_name), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -200,7 +200,9 @@ int execute_payment_cockroach(
 			PQclear(res);
 			return ERROR;
 		}
-		strncpy(c_id, PQgetvalue(res, (PQntuples(res) - 1) / 2, 0), C_ID_LEN);
+		snprintf(
+				c_id, sizeof(c_id), "%s",
+				PQgetvalue(res, (PQntuples(res) - 1) / 2, 0));
 #ifdef DEBUG
 		for (i = 0; i < PQntuples(res); i++) {
 			LOG_ERROR_MESSAGE("P3[%d] c_id %s", i, PQgetvalue(res, i, 0));
@@ -208,7 +210,7 @@ int execute_payment_cockroach(
 #endif /* DEBUG */
 		PQclear(res);
 	} else {
-		snprintf(c_id, C_ID_LEN, "%d", data->c_id);
+		snprintf(c_id, sizeof(c_id), "%d", data->c_id);
 	}
 
 	paramValues[0] = c_w_id;
@@ -291,8 +293,9 @@ int execute_payment_cockroach(
 		c_data[0] = '\0';
 	} else {
 		snprintf(
-				c_data, C_DATA_LEN, "%s %d %d %d %d %f ", c_id, data->c_d_id,
-				data->c_w_id, data->d_id, data->w_id, data->h_amount);
+				c_data, sizeof(c_data), "%s %d %d %d %d %f ", c_id,
+				data->c_d_id, data->c_w_id, data->d_id, data->w_id,
+				data->h_amount);
 
 		paramValues[0] = h_amount;
 		paramValues[1] = c_data;
@@ -319,7 +322,7 @@ int execute_payment_cockroach(
 			PQclear(res);
 			return ERROR;
 		}
-		strncpy(c_data, PQgetvalue(res, 0, 0), C_DATA_LEN);
+		snprintf(c_data, sizeof(c_data), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 		for (i = 0; i < PQntuples(res); i++) {
 			LOG_ERROR_MESSAGE("P5_BC[%d] c_data %s", i, PQgetvalue(res, i, 0));

@@ -95,11 +95,11 @@ int execute_new_order_cockroach(
 	int j;
 #endif /* DEBUG */
 
-	snprintf(c_id, C_ID_LEN, "%d", data->c_id);
-	snprintf(d_id, D_ID_LEN, "%d", data->d_id);
-	snprintf(o_ol_cnt, O_OL_CNT_LEN, "%d", data->o_ol_cnt);
-	snprintf(o_all_local, O_ALL_LOCAL_LEN, "%d", data->o_all_local);
-	snprintf(w_id, W_ID_LEN, "%d", data->w_id);
+	snprintf(c_id, sizeof(c_id), "%d", data->c_id);
+	snprintf(d_id, sizeof(d_id), "%d", data->d_id);
+	snprintf(o_ol_cnt, sizeof(o_ol_cnt), "%d", data->o_ol_cnt);
+	snprintf(o_all_local, sizeof(o_all_local), "%d", data->o_all_local);
+	snprintf(w_id, sizeof(w_id), "%d", data->w_id);
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -151,7 +151,7 @@ int execute_new_order_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
-	strncpy(d_next_o_id, PQgetvalue(res, 0, 1), O_ID_LEN);
+	snprintf(d_next_o_id, sizeof(d_next_o_id), "%s", PQgetvalue(res, 0, 1));
 #ifdef DEBUG
 	for (j = 0; j < PQntuples(res); j++) {
 		LOG_ERROR_MESSAGE(
@@ -223,7 +223,7 @@ int execute_new_order_cockroach(
 	PQclear(res);
 
 	for (i = 0; i < data->o_ol_cnt; i++) {
-		snprintf(ol_i_id, I_ID_LEN, "%d", data->order_line[i].ol_i_id);
+		snprintf(ol_i_id, sizeof(ol_i_id), "%d", data->order_line[i].ol_i_id);
 
 		paramValues[0] = ol_i_id;
 		res = PQexecParams(
@@ -244,7 +244,7 @@ int execute_new_order_cockroach(
 		}
 		fol_amount = atof(PQgetvalue(res, 0, 0)) *
 					 (float) data->order_line[i].ol_quantity;
-		snprintf(ol_amount, I_PRICE_LEN, "%f", fol_amount);
+		snprintf(ol_amount, sizeof(ol_amount), "%f", fol_amount);
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE(
@@ -283,7 +283,7 @@ int execute_new_order_cockroach(
 		} else {
 			decr_quantity = data->order_line[i].ol_quantity - 91;
 		}
-		strncpy(my_s_dist, PQgetvalue(res, 0, 1), S_DIST_LEN);
+		snprintf(my_s_dist, sizeof(my_s_dist), "%s", PQgetvalue(res, 0, 1));
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE(
@@ -296,8 +296,8 @@ int execute_new_order_cockroach(
 #endif /* DEBUG */
 		PQclear(res);
 
-		snprintf(decr_qty, OL_QUANTITY_LEN, "%d", decr_quantity);
-		snprintf(qty, OL_QUANTITY_LEN, "%d", data->order_line[i].ol_quantity);
+		snprintf(decr_qty, sizeof(decr_qty), "%d", decr_quantity);
+		snprintf(qty, sizeof(qty), "%d", data->order_line[i].ol_quantity);
 		snprintf(
 				remote_cnt, sizeof(remote_cnt), "%d",
 				data->order_line[i].ol_supply_w_id != data->w_id);
@@ -332,9 +332,9 @@ int execute_new_order_cockroach(
 #endif /* DEBUG */
 		PQclear(res);
 
-		snprintf(ol_number, O_OL_CNT_LEN, "%d", i + 1);
+		snprintf(ol_number, sizeof(ol_number), "%d", i + 1);
 		snprintf(
-				ol_supply_w_id, W_ID_LEN, "%d",
+				ol_supply_w_id, sizeof(ol_supply_w_id), "%d",
 				data->order_line[i].ol_supply_w_id);
 		paramValues[0] = d_next_o_id;
 		paramValues[1] = d_id;

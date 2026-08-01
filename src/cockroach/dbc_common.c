@@ -84,16 +84,19 @@ int db_init_cockroach(
 	dbc->execute_stock_level = execute_stock_level_cockroach;
 
 	if (dbname != NULL) {
-		strncpy(dbc->library.libpq.dbname, dbname,
-				sizeof(dbc->library.libpq.dbname));
+		snprintf(
+				dbc->library.libpq.dbname, sizeof(dbc->library.libpq.dbname),
+				"%s", dbname);
 	}
 	if (pghost != NULL) {
-		strncpy(dbc->library.libpq.pghost, pghost,
-				sizeof(dbc->library.libpq.pghost));
+		snprintf(
+				dbc->library.libpq.pghost, sizeof(dbc->library.libpq.pghost),
+				"%s", pghost);
 	}
 	if (pgport != NULL) {
-		strncpy(dbc->library.libpq.pgport, pgport,
-				sizeof(dbc->library.libpq.pgport));
+		snprintf(
+				dbc->library.libpq.pgport, sizeof(dbc->library.libpq.pgport),
+				"%s", pgport);
 	}
 
 	return OK;

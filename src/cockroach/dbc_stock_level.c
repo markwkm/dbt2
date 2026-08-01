@@ -43,16 +43,17 @@ int execute_stock_level_cockroach(
 	char d_w_id[W_ID_LEN + 1];
 	char d_id[D_ID_LEN + 1];
 	char threshold[THRESHOLD_LEN + 1];
-	char ol_o_id1[OL_O_ID_LEN + 1];
-	char ol_o_id2[OL_O_ID_LEN + 1];
+	/* Sized to hold any int, including a sign, to satisfy snprintf. */
+	char ol_o_id1[OL_O_ID_LEN + 2];
+	char ol_o_id2[OL_O_ID_LEN + 2];
 
 #ifdef DEBUG
 	int i;
 #endif /* DEBUG */
 
-	snprintf(d_w_id, W_ID_LEN, "%d", data->w_id);
-	snprintf(d_id, D_ID_LEN, "%d", data->d_id);
-	snprintf(threshold, THRESHOLD_LEN, "%d", data->threshold);
+	snprintf(d_w_id, sizeof(d_w_id), "%d", data->w_id);
+	snprintf(d_id, sizeof(d_id), "%d", data->d_id);
+	snprintf(threshold, sizeof(threshold), "%d", data->threshold);
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -86,8 +87,9 @@ int execute_stock_level_cockroach(
 		LOG_ERROR_MESSAGE("SL1[%d] ol_i_id %s", i, PQgetvalue(res, i, 0));
 	}
 #endif /* DEBUG */
-	snprintf(ol_o_id1, OL_O_ID_LEN, "%d", atoi(PQgetvalue(res, 0, 0)) - 20);
-	snprintf(ol_o_id2, OL_O_ID_LEN, "%d", atoi(PQgetvalue(res, 0, 0)) - 1);
+	snprintf(
+			ol_o_id1, sizeof(ol_o_id1), "%d", atoi(PQgetvalue(res, 0, 0)) - 20);
+	snprintf(ol_o_id2, sizeof(ol_o_id2), "%d", atoi(PQgetvalue(res, 0, 0)) - 1);
 	PQclear(res);
 
 	paramValues[2] = threshold;
