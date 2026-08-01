@@ -38,6 +38,9 @@
 #define STOCK_DATA "stock.data"
 #define WAREHOUSE_DATA "warehouse.data"
 
+/* Bounds the partition filename suffix width. */
+#define MAX_PARTITIONS 9999
+
 #define MODE_PGSQL 1
 #define MODE_MYSQL 2
 
@@ -119,9 +122,9 @@ void gen_customers() {
 		}
 		strncat(filename, CUSTOMER_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -381,9 +384,9 @@ void gen_districts() {
 		}
 		strncat(filename, DISTRICT_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -580,9 +583,9 @@ void gen_history() {
 		}
 		strncat(filename, HISTORY_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -765,9 +768,9 @@ void gen_items() {
 		}
 		strncat(filename, ITEM_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -938,9 +941,9 @@ void gen_new_orders() {
 		}
 		strncat(filename, NEW_ORDER_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -1108,9 +1111,9 @@ void gen_orders() {
 		}
 		strncat(filename, ORDER_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		order = fopen(filename, "w");
@@ -1126,9 +1129,9 @@ void gen_orders() {
 		}
 		strncat(filename, ORDER_LINE_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		order_line = fopen(filename, "w");
@@ -1510,9 +1513,9 @@ void gen_stock() {
 		}
 		strncat(filename, STOCK_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -1751,9 +1754,9 @@ void gen_warehouses() {
 		}
 		strncat(filename, WAREHOUSE_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
-			char temp[4];
+			char temp[5];
 			strncat(filename, ".", 1023 - strlen(filename));
-			snprintf(temp, 3, "%d", part);
+			snprintf(temp, sizeof(temp), "%d", part);
 			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
@@ -1984,9 +1987,9 @@ int main(int argc, char *argv[]) {
 				printf("error allocating output_path\n");
 				exit(1);
 			}
-			strncpy(output_path, optarg, length);
-			if (output_path[length] == '/') {
-				output_path[length] = '\0';
+			strcpy(output_path, optarg);
+			if (length > 0 && output_path[length - 1] == '/') {
+				output_path[length - 1] = '\0';
 			}
 			break;
 		case 'i':
@@ -2002,6 +2005,11 @@ int main(int argc, char *argv[]) {
 			partitions = atoi(optarg);
 			if (partitions < 1) {
 				printf("number of partitions must be at least 1\n");
+				return 2;
+			}
+			if (partitions > MAX_PARTITIONS) {
+				printf("number of partitions must not be greater than %d\n",
+					   MAX_PARTITIONS);
 				return 2;
 			}
 			break;
@@ -2031,13 +2039,11 @@ int main(int argc, char *argv[]) {
 		return 5;
 	}
 
-	if (partitions > 1) {
-		if (part > partitions) {
-			printf("the part to generate must be less that the number of "
-				   "partitions: %d\n",
-				   partitions);
-			return 3;
-		}
+	if (part > partitions) {
+		printf("the part to generate must not be greater than the number of "
+			   "partitions: %d\n",
+			   partitions);
+		return 3;
 	}
 
 	if (warehouses == 0) {
@@ -2058,6 +2064,11 @@ int main(int argc, char *argv[]) {
 			printf("the rdbms select does not support direct loading\n");
 			return 4;
 		}
+	}
+
+	if (rows_per_commit && mode_load != MODE_DIRECT) {
+		printf("--rows-per-commit can only be used with --direct\n");
+		return 4;
 	}
 
 	/* Set the correct delimiter. */
