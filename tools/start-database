@@ -44,8 +44,7 @@ CONTAINER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
 
 # Use the return code from `$ENGINE inspect` to determine if the container
 # image needs to be created.
-$ENGINE inspect "$CONTAINER_TAG" > /dev/null
-if [ $? -ne 0 ]; then
+if ! $ENGINE inspect "$CONTAINER_TAG" > /dev/null; then
 	"${CONTAINERDIR}/build-database" "$WAREHOUSES" "$DBMS" || exit 1
 fi
 
@@ -75,8 +74,7 @@ if [ $RC -ne 0 ]; then
 	exit 1
 fi
 
-which jq > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if which jq > /dev/null 2>&1; then
 	if [ "$ENGINE" = "podman" ]; then
 		IPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
 	elif [ "$ENGINE" = "docker" ]; then

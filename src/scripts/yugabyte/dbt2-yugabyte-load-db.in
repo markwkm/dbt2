@@ -108,9 +108,9 @@ run_datagen()
 	WAREHOUSES=$4
 	SEED=$5
 
-	eval dbt2 datagen --direct -w "${WAREHOUSES}" --pgsql --table "${TABLE}" \
-			--seed "${SEED}" -P "${TOTAL}" -p "${PART}" "${DATAGENARGS}"
-	if [ $? -ne 0 ]; then
+	if ! eval dbt2 datagen --direct -w "${WAREHOUSES}" --pgsql \
+			--table "${TABLE}" --seed "${SEED}" -P "${TOTAL}" \
+			-p "${PART}" "${DATAGENARGS}"; then
 		echo "ERROR: datagen couldn't load part $PART of $TOTAL with $TABLE"
 		exit 1
 	fi

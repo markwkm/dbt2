@@ -82,8 +82,7 @@ if [ $RC -ne 0 ]; then
 	exit 1
 fi
 
-which jq > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if which jq > /dev/null 2>&1; then
 	if [ "$ENGINE" = "podman" ]; then
 		IPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
 	elif [ "$ENGINE" = "docker" ]; then

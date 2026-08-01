@@ -111,18 +111,15 @@ make_list()
 
 		# Create additional HTML pages for the database charts.
 
-		which dbt-pgsql-generate-db-report > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
+		if which dbt-pgsql-generate-db-report > /dev/null 2>&1; then
 			dbt-pgsql-generate-db-report -t "Database Test 2" -d dbt2 \
 					-i "${INDIR}/db/${SNAME}/dbstat"
 		fi
-		which dbt-pgsql-generate-table-report > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
+		if which dbt-pgsql-generate-table-report > /dev/null 2>&1; then
 			dbt-pgsql-generate-table-report -t "Database Test 2" \
 					-i "${INDIR}/db/${SNAME}/dbstat/table-list.txt"
 		fi
-		which dbt-pgsql-generate-index-report > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
+		if which dbt-pgsql-generate-index-report > /dev/null 2>&1; then
 			dbt-pgsql-generate-index-report -t "Database Test 2" \
 					-i "${INDIR}/db/${SNAME}/dbstat/index-list.txt"
 		fi

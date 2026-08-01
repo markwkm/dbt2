@@ -422,12 +422,10 @@ __EOF__
 GENERATE_PDF=0
 
 RST2HTML5=""
-which rst2html5.py > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if which rst2html5.py > /dev/null 2>&1; then
 	RST2HTML5="rst2html5.py"
 fi
-which rst2html5 > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if which rst2html5 > /dev/null 2>&1; then
 	RST2HTML5="rst2html5"
 fi
 

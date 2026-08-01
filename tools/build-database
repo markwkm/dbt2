@@ -73,8 +73,7 @@ create_pgsql()
 
 	# Use the return code from `$ENGINE inspect` to determine if the container
 	# image needs to be created.
-	$ENGINE inspect dbt2-base > /dev/null
-	if [ $? -ne 0 ]; then
+	if ! $ENGINE inspect dbt2-base > /dev/null; then
 		${TOPDIR}/prepare-image || exit 1
 	fi
 
@@ -166,18 +165,19 @@ if [ "$ENGINE" = "podman" ]; then
 	ENGINEARGS="--network=$PODMANNETWORK"
 fi
 
+CREATE_RC=0
 if [ "x${DBMS}" = "xcockroach" ]; then
-	create_cockroach
+	create_cockroach || CREATE_RC=1
 elif [ "x${DBMS}" = "xpgsql" ]; then
-	create_pgsql
+	create_pgsql || CREATE_RC=1
 elif [ "x${DBMS}" = "xyugabyte" ]; then
-	create_yugabyte
+	create_yugabyte || CREATE_RC=1
 else
 	echo "ERROR: unknown DBMS $DBMS"
 	exit 1
 fi
 
-if [ $? -ne 0 ]; then
+if [ "${CREATE_RC}" -ne 0 ]; then
 	echo "usage: $0 [WAREHOUSES [DBMS]]"
 	echo
 	echo "DBMS options: (default: pgsql)"
