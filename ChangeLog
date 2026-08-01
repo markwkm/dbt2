@@ -22,6 +22,10 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- build: forward connection settings to cockroach and yugabyte builds, pass
+  --db-user to mysql, and reject --data, -g, and --privileged for DBMSes
+  whose build scripts would misinterpret them; --data with pgsql previously
+  became the vacuum full flag and renamed the database
 - generate-report: create a missing summary through dbt2 report instead of
   a nonexistent command and path, only embed DBMS report sections when the
   DBMS has a report script, fix the inverted pandoc check, and stop

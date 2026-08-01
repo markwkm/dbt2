@@ -62,7 +62,10 @@ EOF
 }
 
 BUILDARGS=""
+DATA_PATH=""
 DBNAME="dbt2"
+GENERATE_DATAFILE=0
+PRIVILEGED=0
 ROWS_PER_COMMIT=0
 WAREHOUSES=1
 
@@ -71,10 +74,10 @@ while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(--data)
 		shift
-		BUILDARGS="${BUILDARGS} -f ${1}"
+		DATA_PATH="${1}"
 		;;
 	(--data=?*)
-		BUILDARGS="${BUILDARGS} -f ${1#*--data=}"
+		DATA_PATH="${1#*--data=}"
 		;;
 	(--db-host)
 		shift
@@ -105,10 +108,10 @@ while [ "${#}" -gt 0 ] ; do
 		DB_USER=${1#*--db-user=}
 		;;
 	(-g)
-		BUILDARGS="${BUILDARGS} -g"
+		GENERATE_DATAFILE=1
 		;;
 	(--privileged)
-		BUILDARGS="${BUILDARGS} -u"
+		PRIVILEGED=1
 		;;
 	(--mysql-socket)
 		shift
@@ -199,7 +202,11 @@ if [ "${DBMS}" = "mysql" ]; then
 	if [ ! "${DB_HOSTNAME}" = "" ]; then
 		BUILDARGS="${BUILDARGS} -h ${DB_HOSTNAME}"
 	fi
-elif [ "${DBMS}" = "pgsql" ]; then
+	if [ ! "${DB_USER}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -u ${DB_USER}"
+	fi
+elif [ "${DBMS}" = "pgsql" ] || [ "${DBMS}" = "cockroach" ] || \
+		[ "${DBMS}" = "yugabyte" ]; then
 	if [ ! "${DB_HOSTNAME}" = "" ]; then
 		export PGHOST="${DB_HOSTNAME}"
 	fi
@@ -211,6 +218,36 @@ elif [ "${DBMS}" = "pgsql" ]; then
 	fi
 	if [ ! "${DB_USER}" = "" ]; then
 		export PGUSER="${DB_USER}"
+	fi
+fi
+
+# Flat file options only exist for the DBMSes that load from flat files,
+# and privileged operation only for PostgreSQL; reject combinations the
+# build scripts would misinterpret.
+case "${DBMS}" in
+(mysql | sqlite)
+	if [ ! "${DATA_PATH}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -f ${DATA_PATH}"
+	fi
+	if [ ${GENERATE_DATAFILE} -eq 1 ]; then
+		BUILDARGS="${BUILDARGS} -g"
+	fi
+	;;
+(*)
+	if [ ! "${DATA_PATH}" = "" ] || [ ${GENERATE_DATAFILE} -eq 1 ]; then
+		echo "ERROR: --data and -g are not used with ${DBMS}, data is"
+		echo "streamed directly into the database"
+		exit 1
+	fi
+	;;
+esac
+
+if [ ${PRIVILEGED} -eq 1 ]; then
+	if [ "${DBMS}" = "pgsql" ]; then
+		BUILDARGS="${BUILDARGS} -u"
+	else
+		echo "ERROR: --privileged is only supported with pgsql"
+		exit 1
 	fi
 fi
 
