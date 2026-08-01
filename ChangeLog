@@ -29,6 +29,8 @@ vX.Y.Z (YYYY-MM-DD)
 - appimage: remove an unused copy of python from the container image
 - appimage: generate the AppStream release information at configure time so
   it tracks the project version
+- appimage: stop masking failures when copying licenses and python into the
+  AppDir
 
 v0.61.7 (2025-07-01)
 

@@ -100,6 +100,9 @@ include (CPack)
 
 set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
 
+# Keep in sync with PYTHONMMVER in appimage/Containerfile.
+set (PYTHONMMVER 3.11)
+
 find_program(APPIMAGE NAMES appimagetool)
 
 if (APPIMAGE)
@@ -113,11 +116,12 @@ set (GNUPLOT ../AppDir/usr/bin/gnuplot)
 set (PSQL ../AppDir/usr/bin/psql)
 
 add_custom_target(appimage
-    COMMAND [ -d "/usr/local/share/licenses" ] &&
-            cp -pr /usr/local/share/licenses ../AppDir/usr/share || exit 0
-    COMMAND [ -d "/usr/local/lib/python3.11" ] &&
-            mkdir -p ../AppDir/usr/lib/ &&
-            cp -pr /usr/local/lib/python3.11 ../AppDir/usr/lib/ || exit 0
+    COMMAND ! [ -d "/usr/local/share/licenses" ] ||
+            cp -pr /usr/local/share/licenses ../AppDir/usr/share
+    COMMAND ! [ -d "/usr/local/lib/python${PYTHONMMVER}" ] ||
+            mkdir -p ../AppDir/usr/lib/
+    COMMAND ! [ -d "/usr/local/lib/python${PYTHONMMVER}" ] ||
+            cp -pr /usr/local/lib/python${PYTHONMMVER} ../AppDir/usr/lib/
     COMMAND mkdir -p ../AppDir/usr/share/licenses/dbt2-${PROJECT_VERSION}
     COMMAND cp -p ../../LICENSE
             ../AppDir/usr/share/licenses/dbt2-${PROJECT_VERSION}/
