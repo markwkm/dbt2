@@ -183,10 +183,24 @@ Datum new_order(PG_FUNCTION_ARGS) {
 
 		no_order_line *pp;
 
+		if (o_ol_cnt < 1 || o_ol_cnt > 15) {
+			ereport(ERROR, (errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+							errmsg("o_ol_cnt must be between 1 and 15")));
+		}
+
 		/* Loop through the last set of parameters. */
 		for (i = 0, j = 5; i < 15; i++) {
 			bool isnull;
-			HeapTupleHeader t = PG_GETARG_HEAPTUPLEHEADER(j++);
+			HeapTupleHeader t;
+
+			if (PG_ARGISNULL(j)) {
+				ol_i_id[i] = 0;
+				ol_supply_w_id[i] = 0;
+				ol_quantity[i] = 0;
+				j++;
+				continue;
+			}
+			t = PG_GETARG_HEAPTUPLEHEADER(j++);
 			ol_i_id[i] =
 					DatumGetInt32(GetAttributeByName(t, "ol_i_id", &isnull));
 			ol_supply_w_id[i] = DatumGetInt32(
@@ -213,7 +227,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
 			TYPEFUNC_COMPOSITE) {
 			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-							errmsg("delivery cannot accept type record")));
+							errmsg("new_order cannot accept type record")));
 		}
 		attinmeta = TupleDescGetAttInMetadata(tupdesc);
 		funcctx->attinmeta = attinmeta;
@@ -222,7 +236,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 
 		plan_queries(statements);
 
-		funcctx->user_fctx = MemoryContextAlloc(
+		funcctx->user_fctx = MemoryContextAllocZero(
 				funcctx->multi_call_memory_ctx,
 				sizeof(no_order_line) * o_ol_cnt);
 
@@ -254,7 +268,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 			elog(DEBUG1, "d_next_o_id = %d", d_next_o_id);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-							errmsg("NEW_ORDER_3 failed")));
+							errmsg("NEW_ORDER_2 failed")));
 		}
 
 		args[0] = Int32GetDatum(w_id);
@@ -324,9 +338,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 			} else {
 				/* Item doesn't exist, rollback transaction. */
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-								errmsg("NEW_ORDER_8 failed: item not found")));
-				SPI_finish();
-				PG_RETURN_NULL();
+								errmsg("NEW_ORDER_7 failed: item not found")));
 			}
 
 			ol_amount[i] = atof(i_price[i]) * (float) ol_quantity[i];
@@ -415,22 +427,14 @@ Datum new_order(PG_FUNCTION_ARGS) {
 
 		no_order_line *pp = (no_order_line *) funcctx->user_fctx;
 
-		values[0] = (char *) palloc(11 * sizeof(char));
-		values[1] = (char *) palloc(11 * sizeof(char));
-		values[2] = (char *) palloc(4 * (I_NAME_LEN + 1) * sizeof(char));
-		values[3] = (char *) palloc(11 * sizeof(char));
-		values[4] = (char *) palloc(11 * sizeof(char));
-		values[5] = (char *) palloc(11 * sizeof(char));
-		values[6] = (char *) palloc(11 * sizeof(char));
+		values[0] = psprintf("%d", pp[funcctx->call_cntr].ol_supply_w_id);
+		values[1] = psprintf("%d", pp[funcctx->call_cntr].ol_i_id);
+		values[2] = pp[funcctx->call_cntr].i_name;
+		values[3] = psprintf("%d", pp[funcctx->call_cntr].ol_quantity);
+		values[4] = psprintf("%d", pp[funcctx->call_cntr].s_quantity);
+		values[5] = psprintf("%.2f", pp[funcctx->call_cntr].i_price);
+		values[6] = psprintf("%.2f", pp[funcctx->call_cntr].ol_amount);
 		values[7] = (char *) palloc(2 * sizeof(char));
-
-		snprintf(values[0], 10, "%d", pp[funcctx->call_cntr].ol_supply_w_id);
-		snprintf(values[1], 10, "%d", pp[funcctx->call_cntr].ol_i_id);
-		strncpy(values[2], pp[funcctx->call_cntr].i_name, 4 * I_NAME_LEN);
-		snprintf(values[3], 10, "%d", pp[funcctx->call_cntr].ol_quantity);
-		snprintf(values[4], 10, "%d", pp[funcctx->call_cntr].s_quantity);
-		snprintf(values[5], 10, "%f", pp[funcctx->call_cntr].i_price);
-		snprintf(values[6], 10, "%f", pp[funcctx->call_cntr].ol_amount);
 		values[7][0] = pp[funcctx->call_cntr].brand_generic;
 		values[7][1] = '\0';
 
