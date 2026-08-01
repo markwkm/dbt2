@@ -22,6 +22,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- pgsql: create-db reports a failed CREATE DATABASE or an unreachable
+  server instead of exiting 0
 - pgsql: only use VACUUM PARALLEL on PostgreSQL 13 or later, never combine
   it with VACUUM FULL, and fail the build if the final VACUUM ANALYZE fails
 - pgsql: load-db stops with an error when any parallel data loading process

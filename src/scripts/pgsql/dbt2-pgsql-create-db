@@ -27,11 +27,12 @@ if [ ! "${PORT}" = "" ]; then
 fi
 PSQL="psql -X ${PORTOPT} -At"
 
-DBEXISTS=$(${PSQL} -l | cut -d "|" -f 1 | grep -c "\<${DBT2DBNAME}\>")
+DBLIST=$(${PSQL} -l) || exit 1
+DBEXISTS=$(echo "${DBLIST}" | cut -d "|" -f 1 | grep -c "\<${DBT2DBNAME}\>")
 
 if [ "${DBEXISTS}" -ne 1 ]; then
 	echo "Creating database..."
-	eval "${PSQL} -d template1" <<- EOF
+	eval "${PSQL} -d template1" <<- EOF || exit 1
 		CREATE DATABASE ${DBT2DBNAME};
 	EOF
 fi
