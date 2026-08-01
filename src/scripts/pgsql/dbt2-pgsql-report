@@ -107,6 +107,8 @@ make_list()
 		SNAME="$(basename "$(dirname "${STATDIR}")")"
 
 		PIDSTATCSV="${INDIR}/db/${SNAME}/sysstat/pidstat.csv"
+		# shellcheck disable=SC2030 # PIDSTATDIR is only used by functions
+		# called within this subshell
 		PIDSTATDIR=$(dirname "$PIDSTATCSV")
 
 		# Create additional HTML pages for the database charts.
@@ -153,6 +155,8 @@ __EOF__
 	done
 }
 
+# shellcheck disable=SC2031 # only called from the make_list subshell
+# where PIDSTATDIR is set
 show_images()
 {
 	NAME=$1

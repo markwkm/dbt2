@@ -185,7 +185,7 @@ if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# If the number of CPUs is less than 9, then we set the vacuum job
 	# number to that number of CPUs.
 	if [ -f "/proc/stat" ]; then
-		CPUS=$(grep cpu /proc/stat | wc -l)
+		CPUS=$(grep -c cpu /proc/stat)
 		CPUS=$(( CPUS - 1 ))
 		if [ $CPUS -lt $VACUUM_JOBS ]; then
 			VACUUM_JOBS=$CPUS

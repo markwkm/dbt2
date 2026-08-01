@@ -6,6 +6,8 @@
 # Copyright The DBT-2 Authors
 #
 
+# shellcheck disable=SC2317 # called below, the heredocs confuse the
+# unreachable command check
 exec_and_sync() {
 	SQL="${1}"
 
