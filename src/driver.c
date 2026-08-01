@@ -109,8 +109,8 @@ int integrity_terminal_worker() {
 			table_cardinality.warehouses);
 
 #ifdef DEBUG
-	printf("executing transaction %c\n" transaction_short_name
-				   [client_data.transaction]);
+	printf("executing transaction %c\n",
+		   transaction_short_name[client_data.transaction]);
 	fflush(stdout);
 
 	LOG_ERROR_MESSAGE(
@@ -150,14 +150,24 @@ int start_driver() {
 	printf("driver will ramp up in  %d seconds\n", threads_start_time);
 	printf("will stop test at time %d\n", stop_time);
 
-	/* allocate g_tid */
-	g_tid = (pthread_t **) malloc(
-			sizeof(pthread_t *) * (w_id_max + 1) / spread);
-	memset(g_tid, 0, sizeof(pthread_t *) * (w_id_max + 1) / spread);
+	/*
+	 * Allocate g_tid, indexed directly by warehouse id, so it needs a
+	 * slot for every id up to w_id_max even when spread skips some.
+	 */
+	g_tid = (pthread_t **) malloc(sizeof(pthread_t *) * (w_id_max + 1));
+	if (g_tid == NULL) {
+		LOG_ERROR_MESSAGE("error allocating terminal thread ids");
+		return ERROR;
+	}
+	memset(g_tid, 0, sizeof(pthread_t *) * (w_id_max + 1));
 	count = 1;
 	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		g_tid[i] = (pthread_t *) malloc(
 				sizeof(pthread_t) * terminals_per_warehouse);
+		if (g_tid[i] == NULL) {
+			LOG_ERROR_MESSAGE("error allocating terminal thread ids");
+			return ERROR;
+		}
 		if (terminals_limit && count > terminals_limit) {
 			break;
 		}
@@ -171,6 +181,14 @@ int start_driver() {
 			pthread_attr_t attr;
 			size_t stacksize = 131072; /* 128 kilobytes. */
 			struct terminal_context_t *tc;
+
+			/*
+			 * Check the limit before creating so the same number of
+			 * threads are created here as are joined below.
+			 */
+			if (terminals_limit && count > terminals_limit) {
+				break;
+			}
 
 			tc = (struct terminal_context_t *) malloc(
 					sizeof(struct terminal_context_t));
@@ -219,20 +237,12 @@ int start_driver() {
 					memcpy(&ts, &rem, sizeof(struct timespec));
 				} else {
 					LOG_ERROR_MESSAGE(
-							"sleep time invalid %d s %ls ns", ts.tv_sec,
-							ts.tv_nsec);
+							"sleep time invalid %ld s %ld ns",
+							(long) ts.tv_sec, (long) ts.tv_nsec);
 					break;
 				}
 			}
 			pthread_attr_destroy(&attr);
-
-			/*
-			 * Need to break out of the inner loop then break out of the other
-			 * loop.
-			 */
-			if (terminals_limit && count > terminals_limit) {
-				break;
-			}
 			++count;
 		}
 		/* Breaking out of the outer loop. */
@@ -445,8 +455,9 @@ void *terminal_worker(void *data) {
 					memcpy(&thinking_time, &rem, sizeof(struct timespec));
 				} else {
 					LOG_ERROR_MESSAGE(
-							"sleep time invalid %d s %ls ns",
-							thinking_time.tv_sec, thinking_time.tv_nsec);
+							"sleep time invalid %ld s %ld ns",
+							(long) thinking_time.tv_sec,
+							(long) thinking_time.tv_nsec);
 					break;
 				}
 			}
