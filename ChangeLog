@@ -16,6 +16,12 @@ vX.Y.Z (YYYY-MM-DD)
   by the payment amount, increments c_payment_cnt, returns the post-payment
   balance, and formats the amount in c_data with two decimal places,
   per TPC-C Clause 2.5.2
+- pl/pgsql: payment selects the median customer matching a last name
+  instead of the first, updates and records in history the customer
+  selected by last name instead of customer number zero, increases
+  c_ytd_payment by the payment amount, increments c_payment_cnt, returns
+  the post-payment balance, and formats the amount in c_data with two
+  decimal places, per TPC-C Clause 2.5.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments

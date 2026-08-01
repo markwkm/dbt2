@@ -75,7 +75,13 @@ BEGIN
 		WHERE customer.c_w_id = payment.c_w_id
 		  AND customer.c_d_id = payment.c_d_id
 		  AND customer.c_last = in_c_last
-		ORDER BY customer.c_first ASC;
+		ORDER BY customer.c_first ASC
+		OFFSET ((SELECT count(*)
+		         FROM customer
+		         WHERE customer.c_w_id = payment.c_w_id
+		           AND customer.c_d_id = payment.c_d_id
+		           AND customer.c_last = in_c_last) - 1) / 2
+		LIMIT 1;
 	ELSE
 		tmp_c_id = c_id;
 	END IF;
@@ -97,28 +103,32 @@ BEGIN
 	IF c_credit = 'BC' THEN
 		UPDATE customer
 		SET c_balance = customer.c_balance - h_amount,
-		    c_ytd_payment = c_ytd_payment + 1,
+		    c_ytd_payment = c_ytd_payment + h_amount,
+		    c_payment_cnt = c_payment_cnt + 1,
             c_data = substring(tmp_c_id || ' ' || payment.c_d_id || ' '
                                || payment.c_w_id || ' ' || d_id || ' ' || w_id
-                               || ' ' || h_amount || ' ' || customer.c_data, 1,
-                               500)
-		WHERE customer.c_id = payment.c_id
+                               || ' ' || h_amount::NUMERIC(10, 2) || ' '
+                               || customer.c_data, 1, 500)
+		WHERE customer.c_id = tmp_c_id
 		  AND customer.c_w_id = payment.c_w_id
 		  AND customer.c_d_id = payment.c_d_id
-        RETURNING substring(customer.c_data, 1, 200)
-        INTO payment.c_data;
+        RETURNING customer.c_balance, substring(customer.c_data, 1, 200)
+        INTO payment.c_balance, payment.c_data;
 	ELSE
 		UPDATE customer
 		SET c_balance = customer.c_balance - h_amount,
-		    c_ytd_payment = c_ytd_payment + 1
-		WHERE customer.c_id = payment.c_id
+		    c_ytd_payment = c_ytd_payment + h_amount,
+		    c_payment_cnt = c_payment_cnt + 1
+		WHERE customer.c_id = tmp_c_id
 		  AND customer.c_w_id = payment.c_w_id
-		  AND customer.c_d_id = payment.c_d_id;
+		  AND customer.c_d_id = payment.c_d_id
+        RETURNING customer.c_balance
+        INTO payment.c_balance;
 	END IF;
 
 	INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,
 	                     h_date, h_amount, h_data)
-	VALUES (c_id, c_d_id, c_w_id, d_id, w_id,
+	VALUES (tmp_c_id, c_d_id, c_w_id, d_id, w_id,
 		    CURRENT_TIMESTAMP, h_amount,
             substring(w_name || '    ' || d_name, 1, 24))
     RETURNING history.h_date
