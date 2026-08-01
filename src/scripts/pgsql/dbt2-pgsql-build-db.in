@@ -168,16 +168,15 @@ SEED=$(dbt2 rand -1 1 15)
 # shellcheck disable=SC2086 # PORTARG is intentionally word split
 psql ${PORTARG} -e -d "${DBT2DBNAME}" -c "SELECT setseed(${SEED});" || exit 1
 
-# Set the number of vacuumdb jobs to 1 (no parallelism) and let see
-# if the system can support a greater value.
+# Set the number of vacuum jobs to 1 (no parallelism) and see if the
+# system can support a greater value.
 VACUUM_JOBS=1
-# Based on server version, enable vaccumdb parallelism if that version
-# is greater than or equal to 9.5.
+# The VACUUM PARALLEL option requires PostgreSQL 13 or later.
 # shellcheck disable=SC2086 # PORTARG is intentionally word split
 PG_VERSION_NUM=$(psql ${PORTARG} -At -d "${DBT2DBNAME}" \
 		-c "SHOW server_version_num")
 PG_VERSION_NUM=$(( PG_VERSION_NUM + 0 ))
-if [ $PG_VERSION_NUM -ge 95000 ]; then
+if [ $PG_VERSION_NUM -ge 130000 ]; then
 	# Set default vacuum jobs to 9 because this is the number of tables
 	# present in the database. Setting the number of job to a value
 	# greater than 9 won't bring any additional benefit.
@@ -193,24 +192,19 @@ if [ $PG_VERSION_NUM -ge 95000 ]; then
 	fi
 fi
 
-# VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
-# tables. The VACUUM FULL is probably unnecessary; we want to scan the
-# heap and update the commit-hint bits on each new tuple, but a regular
-# VACUUM ought to suffice for that.
-# Note: by default, VACUUM FREEZE ANALYZE is performed. The -f option
-# can be used to execute VACUUM in FULL mode.
-
-# Perform VACUUM FREEZE ANALYZE by default
+# VACUUM ANALYZE: Build optimizer statistics for newly-created tables.
+# The VACUUM FULL is probably unnecessary; we want to scan the heap and
+# update the commit-hint bits on each new tuple, but a regular VACUUM
+# ought to suffice for that.  The -f option can be used to execute
+# VACUUM in FULL mode, which cannot be combined with PARALLEL.
 VACUUM_OPTS="ANALYZE"
 if [ $VACUUM_FULL -eq 1 ]; then
 	VACUUM_OPTS="${VACUUM_OPTS}, FULL"
-fi
-
-if [ $VACUUM_JOBS -gt 1 ]; then
+elif [ $VACUUM_JOBS -gt 1 ]; then
 	VACUUM_OPTS="${VACUUM_OPTS}, PARALLEL ${VACUUM_JOBS}"
 fi
 
-psql -X "${PORTARG}" -e -d "${DBT2DBNAME}" <<- EOF
+psql -X "${PORTARG}" -e -d "${DBT2DBNAME}" <<- EOF || exit 1
 	VACUUM (${VACUUM_OPTS});
 EOF
 
