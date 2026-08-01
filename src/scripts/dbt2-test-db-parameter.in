@@ -52,6 +52,10 @@ DIRECTORY is the path to save test results.
 EOF
 }
 
+warning() {
+	echo "WARNING: $*"
+}
+
 CONFIGFILE=""
 DB_HOSTNAME="localhost"
 DB_PORT=""
@@ -177,6 +181,14 @@ DB_STOP_COMMAND="$(toml get "${CONFIGFILE}" . | jq -r '.db_stop_command')"
 DB_PARAM_NAME="$(toml get "${CONFIGFILE}" . | jq -r '.db_param_name')"
 DB_PARAM_VALUES="$(toml get "${CONFIGFILE}" . | jq -cr '.db_param_values')"
 
+for KEY in db_start_command db_stop_command db_param_name db_param_values; do
+	VAL="$(toml get "${CONFIGFILE}" . | jq -r ".${KEY}")"
+	if [ "${VAL}" = "null" ] || [ "${VAL}" = "" ]; then
+		echo "ERROR: ${KEY} is not set in ${CONFIGFILE}"
+		exit 1
+	fi
+done
+
 # Build up the run arguments
 
 RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
@@ -199,33 +211,35 @@ SETPARAMARGS="${SETPARAMARGS} --db-name=${DBNAME}"
 
 RESULTSFILE="${OUTDIR}/results.dat"
 
-mkdir -p "${OUTDIR}"
-
 echo "testing parameter: ${DB_PARAM_NAME}"
 echo "testing values: ${DB_PARAM_VALUES}"
 
-I=0
 for VALUE in $(echo "${DB_PARAM_VALUES}" | jq -r '.[]'); do
 	PREFIX="${OUTDIR}/${DB_PARAM_NAME}-${VALUE}"
 
 	echo "testing ${DB_PARAM_NAME} = ${VALUE}"
 
 	echo "    ensure database is started to update parameter"
-	eval "${DB_START_COMMAND}"
+	eval "${DB_START_COMMAND}" || exit 1
 
 	echo "    updating ${DB_PARAM_NAME} to ${VALUE}"
-	eval "dbt2-${DBMS}-set-param ${SETPARAMARGS} ${DB_PARAM_NAME} ${VALUE}"
+	eval "dbt2-${DBMS}-set-param ${SETPARAMARGS} ${DB_PARAM_NAME} ${VALUE}" || \
+			exit 1
 
 	echo "    restarting database to ensure parameter change takes effect"
-	eval "${DB_STOP_COMMAND}"
-	eval "${DB_START_COMMAND}"
+	eval "${DB_STOP_COMMAND}" || exit 1
+	eval "${DB_START_COMMAND}" || exit 1
 
 	echo "    starting test"
-	eval "dbt2 run --stats ${RUNARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1
+	if ! eval "dbt2 run --stats ${RUNARGS} ${DBMS} ${PREFIX}" \
+			> "${PREFIX}.log" 2>&1; then
+		echo "ERROR: test with ${DB_PARAM_NAME} = ${VALUE} failed, see" \
+				"${PREFIX}.log"
+		exit 1
+	fi
 
 	NOTPM="$(grep Throughput "${PREFIX}/summary.rst" | cut -d " " -f 3)"
 	echo "${VALUE} ${NOTPM}" >> "${RESULTSFILE}"
-	I=$(( I + 1 ))
 done
 
 # Bar plot the metric per database connection.
@@ -271,3 +285,5 @@ for FILE in sar-blockdev.csv sar-cpu.csv sar-mem.csv sar-net.csv \
 done
 
 ts plot-sar -i "${SARDIR}"
+
+wait

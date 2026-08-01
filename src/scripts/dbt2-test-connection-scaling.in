@@ -63,6 +63,10 @@ DIRECTORY is the path to save test results.
 EOF
 }
 
+warning() {
+	echo "WARNING: $*"
+}
+
 CONFIGFILE=""
 DB_HOSTNAME="localhost"
 DB_PORT=""
@@ -145,6 +149,9 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		LAST="${1}"
 		;;
+	(--stop=*)
+		LAST="${1#*--stop=}"
+		;;
 	(-V | --version)
 		echo "$(basename "${0}") v@PROJECT_VERSION@"
 		exit 0
@@ -217,11 +224,16 @@ if [ "${WAREHOUSES}" -lt "${PROCS}" ]; then
 	PROCS="${WAREHOUSES}"
 fi
 
+if [ "${LAST}" -eq 0 ]; then
+	LAST="${PROCS}"
+fi
+
 # Prep data file to bar plot connections and the primary metric.
 RESULTSFILE="${OUTDIR}/results.dat"
 echo "connections metric" > "${RESULTSFILE}"
 
-RUNARGS="--db-host=${DB_HOSTNAME}"
+RUNARGS="${RUNARGS} --db-host=${DB_HOSTNAME}"
+RUNARGS="${RUNARGS} --db-name=${DBNAME}"
 if [ ! "${CONFIGFILE}" = "" ]; then
 	RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
 fi
@@ -235,12 +247,15 @@ RUNARGS="${RUNARGS} --duration=${DURATION}"
 RUNARGS="${RUNARGS} --stats"
 RUNARGS="${RUNARGS} --warehouses=${WAREHOUSES}"
 for I in $(seq "${FIRST}" "${STEP}" "${LAST}"); do
-	DELAY=$(( (WARMUP / I) * 1000 ))
+	DELAY=$(( (WARMUP * 1000) / I ))
 	PREFIX="${OUTDIR}/${I}"
 
 	ARGS="${RUNARGS} --connection-delay=${DELAY}"
 	ARGS="${ARGS} --terminal-limit=${I}"
-	eval "dbt2 run ${ARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1
+	if ! eval "dbt2 run ${ARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1; then
+		echo "ERROR: test with ${I} connection(s) failed, see ${PREFIX}.log"
+		exit 1
+	fi
 
 	NOTPM="$(grep Throughput "${PREFIX}/summary.rst" | cut -d " " -f 3)"
 	echo "${I} ${NOTPM}" >> "${RESULTSFILE}"
@@ -289,3 +304,5 @@ for FILE in sar-blockdev.csv sar-cpu.csv sar-mem.csv sar-net.csv \
 done
 
 ts plot-sar -i "${SARDIR}"
+
+wait

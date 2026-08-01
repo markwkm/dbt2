@@ -22,6 +22,13 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- test-connection-scaling: apply the documented processor-count default for
+  --stop (a default invocation previously ran zero tests), stop forgetting
+  --dbaas, forward --db-name, accept --stop=N, stop the series when a test
+  fails, and fix the warmup delay rounding
+- test-db-parameter: stop when setting the parameter or restarting the
+  database fails instead of recording results for an unchanged parameter,
+  and reject config files missing required keys
 - run: fix remote database control commands running locally when --stats
   was not given, the client password being passed with the wrong flag, the
   interrupted-run cleanup targeting an unset host, the config file driver
