@@ -26,6 +26,7 @@ vX.Y.Z (YYYY-MM-DD)
   the version pinning of the gnuplot and touchstone-tools downloads
 - appimage: verify TLS certificates, fail on download errors, and pin the
   Rust toolchain in the container image
+- appimage: remove an unused copy of python from the container image
 
 v0.61.7 (2025-07-01)
 
