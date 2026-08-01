@@ -194,9 +194,9 @@ add_custom_target(appimage
                   `command -v ts-report-sar`
                   `command -v ts-sysstat`
                   ../AppDir/usr/bin/
-    COMMAND curl -o ../AppDir/usr/bin/stackcollapse-perf.pl -SsOL
+    COMMAND curl -o ../AppDir/usr/bin/stackcollapse-perf.pl -fSsL
             https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl
-    COMMAND curl -o ../AppDir/usr/bin/flamegraph.pl -SsOL
+    COMMAND curl -o ../AppDir/usr/bin/flamegraph.pl -fSsL
             https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl
     COMMAND chmod +x ../AppDir/usr/bin/stackcollapse-perf.pl
             ../AppDir/usr/bin/flamegraph.pl
@@ -204,7 +204,7 @@ add_custom_target(appimage
                 ../AppDir/usr/bin/flamegraph.pl
                 ../AppDir/usr/bin/stackcollapse-perf.pl
     COMMAND mkdir -p ../AppDir/usr/share/licenses/FlameGraph
-    COMMAND curl -o ../AppDir/usr/share/licenses/FlameGraph/cddl1.txt -SsOL
+    COMMAND curl -o ../AppDir/usr/share/licenses/FlameGraph/cddl1.txt -fSsL
             https://raw.githubusercontent.com/brendangregg/FlameGraph/master/docs/cddl1.txt
     COMMAND mkdir -p ../AppDir/usr/lib/
     COMMAND cp -paL
