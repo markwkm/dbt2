@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.6.2.
  */
 
 #include <sys/types.h>
@@ -151,11 +151,11 @@ Datum order_status(PG_FUNCTION_ARGS) {
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
-				tuple = tuptable->vals[count / 2];
+				tuple = tuptable->vals[(count - 1) / 2];
 
 				tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
 				elog(DEBUG1, "c_id = %s, %d total, selected %d", tmp_c_id,
-					 count, count / 2);
+					 count, (count - 1) / 2);
 				my_c_id = atoi(tmp_c_id);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
