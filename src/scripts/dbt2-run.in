@@ -206,7 +206,7 @@ stop_processes() {
 			if [ "${CLIENT_HOSTNAME}" = "localhost" ]; then
 				CMD=""
 			else
-				CMD="${SSH} ${SYSTEM}"
+				CMD="${SSH} ${CLIENT_HOSTNAME}"
 			fi
 			PIDFILE=$(eval "${CMD} find ${OUTPUT_DIR} -name dbt2_client.pid" \
 					2> /dev/null)
@@ -688,8 +688,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 		CLIENT_COMMAND=""
 	fi
 
-	if [ ${STATS} -eq 1 ] && [ ! "${DB_HOSTNAME}" = "localhost" ] \
-            && [ $DBAAS -eq 0 ]; then
+	if [ ! "${DB_HOSTNAME}" = "localhost" ] && [ $DBAAS -eq 0 ]; then
 		DB_COMMAND="$SSH ${DB_HOSTNAME}"
 		if ! eval "${DB_COMMAND} which rsync" > /dev/null 2>&1; then
 			printf "WARNING: rsync required on database system in order to "
@@ -824,7 +823,7 @@ fi
 
 if [ -n "${DB_PASSWORD}" ]; then
 	echo "* DATABASE PASSWORD: *******"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -z ${DB_PASSWORD}"
 fi
 
 if [ "${CONFIGFILE}" = "" ]; then
@@ -1219,7 +1218,7 @@ else
 		# Calculate ramp up time for this driver and sleep only for the
 		# duration of the driver with the longest ramp up time.
 
-		OPTION1=$(( WMAX - WMIN + 1 ))
+		OPTION1=$(( END - START + 1 ))
 		OPTION1=$(( OPTION1 * THREADS_PER_WAREHOUSE ))
 		THIS_RAMPUP_TIME=${OPTION1}
 		if [ ! "${TERMINALS_LIMIT}" = "" ]; then
@@ -1347,19 +1346,18 @@ else
 		else
 			CMD="${SSH} ${SYSTEM}"
 		fi
-	done
-
-	eval "${CMD} find ${OUTPUT_DIR}/driver -name dbt2_driver.pid -print" | \
-			while IFS= read -r PIDFILE; do
-		PID=$(eval "${CMD} cat ${PIDFILE}")
 		INDEX=$(( INDEX + 1 ))
-		printf "${INDEX}. Waiting for driver (PID %d) to stop on %s." \
-				"${PID}" "${SYSTEM}"
-		while eval "${CMD} kill -0 ${PID}" 2> /dev/null; do
-			printf "."
-			sleep 1
+		eval "${CMD} find ${OUTPUT_DIR}/driver -name dbt2_driver.pid -print" | \
+				while IFS= read -r PIDFILE; do
+			PID=$(eval "${CMD} cat ${PIDFILE}")
+			printf "%d. Waiting for driver (PID %d) to stop on %s." \
+					"${INDEX}" "${PID}" "${SYSTEM}"
+			while eval "${CMD} kill -0 ${PID}" 2> /dev/null; do
+				printf "."
+				sleep 1
+			done
+			echo
 		done
-		echo
 	done
 	echo
 

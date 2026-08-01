@@ -22,6 +22,11 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- run: fix remote database control commands running locally when --stats
+  was not given, the client password being passed with the wrong flag, the
+  interrupted-run cleanup targeting an unset host, the config file driver
+  ramp up calculation using unset variables, and waiting for drivers on all
+  driver systems instead of only the last
 - pgsql: create-db reports a failed CREATE DATABASE or an unreachable
   server instead of exiting 0
 - pgsql: only use VACUUM PARALLEL on PostgreSQL 13 or later, never combine
