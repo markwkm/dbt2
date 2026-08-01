@@ -225,7 +225,7 @@ Datum payment(PG_FUNCTION_ARGS) {
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
 			TYPEFUNC_COMPOSITE) {
 			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-							errmsg("delivery cannot accept type record")));
+							errmsg("payment cannot accept type record")));
 		}
 		attinmeta = TupleDescGetAttInMetadata(tupdesc);
 		funcctx->attinmeta = attinmeta;
@@ -234,7 +234,7 @@ Datum payment(PG_FUNCTION_ARGS) {
 
 		plan_queries(statements);
 
-		funcctx->user_fctx = MemoryContextAlloc(
+		funcctx->user_fctx = MemoryContextAllocZero(
 				funcctx->multi_call_memory_ctx, sizeof(payment_row));
 		funcctx->max_calls = 0;
 		pp = (payment_row *) funcctx->user_fctx;
@@ -402,8 +402,8 @@ Datum payment(PG_FUNCTION_ARGS) {
 			char my_c_data[C_DATA_LEN + 1];
 
 			snprintf(
-					my_c_data, C_DATA_LEN, "%d %d %d %d %d %.2f ", my_c_id,
-					c_d_id, c_w_id, d_id, w_id, h_amount);
+					my_c_data, sizeof(my_c_data), "%d %d %d %d %d %.2f ",
+					my_c_id, c_d_id, c_w_id, d_id, w_id, h_amount);
 
 			args[0] = Float4GetDatum(h_amount);
 			args[1] = CStringGetTextDatum(my_c_data);
@@ -467,64 +467,41 @@ Datum payment(PG_FUNCTION_ARGS) {
 
 		payment_row *pp = (payment_row *) funcctx->user_fctx;
 
-		values[0] = (char *) palloc((W_STREET_1_LEN + 1) * sizeof(char));
-		values[1] = (char *) palloc((W_STREET_2_LEN + 1) * sizeof(char));
-		values[2] = (char *) palloc((W_CITY_LEN + 1) * sizeof(char));
-		values[3] = (char *) palloc((W_STATE_LEN + 1) * sizeof(char));
-		values[4] = (char *) palloc((W_ZIP_LEN + 1) * sizeof(char));
-		values[5] = (char *) palloc((D_STREET_1_LEN + 1) * sizeof(char));
-		values[6] = (char *) palloc((D_STREET_2_LEN + 1) * sizeof(char));
-		values[7] = (char *) palloc((D_CITY_LEN + 1) * sizeof(char));
-		values[8] = (char *) palloc((D_STATE_LEN + 1) * sizeof(char));
-		values[9] = (char *) palloc((D_ZIP_LEN + 1) * sizeof(char));
-		values[10] = (char *) palloc((C_FIRST_LEN + 1) * sizeof(char));
-		values[11] = (char *) palloc((C_MIDDLE_LEN + 1) * sizeof(char));
-		values[12] = (char *) palloc((C_LAST_LEN + 1) * sizeof(char));
-		values[13] = (char *) palloc((C_STREET_1_LEN + 1) * sizeof(char));
-		values[14] = (char *) palloc((C_STREET_2_LEN + 1) * sizeof(char));
-		values[15] = (char *) palloc((C_CITY_LEN + 1) * sizeof(char));
-		values[16] = (char *) palloc((C_STATE_LEN + 1) * sizeof(char));
-		values[17] = (char *) palloc((C_ZIP_LEN + 1) * sizeof(char));
-		values[18] = (char *) palloc((C_PHONE_LEN + 1) * sizeof(char));
-		values[19] = (char *) palloc((C_SINCE_LEN + 1) * sizeof(char));
-		values[20] = (char *) palloc((C_CREDIT_LEN + 1) * sizeof(char));
-		values[21] = (char *) palloc(11 * sizeof(char));
-		values[22] = (char *) palloc(11 * sizeof(char));
-		values[23] = (char *) palloc(11 * sizeof(char));
-		values[24] = (char *) palloc((C_DATA_BC_LEN + 1) * sizeof(char));
-		values[25] = (char *) palloc((H_DATE_LEN + 1) * sizeof(char));
+		/*
+		 * The staging struct already holds NUL terminated copies;
+		 * point at them directly rather than copying again.
+		 */
+		values[0] = pp->w_street_1;
+		values[1] = pp->w_street_2;
+		values[2] = pp->w_city;
+		values[3] = pp->w_state;
+		values[4] = pp->w_zip;
 
-		strncpy(values[0], pp->w_street_1, 4 * W_STREET_1_LEN);
-		strncpy(values[1], pp->w_street_2, 4 * W_STREET_2_LEN);
-		strncpy(values[2], pp->w_city, 4 * W_CITY_LEN);
-		strncpy(values[3], pp->w_state, 4 * W_STATE_LEN);
-		strncpy(values[4], pp->w_zip, 4 * W_ZIP_LEN);
+		values[5] = pp->d_street_1;
+		values[6] = pp->d_street_2;
+		values[7] = pp->d_city;
+		values[8] = pp->d_state;
+		values[9] = pp->d_zip;
 
-		strncpy(values[5], pp->d_street_1, 4 * D_STREET_1_LEN);
-		strncpy(values[6], pp->d_street_2, 4 * D_STREET_2_LEN);
-		strncpy(values[7], pp->d_city, 4 * D_CITY_LEN);
-		strncpy(values[8], pp->d_state, 4 * D_STATE_LEN);
-		strncpy(values[9], pp->d_zip, 4 * D_ZIP_LEN);
+		values[10] = pp->c_first;
+		values[11] = pp->c_middle;
+		values[12] = pp->c_last;
 
-		strncpy(values[10], pp->c_first, 4 * C_FIRST_LEN);
-		strncpy(values[11], pp->c_middle, C_MIDDLE_LEN);
-		strncpy(values[12], pp->c_last, 4 * C_LAST_LEN);
+		values[13] = pp->c_street_1;
+		values[14] = pp->c_street_2;
+		values[15] = pp->c_city;
+		values[16] = pp->c_state;
+		values[17] = pp->c_zip;
 
-		strncpy(values[13], pp->c_street_1, 4 * C_STREET_1_LEN);
-		strncpy(values[14], pp->c_street_2, 4 * C_STREET_2_LEN);
-		strncpy(values[15], pp->c_city, 4 * C_CITY_LEN);
-		strncpy(values[16], pp->c_state, 4 * C_STATE_LEN);
-		strncpy(values[17], pp->c_zip, 4 * C_ZIP_LEN);
+		values[18] = pp->c_phone;
+		values[19] = pp->c_since;
+		values[20] = pp->c_credit;
 
-		strncpy(values[18], pp->c_phone, 4 * C_PHONE_LEN);
-		strncpy(values[19], pp->c_since, C_SINCE_LEN);
-		strncpy(values[20], pp->c_credit, C_CREDIT_LEN);
-
-		snprintf(values[21], 10, "%f", pp->c_credit_lim);
-		snprintf(values[22], 10, "%f", pp->c_discount);
-		snprintf(values[23], 10, "%f", pp->c_balance);
-		strncpy(values[24], pp->c_data, 4 * C_DATA_BC_LEN);
-		strncpy(values[25], pp->h_date, H_DATE_LEN);
+		values[21] = psprintf("%.2f", pp->c_credit_lim);
+		values[22] = psprintf("%.4f", pp->c_discount);
+		values[23] = psprintf("%.2f", pp->c_balance);
+		values[24] = pp->c_data;
+		values[25] = pp->h_date;
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);
 		result = HeapTupleGetDatum(tuple);
