@@ -23,14 +23,20 @@ int execute_stock_level_cockroach(
 
 int commit_transaction_cockroach(struct db_context_t *dbc) {
 	PGresult *res;
+	int rc = OK;
 
 	res = PQexec(dbc->library.libpq.conn, "COMMIT");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
+		if (PQstatus(dbc->library.libpq.conn) == CONNECTION_BAD) {
+			rc = RECONNECT;
+		} else {
+			rc = ERROR;
+		}
 	}
 	PQclear(res);
 
-	return OK;
+	return rc;
 }
 
 /* Open a connection to the database. */
