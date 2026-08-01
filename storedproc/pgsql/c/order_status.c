@@ -71,6 +71,11 @@ static cached_statement statements[] = {
 
 		{NULL}};
 
+/* One returned order line: the 5 output columns as C strings. */
+typedef struct {
+	char *values[5];
+} order_status_row;
+
 /* Prototypes to prevent potential gcc warnings. */
 
 Datum order_status(PG_FUNCTION_ARGS);
@@ -221,50 +226,57 @@ Datum order_status(PG_FUNCTION_ARGS) {
 		elog(DEBUG1, "--  -------  --------------  -----------  ---------  "
 					 "-------------");
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			order_status_row *rows;
+
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 
+			/*
+			 * Copy the results out of the SPI tuple table before
+			 * SPI_finish releases it.
+			 */
+			rows = (order_status_row *) MemoryContextAllocZero(
+					funcctx->multi_call_memory_ctx,
+					sizeof(order_status_row) * count);
 			for (j = 0; j < count; j++) {
-
-				char *ol_i_id[15];
-				char *ol_supply_w_id[15];
-				char *ol_quantity[15];
-				char *ol_amount[15];
-				char *ol_delivery_d[15];
-
-				/* 15 is the buffer size */
-				int idx = j % 15;
+				int k;
 
 				tuple = tuptable->vals[j];
-
-				ol_i_id[idx] = SPI_getvalue(tuple, tupdesc, 1);
-				ol_supply_w_id[idx] = SPI_getvalue(tuple, tupdesc, 2);
-				ol_quantity[idx] = SPI_getvalue(tuple, tupdesc, 3);
-				ol_amount[idx] = SPI_getvalue(tuple, tupdesc, 4);
-				ol_delivery_d[idx] = SPI_getvalue(tuple, tupdesc, 5);
-				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9.2f  %13s", j + 1,
-					 ol_i_id[idx] ? ol_i_id[idx] : "",
-					 ol_supply_w_id[idx] ? ol_supply_w_id[idx] : "",
-					 ol_quantity[idx] ? ol_quantity[idx] : "",
-					 atof(ol_amount[idx] ? ol_amount[idx] : 0),
-					 ol_delivery_d[idx] ? ol_delivery_d[idx] : "");
+				for (k = 0; k < 5; k++) {
+					char *value = SPI_getvalue(tuple, tupdesc, k + 1);
+					if (value != NULL) {
+						rows[j].values[k] = MemoryContextStrdup(
+								funcctx->multi_call_memory_ctx, value);
+					}
+				}
+				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9s  %13s", j + 1,
+					 rows[j].values[0] ? rows[j].values[0] : "",
+					 rows[j].values[1] ? rows[j].values[1] : "",
+					 rows[j].values[2] ? rows[j].values[2] : "",
+					 rows[j].values[3] ? rows[j].values[3] : "",
+					 rows[j].values[4] ? rows[j].values[4] : "");
 			}
+			funcctx->user_fctx = rows;
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 							errmsg("ORDER_STATUS_4 failed")));
 		}
 
 		/*
-		 * generate attribute metadata needed later to produce tuples
-		 * from raw C strings
+		 * Generate attribute metadata for the declared return type,
+		 * needed later to produce tuples from raw C strings.
 		 */
+		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
+			TYPEFUNC_COMPOSITE) {
+			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+							errmsg("order_status cannot accept type record")));
+		}
 		funcctx->attinmeta = TupleDescGetAttInMetadata(tupdesc);
-
-		/* save SPI data for use across calls */
-		funcctx->user_fctx = tuptable;
 
 		/* total number of tuples to be returned */
 		funcctx->max_calls = count;
+
+		SPI_finish();
 
 		/* switch out of the multi_call_memory_ctx */
 		MemoryContextSwitchTo(oldcontext);
@@ -279,27 +291,17 @@ Datum order_status(PG_FUNCTION_ARGS) {
 
 		/* setup some variables */
 		Datum result;
-		char **cstr_values;
 		HeapTuple result_tuple;
-		tuptable = (SPITupleTable *) funcctx->user_fctx;
-		tupdesc = tuptable->tupdesc;
-		tuple = tuptable->vals[funcctx->call_cntr]; /* ith row */
-
-		/* TODO: get rid of the hard coded 5! */
-		cstr_values = (char **) palloc(5 * sizeof(char *));
-		for (j = 0; j < 5; j++) {
-			cstr_values[j] = SPI_getvalue(tuple, tupdesc, j + 1);
-		}
+		order_status_row *rows = (order_status_row *) funcctx->user_fctx;
 
 		/* build a tuple */
-		result_tuple = BuildTupleFromCStrings(funcctx->attinmeta, cstr_values);
+		result_tuple = BuildTupleFromCStrings(
+				funcctx->attinmeta, rows[funcctx->call_cntr].values);
 
 		/* make the tuple into a datum */
 		result = HeapTupleGetDatum(result_tuple);
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
-		/* Here we are done returning items and just need to clean up: */
-		SPI_finish();
 		SRF_RETURN_DONE(funcctx);
 	}
 }
