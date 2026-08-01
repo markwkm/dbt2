@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
 - pgsql-plans: update usage and command line arguments
+- Fix CPack description and license file settings to use absolute paths
 
 v0.61.7 (2025-07-01)
 
