@@ -1357,8 +1357,7 @@ void gen_orders() {
 
 					/* ol_i_id */
 					fprintf(order_line, "%s%d%s", quoter,
-							(int) get_random(&ol_rng, ITEM_CARDINALITY - 1) + 1,
-							quoter);
+							(int) get_random(&ol_rng, items) + 1, quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_supply_w_id */

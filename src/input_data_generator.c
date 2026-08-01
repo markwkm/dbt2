@@ -77,7 +77,8 @@ int generate_new_order_data(
 	data->c_id = get_nurand(rng, 1023, 1, 3000);
 	data->o_ol_cnt = (int) get_random(rng, 11) + 5;
 	for (i = 0; i < data->o_ol_cnt; i++) {
-		data->order_line[i].ol_i_id = get_nurand(rng, 8191, 1, 100000);
+		data->order_line[i].ol_i_id =
+				get_nurand(rng, 8191, 1, table_cardinality.items);
 		if (table_cardinality.warehouses > 1) {
 			if (mode_altered == 1 || get_random(rng, 100) > 0) {
 				data->order_line[i].ol_supply_w_id = w_id;
