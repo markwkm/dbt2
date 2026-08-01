@@ -1,5 +1,11 @@
 vX.Y.Z (YYYY-MM-DD)
 
+- pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
+  and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
+  and s_remote_cnt, applies the +91 quantity adjustment only when stock does
+  not exceed the ordered quantity by 10 or more, stores the s_dist_xx
+  contents in ol_dist_info instead of the column name, and returns the order
+  line amount instead of a Datum bit pattern, per TPC-C Clause 2.4.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments

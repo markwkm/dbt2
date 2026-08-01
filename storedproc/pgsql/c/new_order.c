@@ -34,10 +34,6 @@
 #define NEW_ORDER_9 statements[7].plan
 #define NEW_ORDER_10 statements[8].plan
 
-const char s_dist[10][11] = {"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04",
-							 "s_dist_05", "s_dist_06", "s_dist_07", "s_dist_08",
-							 "s_dist_09", "s_dist_10"};
-
 static cached_statement statements[] = {
 
 		{/* NEW_ORDER_1 */
@@ -52,7 +48,7 @@ static cached_statement statements[] = {
 		 "SET d_next_o_id = d_next_o_id + 1\n"
 		 "WHERE d_w_id = $1\n"
 		 "  AND d_id = $2\n"
-		 "RETURNING d_tax, d_next_o_id",
+		 "RETURNING d_tax, d_next_o_id - 1",
 		 2,
 		 {INT4OID, INT4OID}},
 
@@ -86,20 +82,25 @@ static cached_statement statements[] = {
 		 {INT4OID}},
 
 		{/* NEW_ORDER_8 */
-		 "SELECT s_quantity, $1, s_data\n"
+		 "SELECT s_quantity, s_dist_01, s_dist_02, s_dist_03, s_dist_04,\n"
+		 "       s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09,\n"
+		 "       s_dist_10, s_data\n"
 		 "FROM stock\n"
-		 "WHERE s_i_id = $2\n"
-		 "  AND s_w_id = $3",
-		 3,
-		 {TEXTOID, INT4OID, INT4OID}},
+		 "WHERE s_i_id = $1\n"
+		 "  AND s_w_id = $2",
+		 2,
+		 {INT4OID, INT4OID}},
 
 		{/* NEW_ORDER_9 */
 		 "UPDATE stock\n"
-		 "SET s_quantity = s_quantity - $1\n"
-		 "WHERE s_i_id = $2\n"
-		 "  AND s_w_id = $3",
-		 3,
-		 {INT4OID, INT4OID, INT4OID}},
+		 "SET s_quantity = s_quantity - $1,\n"
+		 "    s_ytd = s_ytd + $2,\n"
+		 "    s_order_cnt = s_order_cnt + 1,\n"
+		 "    s_remote_cnt = s_remote_cnt + $3\n"
+		 "WHERE s_i_id = $4\n"
+		 "  AND s_w_id = $5",
+		 5,
+		 {INT4OID, INT4OID, INT4OID, INT4OID, INT4OID}},
 
 		{/* NEW_ORDER_10 */
 		 "INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, "
@@ -330,9 +331,8 @@ Datum new_order(PG_FUNCTION_ARGS) {
 
 			ol_amount[i] = atof(i_price[i]) * (float) ol_quantity[i];
 
-			args[0] = CStringGetTextDatum(s_dist[d_id - 1]);
-			args[1] = Int32GetDatum(ol_i_id[i]);
-			args[2] = Int32GetDatum(w_id);
+			args[0] = Int32GetDatum(ol_i_id[i]);
+			args[1] = Int32GetDatum(ol_supply_w_id[i]);
 			ret = SPI_execute_plan(NEW_ORDER_8, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				tupdesc = SPI_tuptable->tupdesc;
@@ -341,8 +341,8 @@ Datum new_order(PG_FUNCTION_ARGS) {
 
 				s_quantity[i] = SPI_getvalue(tuple, tupdesc, 1);
 				pp[i].s_quantity = atoi(s_quantity[i]);
-				my_s_dist[i] = SPI_getvalue(tuple, tupdesc, 2);
-				s_data[i] = SPI_getvalue(tuple, tupdesc, 3);
+				my_s_dist[i] = SPI_getvalue(tuple, tupdesc, 1 + d_id);
+				s_data[i] = SPI_getvalue(tuple, tupdesc, 12);
 				elog(DEBUG1, "s_quantity[%d] = %s", i, s_quantity[i]);
 				elog(DEBUG1, "my_s_dist[%d] = %s", i, my_s_dist[i]);
 				elog(DEBUG1, "s_data[%d] = %s", i, s_data[i]);
@@ -352,28 +352,35 @@ Datum new_order(PG_FUNCTION_ARGS) {
 			}
 			order_amount += ol_amount[i];
 
-			if (atoi(s_quantity[i]) > ol_quantity[i] + 10) {
+			if (atoi(s_quantity[i]) >= ol_quantity[i] + 10) {
 				decr_quantity = ol_quantity[i];
 			} else {
 				decr_quantity = ol_quantity[i] - 91;
 			}
 			args[0] = Int32GetDatum(decr_quantity);
-			args[1] = Int32GetDatum(ol_i_id[i]);
-			args[2] = Int32GetDatum(w_id);
+			args[1] = Int32GetDatum(ol_quantity[i]);
+			args[2] = Int32GetDatum(ol_supply_w_id[i] == w_id ? 0 : 1);
+			args[3] = Int32GetDatum(ol_i_id[i]);
+			args[4] = Int32GetDatum(ol_supply_w_id[i]);
 			ret = SPI_execute_plan(NEW_ORDER_9, args, nulls, false, 0);
 			if (ret != SPI_OK_UPDATE) {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 								errmsg("NEW_ORDER_9 failed")));
 			}
 
+			pp[i].ol_i_id = ol_i_id[i];
+			pp[i].ol_supply_w_id = ol_supply_w_id[i];
+			pp[i].ol_quantity = ol_quantity[i];
+			pp[i].ol_amount = ol_amount[i];
+
 			args[0] = Int32GetDatum(d_next_o_id);
 			args[1] = Int32GetDatum(d_id);
 			args[2] = Int32GetDatum(w_id);
 			args[3] = Int32GetDatum(i + 1);
-			args[4] = pp[i].ol_i_id = Int32GetDatum(ol_i_id[i]);
-			args[5] = pp[i].ol_supply_w_id = Int32GetDatum(ol_supply_w_id[i]);
-			args[6] = pp[i].ol_quantity = Int32GetDatum(ol_quantity[i]);
-			args[7] = pp[i].ol_amount = Float4GetDatum(ol_amount[i]);
+			args[4] = Int32GetDatum(ol_i_id[i]);
+			args[5] = Int32GetDatum(ol_supply_w_id[i]);
+			args[6] = Int32GetDatum(ol_quantity[i]);
+			args[7] = Float4GetDatum(ol_amount[i]);
 			args[8] = CStringGetTextDatum(my_s_dist[i]);
 			ret = SPI_execute_plan(NEW_ORDER_10, args, nulls, false, 0);
 			if (ret != SPI_OK_INSERT) {
