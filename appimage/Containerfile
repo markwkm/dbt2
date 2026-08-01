@@ -126,11 +126,11 @@ RUN curl -o /tmp/libnsl-${LIBNSLVER}.tar.xz  -SsOL \
          https://github.com/thkukuk/libnsl/releases/download/v${LIBNSLVER}/libnsl-${LIBNSLVER}.tar.xz && \
     tar -C /usr/local/src -xf /tmp/libnsl-${LIBNSLVER}.tar.xz
 WORKDIR /usr/local/src/libnsl-${LIBNSLVER}
-# Intentionally install libsnl next to debian 10's distro glibc version.
+# Intentionally install libnsl next to debian 10's distro glibc version.
 RUN ./configure --silent --prefix=/usr && \
     make -s -j$(nproc) && \
     make -s install && \
-    ln -sf /usr/lib/libnsl.so.2 /usr/lib/x86_64-linux-gnu/libnsl.so
+    ln -sf /usr/lib/libnsl.so.2 "/usr/lib/$(gcc -dumpmachine)/libnsl.so"
 RUN mkdir -p /usr/local/share/licenses/libnsl-${LIBNSLVER} && \
     cp -p COPYING /usr/local/share/licenses/libnsl-${LIBNSLVER}/
 
@@ -215,7 +215,7 @@ RUN mkdir -p /usr/local/share/licenses/pango-${PANGOVER}.${PANGOMINORVER} && \
 
 ARG GNUPLOTVER="5.4.6"
 RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \
-         https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.6/gnuplot-5.4.6.tar.gz/download && \
+         https://sourceforge.net/projects/gnuplot/files/gnuplot/${GNUPLOTVER}/gnuplot-${GNUPLOTVER}.tar.gz/download && \
     tar -C /usr/local/src -xf /tmp/gnuplot-${GNUPLOTVER}.tar.gz
 WORKDIR /usr/local/src/gnuplot-${GNUPLOTVER}
 RUN ./configure -q --prefix=/usr/local --without-libcerf \
@@ -234,7 +234,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 
 ARG TSTOOLSVER="0.9.1"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
-         https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v{TSTOOLSVER}.tar.gz && \
+         https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v${TSTOOLSVER}.tar.gz && \
     mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
     tar -C /usr/local/src/touchstone-tools-v${TSTOOLSVER} \
         --strip-components=1 \
