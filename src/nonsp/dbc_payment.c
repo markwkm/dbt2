@@ -6,6 +6,7 @@
  */
 
 #include <nonsp_payment.h>
+#include <string.h>
 
 int execute_payment_nonsp(struct db_context_t *dbc, struct payment_t *data) {
 	int rc;
@@ -74,8 +75,9 @@ int payment_nonsp(
 	char query[4096];
 
 	int my_c_id = 0;
-	char my_w_name[20];
-	char my_d_name[20];
+	/* Escaping can double the length of a multibyte name. */
+	char my_w_name[2 * 4 * (W_NAME_LEN + 1)];
+	char my_d_name[2 * 4 * (D_NAME_LEN + 1)];
 
 	dbt2_init_values(vals, nvals);
 
@@ -158,7 +160,7 @@ int payment_nonsp(
 	}
 
 	if (c_id == 0) {
-		sprintf(query, PAYMENT_5, w_id, d_id, c_last);
+		sprintf(query, PAYMENT_5, c_w_id, c_d_id, c_last);
 
 #ifdef DEBUG_QUERY
 		LOG_ERROR_MESSAGE("PAYMENT_5 query: %s\n", query);
@@ -166,17 +168,70 @@ int payment_nonsp(
 
 		if ((*dbc->sql_execute)(dbc, query, &result, "PAYMENT_5") &&
 			result.library.sqlite.query_running) {
-			(*dbc->sql_fetchrow)(dbc, &result);
-			vals[TMP_C_ID] = (*dbc->sql_getvalue)(dbc, &result, 0);
+			// a real pita when we don't know the number of rows
+			int c_ids_static_array[16];
+			int *c_ids_array = c_ids_static_array;
+			int c_ids_alloc_count = 0;
+			int c_ids_result_count = 0;
+			while ((*dbc->sql_fetchrow)(dbc, &result)) {
+				if (c_ids_result_count >= 16 &&
+					c_ids_result_count >= c_ids_alloc_count) {
+					if (c_ids_alloc_count == 0) {
+						c_ids_alloc_count = 32;
+						if (!(c_ids_array = realloc(
+									  NULL, c_ids_alloc_count * sizeof(int)))) {
+							LOG_ERROR_MESSAGE(
+									"payment: realloc failed trying to "
+									"expand to 32 entries for middle "
+									"result\n");
+							return -1;
+						}
+						memcpy(c_ids_array, c_ids_static_array,
+							   sizeof(c_ids_static_array));
+					} else {
+						int *tmp_array;
+						c_ids_alloc_count *= 2;
+						if (!(tmp_array = realloc(
+									  c_ids_array,
+									  c_ids_alloc_count * sizeof(int)))) {
+							LOG_ERROR_MESSAGE(
+									"payment: realloc failed trying to "
+									"expand to %d entries for middle "
+									"result\n",
+									c_ids_alloc_count);
+							free(c_ids_array);
+							return -1;
+						}
+						c_ids_array = tmp_array;
+					}
+				}
+				vals[TMP_C_ID] = (*dbc->sql_getvalue)(dbc, &result, 0);
+
+				if (vals[TMP_C_ID]) {
+					c_ids_array[c_ids_result_count] = atoi(vals[TMP_C_ID]);
+					free(vals[TMP_C_ID]);
+				} else {
+					c_ids_array[c_ids_result_count] = -1;
+				}
+				c_ids_result_count++;
+				vals[TMP_C_ID] = NULL;
+			}
+			if (c_ids_result_count == 0) {
+				my_c_id = -1;
+			} else {
+				my_c_id = c_ids_array[(c_ids_result_count - 1) / 2];
+			}
+			if (c_ids_alloc_count) {
+				free(c_ids_array);
+			}
 			(*dbc->sql_close_cursor)(dbc, &result);
 
-			if (!vals[TMP_C_ID]) {
+			if (my_c_id == -1) {
 				LOG_ERROR_MESSAGE(
 						"ERROR: TMP_C_ID=NULL for query PAYMENT_5:\n%s\n",
 						query);
 				return -1;
 			}
-			my_c_id = atoi(vals[TMP_C_ID]);
 		} else // error
 		{
 			return -1;
@@ -240,12 +295,12 @@ int payment_nonsp(
 			return -1;
 		}
 	} else {
-		char my_c_data[1000];
+		char my_c_data[100];
+		char esc_c_data[200];
 		sprintf(my_c_data, "%d %d %d %d %d %f ", my_c_id, c_d_id, c_w_id, d_id,
 				w_id, h_amount);
-		/* Copy and escape all at once! */
-		dbt2_escape_str(vals[C_DATA], my_c_data);
-		sprintf(query, PAYMENT_7_BC, h_amount, my_c_data, my_c_id, c_w_id,
+		dbt2_escape_str(my_c_data, esc_c_data);
+		sprintf(query, PAYMENT_7_BC, h_amount, esc_c_data, my_c_id, c_w_id,
 				c_d_id);
 
 #ifdef DEBUG_QUERY

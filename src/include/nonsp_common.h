@@ -219,7 +219,7 @@ int dbt2_free_values(char **values, int max_values);
   "UPDATE customer\n"                                                          \
   "SET c_balance = c_balance - %f,\n"                                          \
   "    c_ytd_payment = c_ytd_payment + 1,\n"                                   \
-  "    c_data = '%s'\n"                                                        \
+  "    c_data = substr('%s' || c_data, 1, 500)\n"                              \
   "WHERE c_id = %d\n"                                                          \
   "  AND c_w_id = %d\n"                                                        \
   "  AND c_d_id = %d"
