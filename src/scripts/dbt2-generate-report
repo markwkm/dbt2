@@ -8,9 +8,8 @@
 
 usage() {
 	echo "usage: $(basename "$0") -h"
-	echo "usage: $(basename "$0") -i <directory> [-o <directory>] [-b devices]"
+	echo "usage: $(basename "$0") -i <directory>"
 	echo "options:"
-	echo "       -b <comma delimited list of block devices (default: all devices)>"
 	echo "       -i <DBT-2 test output directory>"
 }
 
@@ -266,9 +265,8 @@ done
 
 SUMMARY="${INDIR}/summary.rst"
 if [ ! -f "$SUMMARY" ]; then
-	MIXFILE="${INDIR}/mix.log"
-	dbt2 post-process "${MIXFILE}" > "${SUMMARY}"
-	VERBOSE=1 dbt2 post-process "${MIXFILE}" > "${INDIR}/detailed-summary.rst"
+	dbt2 report "${INDIR}" > "${SUMMARY}"
+	VERBOSE=1 dbt2 report "${INDIR}" > "${INDIR}/detailed-summary.rst"
 fi
 
 DBMS=$(grep RDBMS "$INDIR/readme.txt" | cut -d " " -f 2)
@@ -410,7 +408,8 @@ Component Statistics per Process
 
 $(list_processes)
 
-$(dbt2 "${DBMS}-report" -i "${INDIR}" 2> /dev/null)
+$(if command -v "dbt2-${DBMS}-report" > /dev/null 2>&1; then \
+		dbt2 "${DBMS}-report" -i "${INDIR}"; fi)
 __EOF__
 
 # Generate HTML and PDF files.
@@ -449,7 +448,7 @@ if [ ! "${RST2HTML5}" = "" ]; then
 		# A pdf could be produced other ways, but I believe pandoc produces the
 		# most minimally styled LaTeX looking document, as opposed to using
 		# rst2latex, with default settings.
-		if ! which pandoc > /dev/null 2>&1; then
+		if which pandoc > /dev/null 2>&1; then
 			(cd "${OUTDIR}" && \
 					pandoc -s report.html -f html -t pdf -o report.pdf \
 							2> /dev/null)

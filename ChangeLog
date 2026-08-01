@@ -22,6 +22,10 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- generate-report: create a missing summary through dbt2 report instead of
+  a nonexistent command and path, only embed DBMS report sections when the
+  DBMS has a report script, fix the inverted pandoc check, and stop
+  documenting options that were never implemented
 - Fix the dbt2 wrapper's rst2html5 fallback testing the wrong variable
 - mysql: fix build-db brace typos that mangled the -d and -e values, a -v
   case that swallowed the following option, the documented -r flag being
