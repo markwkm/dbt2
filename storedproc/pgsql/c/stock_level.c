@@ -39,14 +39,14 @@ static cached_statement statements[] = {
 		 "ol AS (\n"
 		 "    SELECT DISTINCT ol_i_id\n"
 		 "    FROM order_line\n"
-		 "    WHERE ol_w_id = $2\n"
-		 "      AND ol_d_id = $1\n"
+		 "    WHERE ol_w_id = $1\n"
+		 "      AND ol_d_id = $2\n"
 		 "      AND ol_o_id BETWEEN ($4)\n"
 		 "                      AND ($5)\n"
 		 ")\n"
 		 "SELECT count(*)\n"
 		 "FROM ol, stock\n"
-		 "WHERE s_w_id = $2\n"
+		 "WHERE s_w_id = $1\n"
 		 "  AND s_i_id = ol_i_id\n"
 		 "  AND s_quantity < $3",
 		 5,

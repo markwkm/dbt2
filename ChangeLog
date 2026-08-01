@@ -32,6 +32,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pl/pgsql: delivery credits the customer with the sum of ol_amount instead
   of ol_amount * ol_quantity and locks the oldest new order row,
   per TPC-C Clause 2.7.4
+- pl/c: stock level no longer transposes the warehouse and district ids in
+  the order line and stock predicates, per TPC-C Clause 2.8.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
