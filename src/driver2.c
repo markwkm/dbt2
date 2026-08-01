@@ -102,8 +102,10 @@ int integrity_terminal_worker() {
 		printf("connect_to_client() failed, exiting...\n");
 		fflush(stdout);
 		LOG_ERROR_MESSAGE("connect_to_client() failed, thread exiting...");
+		return ERROR;
 	}
 
+	memset(&client_data, 0, sizeof(client_data));
 	client_data.transaction = INTEGRITY;
 	generate_input_data(
 			&rng, client_data.transaction, &client_data.transaction_data,
@@ -233,7 +235,10 @@ transaction_receive_cb(struct ev_loop *loop, ev_io *w, int revents) {
 			response_time, getpid(), w0->w_id, w0->d_id);
 
 	if (stop_time == 0 || tt < stop_time) {
-		ev_timer_set(&w0->tt, w0->mean_think_time / 1000, 0);
+		ev_timer_set(
+				&w0->tt,
+				(double) get_think_time(&rng, w0->mean_think_time) / 1000.0,
+				0);
 		ev_timer_start(loop, &w0->tt);
 		ev_io_stop(loop, w);
 	} else {
@@ -248,7 +253,7 @@ int start_driver() {
 
 	int i, j, k, l;
 	unsigned long long local_seed = 0;
-	struct timespec ts, rem;
+	struct timespec ts, ts1, rem;
 
 	int nprocs = get_nprocs();
 	cpu_set_t set;
@@ -265,7 +270,7 @@ int start_driver() {
 
 	/* The time to sleep between opening client connections. */
 	ts.tv_sec = (time_t) (client_conn_sleep / 1000);
-	ts.tv_nsec = (long) (client_conn_sleep - (ts.tv_sec * 1000)) * 1000;
+	ts.tv_nsec = (long) (client_conn_sleep % 1000) * 1000000;
 
 	CPU_ZERO(&set);
 
@@ -326,18 +331,20 @@ int start_driver() {
 		} else {
 			/* The time to sleep between forking next process. */
 			struct timespec ts0, rem0;
-			ts0.tv_sec =
-					ts.tv_sec * (mymax - mymin + 1) * terminals_per_warehouse;
-			ts0.tv_nsec = ts.tv_nsec * (long) (mymax - mymin + 1) *
-						  (long) terminals_per_warehouse;
+			long long total_ms = (long long) client_conn_sleep *
+								 (mymax - mymin + 1) *
+								 terminals_per_warehouse;
+			ts0.tv_sec = (time_t) (total_ms / 1000);
+			ts0.tv_nsec = (long) (total_ms % 1000) * 1000000;
 
 			while (nanosleep(&ts0, &rem0) == -1) {
 				if (errno == EINTR) {
-					memcpy(&ts, &rem, sizeof(struct timespec));
+					memcpy(&ts0, &rem0, sizeof(struct timespec));
 				} else {
 					LOG_ERROR_MESSAGE(
-							"sleep time invalid %d s %ls ns", ts.tv_sec,
-							ts.tv_nsec);
+							"sleep time invalid %ld s %ld ns",
+							(long) ts0.tv_sec, (long) ts0.tv_nsec);
+					break;
 				}
 			}
 			continue;
@@ -400,13 +407,15 @@ int start_driver() {
 
 			++k;
 
-			while (nanosleep(&ts, &rem) == -1) {
+			ts1 = ts;
+			while (nanosleep(&ts1, &rem) == -1) {
 				if (errno == EINTR) {
-					memcpy(&ts, &rem, sizeof(struct timespec));
+					memcpy(&ts1, &rem, sizeof(struct timespec));
 				} else {
 					LOG_ERROR_MESSAGE(
-							"sleep time invalid %d s %ls ns", ts.tv_sec,
-							ts.tv_nsec);
+							"sleep time invalid %ld s %ld ns",
+							(long) ts1.tv_sec, (long) ts1.tv_nsec);
+					break;
 				}
 			}
 		}
@@ -422,8 +431,10 @@ int start_driver() {
 
 	free(rte);
 
-	if (rc == 0) {
-		wait(NULL);
+	/* The parent reaps all of the forked driver processes. */
+	if (rc != 0) {
+		while (wait(NULL) > 0)
+			;
 	}
 	printf("[%d] driver is exiting normally\n", getpid());
 	return OK;
