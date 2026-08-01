@@ -71,8 +71,9 @@ list_multiple_systems_summary()
 
 	# The listing of system stastics is naively based on whether the uname.txt
 	# was created by the get-os-info script.
-	for UNAMEFILE in $(find ${INDIR}/$MYTAG -name uname.txt 2> /dev/null); do
-		SNAME="$(basename $(dirname $UNAMEFILE))"
+	find "${INDIR}/${MYTAG}" -name uname.txt 2> /dev/null | \
+			while IFS= read -r UNAMEFILE; do
+		SNAME="$(basename "$(dirname "${UNAMEFILE}")")"
 		echo "   * - $SNAME"
 		echo "     - $(cat $UNAMEFILE)"
 		echo "     - $(show_system_links ${MYTAG}/$SNAME)"
