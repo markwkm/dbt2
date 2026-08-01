@@ -383,6 +383,7 @@ GENERATE_DATAFILE=0
 PRIVILEGED=0
 # shellcheck disable=SC2034 # accepted from the build script for
 # interface compatibility, the data is loaded from flat files
+REBUILD_DB=0
 ROWS_PER_COMMIT=0
 SP_PATH=""
 WAREHOUSES=1
@@ -391,11 +392,11 @@ while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(-d)
 		shift
-		DB_NAME="{$1}"
+		DB_NAME="${1}"
 		;;
 	(-e)
 		shift
-		DB_ENGINE="{$1}"
+		DB_ENGINE="${1}"
 		;;
 	(-F)
 		shift
@@ -422,6 +423,9 @@ while [ "${#}" -gt 0 ] ; do
 	(-P)
 		shift
 		DB_PASSWORD="${1}"
+		;;
+	(-r)
+		REBUILD_DB=1
 		;;	
 	(-p)
 		shift
@@ -460,7 +464,6 @@ while [ "${#}" -gt 0 ] ; do
 		exit 0
 		;;
 	(-v)
-		shift
 		VERBOSE=1
 		;;
 	(-w)
@@ -540,7 +543,9 @@ echo "DB_USER:        $DB_USER"
 echo "DB_SOCKET:      $DB_SOCKET"
 echo "DEFAULTS_FILE:  ${DEFAULTS_FILE}"
 
-command_exec "$MYSQL -e \"drop database if exists $DB_NAME\" "
+if [ "${REBUILD_DB}" -eq 1 ]; then
+	command_exec "$MYSQL -e \"drop database if exists $DB_NAME\" "
+fi
 command_exec "$MYSQL -e \"create database $DB_NAME\" "
 
 # Create tables
@@ -553,9 +558,13 @@ load_tables
 
 # Load stored procedures
 if [ -n "${SP_PATH}" ]; then
-echo ""
-eval "dbt2 mysql-load-stored-procs \
-		-d ${DB_NAME} \
-		-f ${SP_PATH} \
-		${DB_SOCKET_ARG}"
+	echo ""
+	SPARGS="-d ${DB_NAME} -f ${SP_PATH} -h ${DB_HOST} ${DB_SOCKET_ARG}"
+	if [ ! "${DB_USER}" = "" ]; then
+		SPARGS="${SPARGS} -u ${DB_USER}"
+	fi
+	if [ ! "${DB_PASSWORD}" = "" ]; then
+		SPARGS="${SPARGS} -p ${DB_PASSWORD}"
+	fi
+	eval "dbt2 mysql-load-stored-procs ${SPARGS}" || exit 1
 fi

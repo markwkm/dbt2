@@ -78,6 +78,10 @@ VERBOSE=""
 
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
+	(-c)
+		shift
+		MYSQL="${1}"
+		;;
 	(-d)
 		shift
 		DB_NAME="${1}"
@@ -96,7 +100,7 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-P)
 		shift
-		MYSQL_ARGS="${MYSQL_ARGS} ${1}"
+		MYSQL_ARGS="${MYSQL_ARGS} --port=${1}"
 		;;
 	(-p)
 		shift
@@ -156,7 +160,7 @@ if [ "$MYSQL_VER" -lt 5 ]; then
 fi
 
 if [ "$DB_PASSWORD" != "" ]; then
-  MYSQL_ARGS="${MYSQL_ARGS} -p ${DB_PASSWORD}"
+  MYSQL_ARGS="${MYSQL_ARGS} --password=${DB_PASSWORD}"
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS $DB_NAME -h $DB_HOST -u $DB_USER ${DB_SOCKET_ARG}"

@@ -30,7 +30,7 @@ EOF
 explain() {
 	# Word splitting of the MYSQL command line is intentional.
 	# shellcheck disable=SC2086
-	$MYSQL --socket="${DB_SOCKET}" "${DB_NAME}" -e "${1}" >> "${OUTPUT_FILE}"
+	$MYSQL ${CONNARG} "${DB_NAME}" -e "${1}" >> "${OUTPUT_FILE}"
 }
 
 while [ "${#}" -gt 0 ] ; do
@@ -91,13 +91,15 @@ if [ "$MYSQL" = "" ]; then
   MYSQL="mysql"
 fi
 
-if [ "$DB_SOCKET" = "" ]; then
-  usage "specify socket file using -s <file>"
-  exit 1
-fi
-
 if [ "$DB_HOST" = "" ]; then
   DB_HOST="localhost"
+fi
+
+# Connect through the socket when one is given, otherwise by host.
+if [ ! "$DB_SOCKET" = "" ]; then
+  CONNARG="--socket=${DB_SOCKET}"
+else
+  CONNARG="-h ${DB_HOST}"
 fi
 
 if [ "$DB_NAME" = "" ]; then

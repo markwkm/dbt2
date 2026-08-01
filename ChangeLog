@@ -22,6 +22,14 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- mysql: fix build-db brace typos that mangled the -d and -e values, a -v
+  case that swallowed the following option, the documented -r flag being
+  unconditional, and the stored procedure load ignoring failures and
+  connection settings
+- mysql: plans no longer requires a socket and can connect by host, as the
+  run script invokes it
+- mysql: load-stored-procs passes the port and password with valid mysql
+  client syntax and accepts the documented -c option
 - pgsql: fix an inverted pg_config check that made load-stored-procs, and
   with it the default database build, always fail outside the AppImage
 - post-process: fix the R analyzer's per-warehouse district chi-square
