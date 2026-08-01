@@ -9,6 +9,7 @@ for DIR in \
 		src/libpq \
 		src/odbc \
 		src/nonsp \
+		src/sqlite \
 		storedproc/pgsql/c \
 		; do
 	clang-format -i "${BASEDIR}"/"${DIR}"/*.[ch]

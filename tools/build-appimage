@@ -16,7 +16,7 @@ fi
 
 podman run \
 		--rm \
-		--user "$(id -u):$(id -u)" \
+		--user "$(id -u):$(id -g)" \
 		--userns=keep-id \
 		-v "${CONTAINER_DIR}/..:/src/dbt2:rw,Z" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \

@@ -37,7 +37,6 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-CONTAINER_NAME="dbt2-driver-${WAREHOUSES}w"
 CONTAINER_TAG="dbt2-driver"
 WAREHOUSES=1
 WMIN=1
@@ -51,6 +50,8 @@ if [ $# -ge 2 ]; then
 	WAREHOUSES=$2
 	WMAX=$WAREHOUSES
 fi
+
+CONTAINER_NAME="dbt2-driver-${WAREHOUSES}w"
 
 if [ $# -ge 3 ]; then
 	TEST_LENGTH=$3

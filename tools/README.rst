@@ -7,17 +7,16 @@ initial set of scripts works only for the subset described here.  Note that
 these scripts prefer Podman over Docker but you can specify the engine by
 setting the `ENGINE` environment variable to `podman` or `docker`, resp.
 
-* `appimage-build` - Build the DBT-2 lite AppImage.
-* `appimage-prepare` - Build a container image to be used for creating an
-                       AppImage.
+* `build-appimage` - Build the DBT-2 AppImage.
+* `build-appimage-container` - Build a container image to be used for creating
+                               an AppImage.
 * `build-all` - Run all of the build scripts to prepare all container images.
 * `build-client` - Build a container image for the client transaction manager.
 * `build-database` - Build a container image with a 1 warehouse database.
 * `build-driver` - Build a container image for the driver.
-* `compile-dbt2` - Simply attempt to compile the local source code.
 * `prepare-image` - Build a container image to be further expanded by the other
                     components in the kit.
-* `run-test` - Run a test using the run-workload script.
+* `run-test` - Run a short test using the container images.
 * `shell` - Helper script to open a shell in any of the DBT-2 container images.
 * `start-client` - Script to start the client, and create the container image
                    if not done already.
@@ -79,11 +78,11 @@ CockroachDB
 
 Create all the container images for each tier with a 1 warehouse database::
 
-    tools/build-all 1 pgsql
+    tools/build-all 1 cockroach
 
 Execute a test::
 
-    tools/run-3tier-test 1 pgsql
+    tools/run-test 1 cockroach
 
 PostgreSQL
 ----------
@@ -94,7 +93,7 @@ Create all the container images for each tier with a 1 warehouse database::
 
 Execute a test::
 
-    tools/run-3tier-test 1 pgsql
+    tools/run-test 1 pgsql
 
 YugabyteDB
 ----------
@@ -105,4 +104,4 @@ Create all the container images for each tier with a 1 warehouse database::
 
 Execute a test::
 
-    tools/run-3tier-test 1 yugabyte
+    tools/run-test 1 yugabyte

@@ -22,6 +22,14 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- tools: build the client and driver images before the database image,
+  whose data load runs through the driver image, and propagate build
+  failures; name the yugabyte and driver containers after the warehouse
+  count; keep the podman build isolation flags for the pgsql image build;
+  honor a preset DBVER and the ENGINE variable everywhere; fix the
+  AppImage container group id; correct the client image tag in the shell
+  helper; format the sqlite backend with clang-format; and update the
+  README to the current script names
 - yugabyte: parse and forward the documented --rows-per-commit build
   option and remove references to tablespace settings that were never set
 - cockroach: initialize the rows-per-commit default so every build stops

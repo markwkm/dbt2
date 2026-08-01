@@ -13,8 +13,20 @@ fi
 
 CONTAINER_DIR="$(dirname "$0")"
 
-"$CONTAINER_DIR/prepare-image"
-"$CONTAINER_DIR/build-database" "$WAREHOUSES" "$DBMS" &
+"$CONTAINER_DIR/prepare-image" || exit 1
+
+# The database creation runs its data load through the dbt2-driver image,
+# so build the client and driver images first.
 "$CONTAINER_DIR/build-client" &
+CLIENTPID=$!
 "$CONTAINER_DIR/build-driver" &
-wait
+DRIVERPID=$!
+RC=0
+wait "$CLIENTPID" || RC=1
+wait "$DRIVERPID" || RC=1
+if [ $RC -ne 0 ]; then
+	echo "ERROR: building the client or driver image failed"
+	exit 1
+fi
+
+"$CONTAINER_DIR/build-database" "$WAREHOUSES" "$DBMS" || exit 1

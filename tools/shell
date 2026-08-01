@@ -2,19 +2,25 @@
 
 # Open a shell on one of the DBT-2 Docker images.
 
-ENGINE="podman"
-if ! which $ENGINE > /dev/null 2>&1; then
-	ENGINE="docker"
+# Use the specified engine from the environment, or try podman then docker.
+if [ "$ENGINE" = "" ]; then
+	ENGINE="podman"
 	if ! which $ENGINE > /dev/null 2>&1; then
-		echo "podman nor docker in path"
-		exit 1
+		ENGINE="docker"
+		if ! which $ENGINE > /dev/null 2>&1; then
+			echo "podman nor docker in path"
+			exit 1
+		fi
 	fi
+elif ! which "$ENGINE" > /dev/null 2>&1; then
+	echo "specified engine $ENGINE not in path"
+	exit 1
 fi
 
 usage()
 {
 	echo "usage: $(basename "$0") dbt2-base"
-	echo "usage: $(basename "$0") dbt2-client <dbms>"
+	echo "usage: $(basename "$0") dbt2-client"
 	echo "usage: $(basename "$0") dbt2-database <dbms> <warehouses>"
 	echo "usage: $(basename "$0") dbt2-driver"
 }
@@ -42,11 +48,8 @@ fi
 
 DBMS="$2"
 if [ $# -eq 2 ]; then
-	if [ ! "$DBT2_TAG" = "dbt2-client" ]; then
-		usage
-		exit 1
-	fi
-	CONTAINER_TAG="${DBT2_TAG}-${DBMS}"
+	usage
+	exit 1
 fi
 
 SF="$3"
