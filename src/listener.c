@@ -30,11 +30,16 @@ extern int exiting;
 struct transaction_queue_node_t *get_node() {
 	struct transaction_queue_node_t *node;
 
-	sem_wait(&free_count);
+	while (sem_wait(&free_count) != 0) {
+		if (errno != EINTR) {
+			return NULL;
+		}
+	}
 	pthread_mutex_lock(&mutex_node);
 	node = node_head;
 	if (node_head == NULL) {
 		/* This should never happen... */
+		pthread_mutex_unlock(&mutex_node);
 		return NULL;
 	} else if (node_head->next == NULL) {
 		node_head = node_tail = NULL;
@@ -88,18 +93,21 @@ void *init_listener(void *data) {
 
 		if (pthread_attr_init(&attr) != 0) {
 			LOG_ERROR_MESSAGE("could not init pthread attr");
+			close(node->s);
 			free(node);
-			return ERROR;
+			return NULL;
 		}
 		if (pthread_attr_setstacksize(&attr, stacksize) != 0) {
 			LOG_ERROR_MESSAGE("could not set pthread stack size");
+			close(node->s);
 			free(node);
-			return ERROR;
+			return NULL;
 		}
 
 		ret = pthread_create(&tid, &attr, &listener_worker, (void *) node);
 		if (ret != 0) {
 			close(node->s);
+			free(node);
 			LOG_ERROR_MESSAGE("pthread_create() failed, closing socket and "
 							  "waiting for a new request");
 			if (ret == EAGAIN) {
