@@ -24,14 +24,14 @@
 	"ol AS (\n"                                                                \
 	"    SELECT DISTINCT ol_i_id\n"                                            \
 	"    FROM order_line\n"                                                    \
-	"    WHERE ol_w_id = $2\n"                                                 \
-	"      AND ol_d_id = $1\n"                                                 \
+	"    WHERE ol_w_id = $1\n"                                                 \
+	"      AND ol_d_id = $2\n"                                                 \
 	"      AND ol_o_id BETWEEN ($4)\n"                                         \
 	"                      AND ($5)\n"                                         \
 	")\n"                                                                      \
 	"SELECT count(*)\n"                                                        \
 	"FROM ol, stock\n"                                                         \
-	"WHERE s_w_id = $2\n"                                                      \
+	"WHERE s_w_id = $1\n"                                                      \
 	"  AND s_i_id = ol_i_id\n"                                                 \
 	"  AND s_quantity < $3"
 
@@ -86,8 +86,8 @@ int execute_stock_level_cockroach(
 		LOG_ERROR_MESSAGE("SL1[%d] ol_i_id %s", i, PQgetvalue(res, i, 0));
 	}
 #endif /* DEBUG */
-	snprintf(ol_o_id1, OL_O_ID_LEN, "%d", atoi(PQgetvalue(res, 0, 0) - 20));
-	snprintf(ol_o_id2, OL_O_ID_LEN, "%d", atoi(PQgetvalue(res, 0, 0) - 1));
+	snprintf(ol_o_id1, OL_O_ID_LEN, "%d", atoi(PQgetvalue(res, 0, 0)) - 20);
+	snprintf(ol_o_id2, OL_O_ID_LEN, "%d", atoi(PQgetvalue(res, 0, 0)) - 1);
 	PQclear(res);
 
 	paramValues[2] = threshold;
@@ -118,6 +118,7 @@ int execute_stock_level_cockroach(
 		LOG_ERROR_MESSAGE("SL2[%d] count(*) %s", i, PQgetvalue(res, i, 0));
 	}
 #endif /* DEBUG */
+	data->low_stock = atoi(PQgetvalue(res, 0, 0));
 	PQclear(res);
 
 	return OK;
