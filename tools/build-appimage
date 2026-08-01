@@ -18,8 +18,8 @@ podman run \
 		--rm \
 		--user "$(id -u):$(id -u)" \
 		--userns=keep-id \
-		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw,Z" \
+		-v "${CONTAINER_DIR}/..:/src/dbt2:rw,Z" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
-		-w /usr/local/src/dbt2 \
+		-w /src/dbt2 \
 		$CONTAINER_TAG \
 		make appimage

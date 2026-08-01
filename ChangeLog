@@ -16,6 +16,7 @@ vX.Y.Z (YYYY-MM-DD)
   now that debian 10 (buster) is end-of-life
 - appimage: download appimagetool v1.9.1 from its new project location, the
   AppImageKit release assets no longer exist
+- appimage: mount the project at /src/dbt2 instead of /usr/local/src/dbt2
 
 v0.61.7 (2025-07-01)
 
