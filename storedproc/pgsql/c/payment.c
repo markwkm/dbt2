@@ -106,22 +106,25 @@ static cached_statement statements[] = {
 		{/* PAYMENT_7_GC */
 		 "UPDATE customer\n"
 		 "SET c_balance = c_balance - $1,\n"
-		 "    c_ytd_payment = c_ytd_payment + 1\n"
+		 "    c_ytd_payment = c_ytd_payment + $1,\n"
+		 "    c_payment_cnt = c_payment_cnt + 1\n"
 		 "WHERE c_id = $2\n"
 		 "  AND c_w_id = $3\n"
-		 "  AND c_d_id = $4",
+		 "  AND c_d_id = $4\n"
+		 "RETURNING c_balance",
 		 4,
 		 {FLOAT4OID, INT4OID, INT4OID, INT4OID}},
 
 		{/* PAYMENT_7_BC */
 		 "UPDATE customer\n"
 		 "SET c_balance = c_balance - $1,\n"
-		 "    c_ytd_payment = c_ytd_payment + 1,\n"
+		 "    c_ytd_payment = c_ytd_payment + $1,\n"
+		 "    c_payment_cnt = c_payment_cnt + 1,\n"
 		 "    c_data = substring($2 || c_data, 1, 500)\n"
 		 "WHERE c_id = $3\n"
 		 "  AND c_w_id = $4\n"
 		 "  AND c_d_id = $5\n"
-		 "RETURNING substring(c_data, 1, 200)",
+		 "RETURNING c_balance, substring(c_data, 1, 200)",
 		 5,
 		 {FLOAT4OID, TEXTOID, INT4OID, INT4OID, INT4OID}},
 
@@ -298,19 +301,19 @@ Datum payment(PG_FUNCTION_ARGS) {
 		}
 
 		if (c_id == 0) {
-			args[0] = Int32GetDatum(w_id);
-			args[1] = Int32GetDatum(d_id);
+			args[0] = Int32GetDatum(c_w_id);
+			args[1] = Int32GetDatum(c_d_id);
 			args[2] = PointerGetDatum(c_last);
 			ret = SPI_execute_plan(PAYMENT_5, args, nulls, true, 0);
 			count = SPI_processed;
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
-				tuple = tuptable->vals[count / 2];
+				tuple = tuptable->vals[(count - 1) / 2];
 
 				tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
 				elog(DEBUG1, "c_id = %s, %d total, selected %d", tmp_c_id,
-					 count, count / 2);
+					 count, (count - 1) / 2);
 				my_c_id = atoi(tmp_c_id);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
@@ -383,7 +386,14 @@ Datum payment(PG_FUNCTION_ARGS) {
 			args[2] = Int32GetDatum(c_w_id);
 			args[3] = Int32GetDatum(c_d_id);
 			ret = SPI_execute_plan(PAYMENT_7_GC, args, nulls, false, 0);
-			if (ret != SPI_OK_UPDATE) {
+			if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+
+				c_balance = SPI_getvalue(tuple, tupdesc, 1);
+				pp->c_balance = atof(c_balance);
+			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 								errmsg("PAYMENT_7_GC failed")));
 			}
@@ -392,7 +402,7 @@ Datum payment(PG_FUNCTION_ARGS) {
 			char my_c_data[C_DATA_LEN + 1];
 
 			snprintf(
-					my_c_data, C_DATA_LEN, "%d %d %d %d %d %f ", my_c_id,
+					my_c_data, C_DATA_LEN, "%d %d %d %d %d %.2f ", my_c_id,
 					c_d_id, c_w_id, d_id, w_id, h_amount);
 
 			args[0] = Float4GetDatum(h_amount);
@@ -406,7 +416,9 @@ Datum payment(PG_FUNCTION_ARGS) {
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
 
-				c_data = SPI_getvalue(tuple, tupdesc, 1);
+				c_balance = SPI_getvalue(tuple, tupdesc, 1);
+				pp->c_balance = atof(c_balance);
+				c_data = SPI_getvalue(tuple, tupdesc, 2);
 				strncpy(pp->c_data, c_data, 4 * C_DATA_BC_LEN);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),

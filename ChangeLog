@@ -11,6 +11,11 @@ vX.Y.Z (YYYY-MM-DD)
   s_order_cnt, and s_remote_cnt, and applies the +91 quantity adjustment
   only when stock does not exceed the ordered quantity by 10 or more,
   per TPC-C Clause 2.4.2
+- pl/c: payment searches by last name in the customer's warehouse and
+  district, selects the median matching customer, increases c_ytd_payment
+  by the payment amount, increments c_payment_cnt, returns the post-payment
+  balance, and formats the amount in c_data with two decimal places,
+  per TPC-C Clause 2.5.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
