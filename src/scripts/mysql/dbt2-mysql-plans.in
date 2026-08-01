@@ -47,10 +47,10 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--socket)
 		shift
-		DB_SOCKET_ARG="--socket=${1}"
+		DB_SOCKET="${1}"
 		;;
 	(--socket=?*)
-		DB_SOCKET_ARG="--socket=${1#*--socket=}"
+		DB_SOCKET="${1#*--socket=}"
 		;;
 	(-S)
 		shift

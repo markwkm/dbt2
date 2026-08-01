@@ -11,7 +11,6 @@ if [ -z ${DBT2DBNAME} ]; then
     exit 1
 fi
 
-USE_TABLESPACES=0
 while getopts "l:" OPT; do
 	case ${OPT} in
 	l)

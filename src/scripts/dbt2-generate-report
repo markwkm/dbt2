@@ -255,7 +255,6 @@ while getopts "hi:" opt; do
 		;;
 	i)
 		INDIR="$OPTARG"
-		MIXLOG="${INDIR}/mix.log"
 		OUTDIR="$INDIR"
 		;;
 	\?)
@@ -284,7 +283,6 @@ fi
 echo "Processing pidstat files..."
 find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
 		while IFS= read -r PIDSTATFILE; do
-	PDIR=$(dirname "${PIDSTATFILE}")
 	ts process-pidstat -i "${PIDSTATFILE}"
 done
 

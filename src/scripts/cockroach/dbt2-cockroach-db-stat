@@ -6,22 +6,16 @@
 # Copyright The DBT-2 Authors
 #
 
-while getopts "D:l:i:o:s:" opt; do
+while getopts "D:l:o:" opt; do
 	case $opt in
 	D)
 		DBT2DBNAME=$OPTARG
-		;;
-	i)
-		ITERATIONS=$OPTARG
 		;;
 	l)
 		PORT=${OPTARG}
 		;;
 	o)
 		OUTPUT_DIR=$OPTARG
-		;;
-	s)
-		SAMPLE_LENGTH=$OPTARG
 		;;
 	\?)
 		exit 1

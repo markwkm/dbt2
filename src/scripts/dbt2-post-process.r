@@ -6,8 +6,6 @@
 # Copyright The DBT-2 Authors
 #
 
-MIXFILE=$1
-
 if [ $# -lt 1 ]; then
 	echo "$(basename $0) is the DBT-2 mix log analyzer"
 	echo ""
