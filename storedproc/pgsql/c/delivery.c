@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.7.4.
  */
 
 #include <sys/types.h>
@@ -41,7 +41,8 @@ static cached_statement statements[] = {
 		 "WHERE no_w_id = $1\n"
 		 "  AND no_d_id = $2\n"
 		 "ORDER BY no_o_id ASC\n"
-		 "LIMIT 1",
+		 "LIMIT 1\n"
+		 "FOR UPDATE",
 		 2,
 		 {INT4OID, INT4OID}},
 
@@ -73,7 +74,7 @@ static cached_statement statements[] = {
 		 {INT4OID, INT4OID, INT4OID}},
 
 		/* DELIVERY_6 */
-		{"SELECT SUM(ol_amount * ol_quantity)\n"
+		{"SELECT SUM(ol_amount)\n"
 		 "FROM order_line\n"
 		 "WHERE ol_o_id = $1\n"
 		 "  AND ol_w_id = $2\n"
@@ -158,7 +159,7 @@ Datum delivery(PG_FUNCTION_ARGS) {
 
 			args[0] = Int32GetDatum(w_id);
 			args[1] = Int32GetDatum(d_id);
-			ret = SPI_execute_plan(DELIVERY_1, args, nulls, true, 0);
+			ret = SPI_execute_plan(DELIVERY_1, args, nulls, false, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
@@ -175,7 +176,7 @@ Datum delivery(PG_FUNCTION_ARGS) {
 			args[1] = Int32GetDatum(w_id);
 			args[2] = Int32GetDatum(d_id);
 			ret = SPI_execute_plan(DELIVERY_2, args, nulls, false, 0);
-			if (ret != SPI_OK_DELETE) {
+			if (ret != SPI_OK_DELETE || SPI_processed == 0) {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 								errmsg("DELIVERY_2 failed")));
 			}
