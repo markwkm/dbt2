@@ -28,7 +28,7 @@ int execute_payment_mysql(struct db_context_t *dbc, struct payment_t *data) {
 
 	if (mysql_query(dbc->library.mysql.mysql, stmt)) {
 		LOG_ERROR_MESSAGE(
-				"mysql reports SQL STMT: stmt ERROR: %d %s",
+				"mysql reports SQL STMT: %s ERROR: %d %s", stmt,
 				mysql_errno(dbc->library.mysql.mysql),
 				mysql_error(dbc->library.mysql.mysql));
 		return ERROR;

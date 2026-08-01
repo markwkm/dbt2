@@ -32,6 +32,10 @@ int commit_transaction_mysql(struct db_context_t *dbc) {
 /* Open a connection to the database. */
 int connect_to_db_mysql(struct db_context_t *dbc) {
 	dbc->library.mysql.mysql = mysql_init(NULL);
+	if (dbc->library.mysql.mysql == NULL) {
+		LOG_ERROR_MESSAGE("mysql_init() failed");
+		return ERROR;
+	}
 
 	// FIXME: change atoi() to strtol() and check for errors
 	if (!mysql_real_connect(
@@ -48,6 +52,8 @@ int connect_to_db_mysql(struct db_context_t *dbc) {
 					mysql_errno(dbc->library.mysql.mysql),
 					mysql_error(dbc->library.mysql.mysql));
 		}
+		mysql_close(dbc->library.mysql.mysql);
+		dbc->library.mysql.mysql = NULL;
 		return ERROR;
 	}
 
@@ -56,6 +62,8 @@ int connect_to_db_mysql(struct db_context_t *dbc) {
 		LOG_ERROR_MESSAGE(
 				"mysql reports: %d %s", mysql_errno(dbc->library.mysql.mysql),
 				mysql_error(dbc->library.mysql.mysql));
+		mysql_close(dbc->library.mysql.mysql);
+		dbc->library.mysql.mysql = NULL;
 		return ERROR;
 	}
 
