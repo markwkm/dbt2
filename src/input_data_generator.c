@@ -81,12 +81,15 @@ int generate_new_order_data(
 			if (mode_altered == 1 || get_random(rng, 100) > 0) {
 				data->order_line[i].ol_supply_w_id = w_id;
 			} else {
+				/*
+				 * Select uniformly from the other warehouses by
+				 * drawing from a range one smaller and skipping
+				 * over the home warehouse.
+				 */
 				data->order_line[i].ol_supply_w_id =
 						get_random(rng, table_cardinality.warehouses - 1) + 1;
 				if (data->order_line[i].ol_supply_w_id >= w_id) {
-					data->order_line[i].ol_supply_w_id =
-							(data->order_line[i].ol_supply_w_id + 1) %
-							table_cardinality.warehouses;
+					++data->order_line[i].ol_supply_w_id;
 				}
 			}
 		} else {
@@ -143,18 +146,14 @@ int generate_payment_data(
 		data->c_d_id = get_random(rng, D_ID_MAX) + 1;
 		if (table_cardinality.warehouses > 1) {
 			/*
-			 * Select a random warehouse that is not the same
-			 * as this user's home warehouse by shifting the
-			 * numbers slightly.
+			 * Select uniformly from the other warehouses by
+			 * drawing from a range one smaller and skipping
+			 * over the home warehouse.
 			 */
 			data->c_w_id =
 					(int) get_random(rng, table_cardinality.warehouses - 1) + 1;
 			if (data->c_w_id >= w_id) {
-				data->c_w_id =
-						(data->c_w_id + 1) % table_cardinality.warehouses;
-			}
-			if (!data->c_w_id) {
-				data->c_w_id = 1;
+				++data->c_w_id;
 			}
 		} else {
 			data->c_w_id = 1;
