@@ -124,8 +124,9 @@ int order_status_nonsp(
 							memcpy(c_ids_array, c_ids_static_array,
 								   sizeof(c_ids_static_array));
 						} else {
+							int *tmp_array;
 							c_ids_alloc_count *= 2;
-							if (!(c_ids_array = realloc(
+							if (!(tmp_array = realloc(
 										  c_ids_array,
 										  c_ids_alloc_count * sizeof(int)))) {
 								LOG_ERROR_MESSAGE(
@@ -133,8 +134,10 @@ int order_status_nonsp(
 										"to expand to %d entries for middle "
 										"result\n",
 										c_ids_alloc_count);
+								free(c_ids_array);
 								return -1;
 							}
+							c_ids_array = tmp_array;
 						}
 					}
 					vals[TMP_C_ID] = (*dbc->sql_getvalue)(dbc, &result, 0);
@@ -148,11 +151,15 @@ int order_status_nonsp(
 					c_ids_result_count++;
 					vals[TMP_C_ID] = NULL;
 				}
-				my_c_id = c_ids_array[(c_ids_result_count - 1) / 2];
+				if (c_ids_result_count == 0) {
+					my_c_id = -1;
+				} else {
+					my_c_id = c_ids_array[(c_ids_result_count - 1) / 2];
+				}
 				if (c_ids_alloc_count) {
 					free(c_ids_array);
 				}
-				if (my_c_id == -1 || c_ids_result_count == 0) {
+				if (my_c_id == -1) {
 					LOG_ERROR_MESSAGE(
 							"error: tmp_c_id=null for query "
 							"order_status_1:\n%s\n",
