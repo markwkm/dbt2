@@ -13,8 +13,8 @@ fi
 
 CONTAINER_DIR="$(dirname "$0")"
 
-eval "$CONTAINER_DIR/prepare-image"
-eval "$CONTAINER_DIR/build-database" "$WAREHOUSES" "$DBMS" &
-eval "$CONTAINER_DIR/build-client" &
-eval "$CONTAINER_DIR/build-driver" &
+"$CONTAINER_DIR/prepare-image"
+"$CONTAINER_DIR/build-database" "$WAREHOUSES" "$DBMS" &
+"$CONTAINER_DIR/build-client" &
+"$CONTAINER_DIR/build-driver" &
 wait

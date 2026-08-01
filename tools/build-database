@@ -15,8 +15,9 @@ create_cockroach()
 	mkdir -p "$DATADIR/roach2"
 	mkdir -p "$DATADIR/roach3"
 
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-d \
 			--hostname=dbt2-cockroach-1 \
 			--name=dbt2-cockroach-1 \
@@ -25,8 +26,9 @@ create_cockroach()
 					--insecure \
 					--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
 
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-d \
 			--hostname=dbt2-cockroach-2 \
 			--name=dbt2-cockroach-2 \
@@ -35,8 +37,9 @@ create_cockroach()
 					--insecure \
 					--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
 
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-d \
 			--hostname=dbt2-cockroach-3 \
 			--name=dbt2-cockroach-3 \
@@ -49,7 +52,7 @@ create_cockroach()
 	# load.
 	sleep 10
 
-	eval "$ENGINE" exec -it  dbt2-cockroach-1 ./cockroach init --insecure
+	$ENGINE exec -it  dbt2-cockroach-1 ./cockroach init --insecure
 
 	if [ "$ENGINE" = "podman" ]; then
 		IPADDRESS=$($ENGINE inspect dbt2-cockroach-1 | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
@@ -57,8 +60,9 @@ create_cockroach()
 		IPADDRESS=$($ENGINE inspect dbt2-cockroach-1 | jq -r '.[0].NetworkSettings.IPAddress')
 	fi
 
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			--env "PGHOST=$IPADDRESS" \
 			--env DBT2DBNAME=dbt2 \
 			--rm \
@@ -96,8 +100,9 @@ create_yugabyte()
 		exit 1
 	fi
 	mkdir -p "$DATADIR"
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-d \
 			--name $CONTAINER_NAME \
 			-v "${DATADIR}:/home/yugabyte/yb_data" \
@@ -113,8 +118,9 @@ create_yugabyte()
 		IPADDRESS=$($ENGINE inspect $CONTAINER_NAME | jq -r '.[0].NetworkSettings.IPAddress')
 	fi
 
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-it \
 			--rm \
 			--env PGHOST="$IPADDRESS" \

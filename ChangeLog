@@ -21,6 +21,7 @@ vX.Y.Z (YYYY-MM-DD)
   common conventions
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
+- Remove eval from the container tool scripts where it served no purpose
 
 v0.61.7 (2025-07-01)
 

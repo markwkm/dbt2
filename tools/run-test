@@ -2,11 +2,11 @@
 
 stop_containers()
 {
-	eval "$ENGINE" stop dbt2-driver-0
+	$ENGINE stop dbt2-driver-0
 	if [ "$TIERS" = "3" ]; then
-		eval "$ENGINE" stop dbt2-client-0
+		$ENGINE stop dbt2-client-0
 	fi
-	eval "$ENGINE" stop "$CONTAINER_NAME"
+	$ENGINE stop "$CONTAINER_NAME"
 }
 
 DBMS="pgsql"
@@ -74,10 +74,11 @@ CONTAINER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
 trap stop_containers INT TERM
 
 if [ "$DBMS" = "yugabyte" ]; then
-	eval "$ENGINE" start "$CONTAINER_NAME"
+	$ENGINE start "$CONTAINER_NAME"
 else
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-d \
 			--rm \
 			--name "$CONTAINER_NAME" \
@@ -85,16 +86,18 @@ else
 fi
 
 if [ "$TIERS" = "3" ]; then
-	eval "$ENGINE" run \
-			"$ENGINEARGS" \
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+	$ENGINE run \
+			$ENGINEARGS \
 			-d \
 			--rm \
 			--name "dbt2-client-0" \
 			"dbt2-client"
 fi
 
-eval "$ENGINE" run \
-		"$ENGINEARGS" \
+# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
+$ENGINE run \
+		$ENGINEARGS \
 		-d \
 		--rm \
 		--name "dbt2-driver-0" \
@@ -142,13 +145,15 @@ elif [ "$DBMS" = "yugabyte" ]; then
 	RUNARGS="$RUNARGS --env PGHOST=$DBIPADDRESS --env PGPORT=5433"
 fi
 
-eval "$ENGINE" exec \
+# shellcheck disable=SC2086 # RUNARGS and EXTRAARGS are intentionally
+# word split
+$ENGINE exec \
 		-it \
-		"$RUNARGS" \
+		$RUNARGS \
 		-u "$OSUSER" \
 		dbt2-driver-0 \
 		dbt2-run-workload \
-				"$EXTRAARGS" \
+				$EXTRAARGS \
 				-u \
 				-a "$DBMS" \
 				-c 10 \
@@ -159,12 +164,12 @@ eval "$ENGINE" exec \
 				-s 100 \
 				-w "$WAREHOUSES"
 
-eval "$ENGINE" exec \
+$ENGINE exec \
 		-it \
 		-u "$OSUSER" \
 		dbt2-driver-0 \
 		dbt2-generate-report -i "$RESULTSDIR"
 
-eval "$ENGINE" cp "dbt2-driver-0:$RESULTSDIR" "${LOCALDIR}"
+$ENGINE cp "dbt2-driver-0:$RESULTSDIR" "${LOCALDIR}"
 
 stop_containers
