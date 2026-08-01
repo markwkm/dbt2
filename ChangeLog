@@ -24,6 +24,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Remove eval from the container tool scripts where it served no purpose
 - appimage: fix the libnsl symlink for aarch64 container image builds and
   the version pinning of the gnuplot and touchstone-tools downloads
+- appimage: verify TLS certificates, fail on download errors, and pin the
+  Rust toolchain in the container image
 
 v0.61.7 (2025-07-01)
 
