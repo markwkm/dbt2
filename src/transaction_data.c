@@ -65,7 +65,6 @@ int dump(FILE *fp, int type, void *data) {
 		fprintf(fp, "o_id = %d\n", ptr.no->o_id);
 		fprintf(fp, "total_amount = %0.2f\n", ptr.no->total_amount);
 		pthread_mutex_unlock(&mut);
-		pthread_mutex_unlock(&mut);
 		break;
 	case ORDER_STATUS:
 		ptr.os = (struct order_status_t *) data;

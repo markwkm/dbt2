@@ -69,7 +69,14 @@ int startup() {
 			sleep(600);
 			continue;
 		}
-		scanf("%s", command);
+		if (scanf("%127s", command) != 1) {
+			/*
+			 * No usable console input, e.g. running detached with
+			 * stdin at end-of-file; stop polling for commands.
+			 */
+			force_sleep = 1;
+			continue;
+		}
 		if (parse_command(command) == EXIT_CODE) {
 			break;
 		}
