@@ -267,7 +267,7 @@ void gen_customers() {
 
 				/* c_discount */
 				fprintf(output, "%s0.%04d%s", quoter,
-						(int) get_random(&rng, 5000), quoter);
+						(int) get_random(&rng, 5001), quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_balance */
@@ -478,7 +478,7 @@ void gen_districts() {
 			metaprintf(output, "%c", delimiter);
 
 			/* d_tax */
-			fprintf(output, "%s0.%04d%s", quoter, (int) get_random(&rng, 2000),
+			fprintf(output, "%s0.%04d%s", quoter, (int) get_random(&rng, 2001),
 					quoter);
 			metaprintf(output, "%c", delimiter);
 
@@ -822,7 +822,7 @@ void gen_items() {
 		metaprintf(output, "%c", delimiter);
 
 		/* i_im_id */
-		fprintf(output, "%s%d%s", quoter, (int) get_random(&rng, 9999) + 1,
+		fprintf(output, "%s%d%s", quoter, (int) get_random(&rng, 10000) + 1,
 				quoter);
 		metaprintf(output, "%c", delimiter);
 
@@ -834,14 +834,14 @@ void gen_items() {
 
 		/* i_price */
 		fprintf(output, "%s%0.2f%s", quoter,
-				((double) get_random(&rng, 9900) + 100.0) / 100.0, quoter);
+				((double) get_random(&rng, 9901) + 100.0) / 100.0, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* i_data */
 		get_a_string(&rng, a_string, 26, 50);
 		pcg64f_srandom_r(&temp_rng, pcg64f_random_r(&rng));
 		if (get_percentage(&temp_rng) < .10) {
-			j = (int) get_random(&temp_rng, wcslen(a_string) - 8);
+			j = (int) get_random(&temp_rng, wcslen(a_string) - 7);
 			a_string[j++] = L'O';
 			a_string[j++] = L'R';
 			a_string[j++] = L'I';
@@ -1283,7 +1283,7 @@ void gen_orders() {
 				/* o_carrier_id */
 				if (k < 2101) {
 					fprintf(order, "%s%d%s", quoter,
-							(int) get_random(&rng, 9) + 1, quoter);
+							(int) get_random(&rng, 10) + 1, quoter);
 				} else {
 					metaprintf(order, "%s", null_str);
 				}
@@ -1291,7 +1291,7 @@ void gen_orders() {
 
 				/* o_ol_cnt */
 				pcg64f_srandom_r(&ol_rng, pcg64f_random_r(&rng));
-				o_ol_cnt = (int) get_random(&ol_rng, 10) + 5;
+				o_ol_cnt = (int) get_random(&ol_rng, 11) + 5;
 				fprintf(order, "%s%d%s", quoter, o_ol_cnt, quoter);
 				metaprintf(order, "%c", delimiter);
 
@@ -1390,7 +1390,7 @@ void gen_orders() {
 						metaprintf(order_line, "0.00");
 					} else {
 						fprintf(order_line, "%s%f%s", quoter,
-								(double) (get_random(&ol_rng, 999998) + 1) /
+								(double) (get_random(&ol_rng, 999999) + 1) /
 										100.0,
 								quoter);
 					}
@@ -1574,7 +1574,7 @@ void gen_stock() {
 			metaprintf(output, "%c", delimiter);
 
 			/* s_quantity */
-			fprintf(output, "%s%d%s", quoter, (int) get_random(&rng, 90) + 10,
+			fprintf(output, "%s%d%s", quoter, (int) get_random(&rng, 91) + 10,
 					quoter);
 			metaprintf(output, "%c", delimiter);
 
@@ -1654,7 +1654,7 @@ void gen_stock() {
 			get_a_string(&rng, a_string, 26, 50);
 			pcg64f_srandom_r(&temp_rng, pcg64f_random_r(&rng));
 			if (get_percentage(&temp_rng) < .10) {
-				k = (int) get_random(&temp_rng, wcslen(a_string) - 8);
+				k = (int) get_random(&temp_rng, wcslen(a_string) - 7);
 				a_string[k++] = L'O';
 				a_string[k++] = L'R';
 				a_string[k++] = L'I';
@@ -1847,7 +1847,7 @@ void gen_warehouses() {
 		metaprintf(output, "%c", delimiter);
 
 		/* w_tax */
-		fprintf(output, "%s0.%04d%s", quoter, (int) get_random(&rng, 2000),
+		fprintf(output, "%s0.%04d%s", quoter, (int) get_random(&rng, 2001),
 				quoter);
 		metaprintf(output, "%c", delimiter);
 
