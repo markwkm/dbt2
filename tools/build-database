@@ -69,7 +69,7 @@ create_cockroach()
 
 create_pgsql()
 {
-	TOPDIR=`dirname $0`
+	TOPDIR=$(dirname $0)
 
 	# Use the return code from `$ENGINE inspect` to determine if the container
 	# image needs to be created.

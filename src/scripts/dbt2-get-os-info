@@ -26,7 +26,7 @@ if [ ! -f "${SYSCTL}" ]; then
 fi
 
 # I don't think capturing error messages is important here.
-OS=`uname -s`
+OS=$(uname -s)
 if [ -f ${SYSCTL} ]; then
 	if [ "x${OS}" = "xLinux" ]; then
 		${SYSCTL} -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.txt

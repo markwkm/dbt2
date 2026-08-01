@@ -7,8 +7,8 @@
 #
 
 usage() {
-	echo "usage: `basename $0` -h"
-	echo "usage: `basename $0` -i <directory> [-o <directory>] [-b devices]"
+	echo "usage: $(basename $0) -h"
+	echo "usage: $(basename $0) -i <directory> [-o <directory>] [-b devices]"
 	echo "options:"
 	echo "       -b <comma delimited list of block devices (default: all devices)>"
 	echo "       -i <DBT-2 test output directory>"
@@ -271,12 +271,12 @@ if [ ! -f "$SUMMARY" ]; then
 	VERBOSE=1 dbt2 post-process "${MIXFILE}" > "${INDIR}/detailed-summary.rst"
 fi
 
-DBMS=`grep RDBMS $INDIR/readme.txt | cut -d " " -f 2`
+DBMS=$(grep RDBMS $INDIR/readme.txt | cut -d " " -f 2)
 if [ "x$DBMS" = "x" ]; then
 	error "Could not determine what RDBMS used from results"
 fi
 
-DBNAME=`grep "Database Name" $INDIR/readme.txt | cut -d " " -f 3`
+DBNAME=$(grep "Database Name" $INDIR/readme.txt | cut -d " " -f 3)
 if [ "x$DBNAME" = "x" ]; then
 	warning "Could not determine what the database name used from results"
 fi

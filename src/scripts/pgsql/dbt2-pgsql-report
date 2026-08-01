@@ -8,10 +8,10 @@
 
 usage()
 {
-	echo "`basename $0` is the DBT-2 PostgreSQL Report Generator"
+	echo "$(basename $0) is the DBT-2 PostgreSQL Report Generator"
 	echo ""
 	echo "Usage:"
-	echo "  `basename $0` [OPTIONS]"
+	echo "  $(basename $0) [OPTIONS]"
 	echo ""
 	echo "General options:"
 	echo "  -i PATH          results directory"

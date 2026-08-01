@@ -34,7 +34,7 @@ if [ ! "x${PORT}" = "x" ]; then
 fi
 
 PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
-PGVERSION=`${PSQL} -c "show server_version_num;"`
+PGVERSION=$(${PSQL} -c "show server_version_num;")
 
 # Get database version.
 echo $PGVERSION >> $OUTPUT_DIR/readme-dbms.txt
