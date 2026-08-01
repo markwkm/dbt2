@@ -95,7 +95,7 @@ BEGIN
     SET d_next_o_id = d_next_o_id + 1
     WHERE d_w_id = w_id
       AND district.d_id = new_order.d_id
-    RETURNING d_tax, d_next_o_id
+    RETURNING d_tax, d_next_o_id - 1
     INTO out_d_tax, out_d_next_o_id;
 
     SELECT c_discount, c_last, c_credit
@@ -107,12 +107,6 @@ BEGIN
 
     INSERT INTO new_order (no_o_id, no_d_id, no_w_id)
     VALUES (out_d_next_o_id, d_id, w_id);
-
-    SELECT d_tax, d_next_o_id
-    INTO out_d_tax, out_d_next_o_id
-    FROM district
-    WHERE d_w_id = w_id
-      AND district.d_id = new_order.d_id;
 
     INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d,
                         o_carrier_id, o_ol_cnt, o_all_local)
@@ -141,9 +135,9 @@ BEGIN
         EXECUTE 'SELECT stock.s_quantity, s_dist_' || lpad(d_id::TEXT, 2, '0')
             || ', s_data FROM stock WHERE s_i_id = $1 AND s_w_id = $2'
         INTO new_order.s_quantity, tmp_s_dist, tmp_s_data
-        USING ol_i_id, w_id;
+        USING ol_i_id, ol_supply_w_id;
 
-        IF s_quantity > ol_quantity THEN
+        IF s_quantity >= ol_quantity + 10 THEN
             decr_quantity :=  ol_quantity;
         ELSE
             decr_quantity :=  ol_quantity - 91;
@@ -159,9 +153,15 @@ BEGIN
         END IF;
 
         UPDATE stock
-        SET s_quantity = new_order.s_quantity - decr_quantity
+        SET s_quantity = new_order.s_quantity - decr_quantity,
+            s_ytd = s_ytd + ol_quantity,
+            s_order_cnt = s_order_cnt + 1,
+            s_remote_cnt = s_remote_cnt
+                         + CASE WHEN ol_supply_w_id <> w_id THEN 1
+                                ELSE 0
+                           END
         WHERE s_i_id = ol_i_id
-          AND s_w_id = w_id;
+          AND s_w_id = ol_supply_w_id;
 
         INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id,
                                 ol_supply_w_id, ol_delivery_d, ol_quantity,
