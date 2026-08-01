@@ -5,7 +5,7 @@ oneTimeSetUp() {
 	TOPDIR="${THISDIR}/../../.."
 	ACTUALOUTPUT="${SHUNIT_TMPDIR}/summary.rst"
 	EXPECTEDOUTPUT="${TOPDIR}/src/scripts/test/summary.rst.expected"
-	export PATH="${TOPDIR}/builds/debug:${TOPDIR}/src/scripts:${PATH}"
+	export PATH="${TOPDIR}/build/debug:${TOPDIR}/src/scripts:${PATH}"
 }
 
 testPostProcessR() {
@@ -20,7 +20,7 @@ testPostProcessR() {
 testPostProcessSQLite() {
 	# shellcheck disable=SC2086
 	find ${TOPDIR}/src/scripts/test -name "mix-*.log" -print0 | \
-			xargs -0 ${TOPDIR}/builds/debug/dbt2-post-process.sqlite3 \
+			xargs -0 ${TOPDIR}/build/debug/dbt2-post-process.sqlite3 \
 			> "$ACTUALOUTPUT"
 	diff "$ACTUALOUTPUT" "$EXPECTEDOUTPUT"
 	assertEquals "match" 0 $?

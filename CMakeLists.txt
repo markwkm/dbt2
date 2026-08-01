@@ -4,7 +4,7 @@ project (dbt2 C)
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message (FATAL_ERROR
              "In-source builds are not allowed.  Use a separate build "
-             "directory, e.g. \"cmake -S . -B builds/release\", and remove "
+             "directory, e.g. \"cmake -S . -B build/release\", and remove "
              "the CMakeCache.txt file and CMakeFiles directory that this "
              "attempt created in the source directory.")
 endif ()

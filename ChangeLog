@@ -17,6 +17,8 @@ vX.Y.Z (YYYY-MM-DD)
 - appimage: download appimagetool v1.9.1 from its new project location, the
   AppImageKit release assets no longer exist
 - appimage: mount the project at /src/dbt2 instead of /usr/local/src/dbt2
+- Use build/ instead of builds/ for out of source builds, conforming to more
+  common conventions
 
 v0.61.7 (2025-07-01)
 

@@ -3,7 +3,7 @@
 oneTimeSetUp() {
 	THISDIR=$(dirname "$0")
 	TOPDIR="${THISDIR}/../.."
-	DATAGEN="${TOPDIR}/builds/debug/src/dbt2-datagen"
+	DATAGEN="${TOPDIR}/build/debug/src/dbt2-datagen"
 	DATAFILE="${SHUNIT_TMPDIR}/customer.data"
 	COLUMNS="1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21"
 }

@@ -53,8 +53,8 @@ COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2
 ARG PKG_CONFIG_PATH="/usr/lib/pkgconfig"
 ENV DBMS="$dbms"
-RUN cmake -H. -Bbuilds/release && \
-    (cd builds/release && make -s install)
+RUN cmake -H. -Bbuild/release && \
+    (cd build/release && make -s install)
 
 RUN systemctl enable sshd
 CMD [ "/usr/sbin/init" ]

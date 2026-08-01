@@ -48,6 +48,6 @@ RUN echo "[mysqld]\nbind-address = 127.0.0.1\nsecure_file_priv = \"\"" \
 # podman run -it --rm -v .:/usr/local/src/dbt2:rw,Z --env PKG_CONFIG_PATH="/usr/lib/pkgconfig" -w /usr/local/src/dbt2 -u root --name dbt2-mysql dbt2-mysql /bin/bash
 # mysqld_safe --defaults-file=/opt/mysql/my.cnf --datadir=/opt/mysql --socket=/opt/mysql/mysql.sock --log-error=/opt/mysql/error.log
 # podman exec -it -u root dbt2-mysql /bin/bash
-# PATH=builds/debug:builds/debug/src:$PATH dbt2 build --db-host=127.0.0.1 --data=/tmp -g --mysql-stored-procedure=storedproc/mysql --mysql-socket=/opt/mysql/mysql.sock mysql
-# PATH=builds/debug:builds/debug/src:$PATH dbt2 run --db-host=127.0.0.1 -w 1 --mysql-socket=/opt/mysql/mysql.sock --db-user=root mysql /tmp/results
+# PATH=build/debug:build/debug/src:$PATH dbt2 build --db-host=127.0.0.1 --data=/tmp -g --mysql-stored-procedure=storedproc/mysql --mysql-socket=/opt/mysql/mysql.sock mysql
+# PATH=build/debug:build/debug/src:$PATH dbt2 run --db-host=127.0.0.1 -w 1 --mysql-socket=/opt/mysql/mysql.sock --db-user=root mysql /tmp/results
 # mysqladmin -u root shutdown --socket=/opt/mysql/mysql.sock

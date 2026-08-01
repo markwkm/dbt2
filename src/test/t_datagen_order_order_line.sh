@@ -3,7 +3,7 @@
 oneTimeSetUp() {
 	THISDIR=$(dirname "$0")
 	TOPDIR="${THISDIR}/../.."
-	DATAGEN="${TOPDIR}/builds/debug/src/dbt2-datagen"
+	DATAGEN="${TOPDIR}/build/debug/src/dbt2-datagen"
 	DATAFILE_O="${SHUNIT_TMPDIR}/order.data"
 	DATAFILE_OL="${SHUNIT_TMPDIR}/order_line.data"
 	COLUMNS_O="1,2,3,4,6,7,8"

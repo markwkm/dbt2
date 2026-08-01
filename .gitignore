@@ -2,7 +2,7 @@
 *.so
 *.bc
 
-/builds
+/build
 
 # vim
 *.swp
