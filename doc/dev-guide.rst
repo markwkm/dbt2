@@ -7,23 +7,23 @@ This document is for detailing any related to the development of this test kit.
 Building the Kit
 ================
 
-CMake is build system used for this kit.  A `Makefile.cmake` is provided to
+CMake is build system used for this kit.  A `Makefile` is provided to
 automate some of the tasks.
 
 Building for debugging::
 
-    make -f Makefile.cmake debug
+    make debug
 
 Building for release::
 
-    make -f Makefile.cmake release
+    make release
 
 Building source packages::
 
-    make -f Makefile.cmake package
+    make package
 
 See the **AppImage** section for details on building an AppImage.  There are
-additional requirements for the `appimage` target in the `Makefile.cmake`.
+additional requirements for the `appimage` target in the `Makefile`.
 Alternatively, the kit provides scripts in the *tools* diretory to create a
 container that can create an AppImage.
 

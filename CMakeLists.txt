@@ -1,6 +1,14 @@
 cmake_minimum_required (VERSION 3.5...4.0)
 project (dbt2 C)
 
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+    message (FATAL_ERROR
+             "In-source builds are not allowed.  Use a separate build "
+             "directory, e.g. \"cmake -S . -B builds/release\", and remove "
+             "the CMakeCache.txt file and CMakeFiles directory that this "
+             "attempt created in the source directory.")
+endif ()
+
 set (PROJECT_VERSION_MAJOR 0)
 set (PROJECT_VERSION_MINOR 61)
 set (PROJECT_VERSION_PATCH 7)

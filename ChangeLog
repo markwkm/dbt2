@@ -5,6 +5,8 @@ vX.Y.Z (YYYY-MM-DD)
   with command line arguments
 - pgsql-plans: update usage and command line arguments
 - Fix CPack description and license file settings to use absolute paths
+- Disable in-source builds
+- Rename Makefile.cmake to Makefile
 
 v0.61.7 (2025-07-01)
 

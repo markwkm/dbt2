@@ -22,4 +22,4 @@ podman run \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /usr/local/src/dbt2 \
 		$CONTAINER_TAG \
-		make -f Makefile.cmake appimage
+		make appimage

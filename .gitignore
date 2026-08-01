@@ -15,8 +15,6 @@ CMakeCache.txt
 CMakeFiles
 cmake_install.cmake
 install_manifest.txt
-Makefile
-!doc/Makefile
 
 # cpack
 _CPack_Packages/

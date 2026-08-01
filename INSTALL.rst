@@ -10,7 +10,7 @@ Required software:
 
 Recommended software:
 
-* `Make` can be used with the supplied `Makefile.cmake` for running some of the
+* `Make` can be used with the supplied `Makefile` for running some of the
   common build tasks
 
 The kit will build support with the following database management system client
@@ -26,10 +26,10 @@ Building
 
 ::
 
-	make -f Makefile.cmake release
+	make release
 
 If `make` is not available, the `cmake` commands can be reviewed in the
-`Makefile.cmake` file.
+`Makefile` file.
 
 Installing
 ----------
