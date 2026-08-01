@@ -65,6 +65,9 @@ vX.Y.Z (YYYY-MM-DD)
 - driver: remote warehouse selection draws uniformly from the warehouses other
   than the home warehouse instead of wrapping to an invalid or home warehouse,
   per TPC-C Clause 2.5.1.2
+- common: NURand draws its inner random value within [x .. y] instead of
+  [x .. x + y], which skewed the non-uniform customer id selection,
+  per TPC-C Clause 2.1.6
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments

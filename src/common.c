@@ -150,7 +150,7 @@ void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y) {
 
 /* Clause 2.1.6 */
 int get_nurand(pcg64f_random_t *rng, int a, int x, int y) {
-	return ((get_random(rng, a + 1) | (x + get_random(rng, y + 1))) %
+	return ((get_random(rng, a + 1) | (x + get_random(rng, y - x + 1))) %
 			(y - x + 1)) +
 		   x;
 }
