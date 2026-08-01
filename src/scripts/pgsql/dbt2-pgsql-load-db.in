@@ -87,6 +87,7 @@ done
 
 if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
+	export PGPORT="${PORT}"
 fi
 
 if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then

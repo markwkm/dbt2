@@ -22,6 +22,9 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- Only export PGPORT when a port was requested so the build scripts no
+  longer clobber an inherited PGPORT with an empty value, and pgsql-load-db
+  now passes its -l port to the datagen processes
 - build: forward connection settings to cockroach and yugabyte builds, pass
   --db-user to mysql, and reject --data, -g, and --privileged for DBMSes
   whose build scripts would misinterpret them; --data with pgsql previously
