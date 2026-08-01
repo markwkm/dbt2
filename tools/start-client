@@ -10,15 +10,15 @@ usage()
 # Use the specified engine from the environment, or try podman then docker.
 if [ "$ENGINE" = "" ]; then
 	ENGINE="podman"
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		ENGINE="docker"
-		if ! which $ENGINE > /dev/null 2>&1; then
+		if ! which "$ENGINE" > /dev/null 2>&1; then
 			echo "podman nor docker in path"
 			exit 1
 		fi
 	fi
 else
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		echo "specified engine $ENGINE not in path"
 		exit 1
 	fi
@@ -50,7 +50,7 @@ if [ $# -ge 3 ]; then
 	DATABASE_CONNECTIONS=$3
 fi
 
-CONTAINERDIR=$(dirname $0)
+CONTAINERDIR=$(dirname "$0")
 CONTAINER_NAME="dbt2-client-${DATABASE_CONNECTIONS}"
 CONTAINER_TAG="dbt2-client"
 
@@ -63,6 +63,7 @@ if ! $ENGINE inspect $CONTAINER_TAG > /dev/null; then
 fi
 
 if [ "$DBMS" = "pgsql" ]; then
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
 	$ENGINE run \
 		$ENGINEARGS \
 		-d \
@@ -71,7 +72,8 @@ if [ "$DBMS" = "pgsql" ]; then
 		-p 30000:30000 \
 		-e PGUSER="postgres" \
 		$CONTAINER_TAG \
-		dbt2-client -a $DBMS -f -c $DATABASE_CONNECTIONS -d $HOST -b $DBNAME \
+		dbt2-client -a "$DBMS" -f -c "$DATABASE_CONNECTIONS" -d "$HOST" \
+		-b "$DBNAME" \
 				-o /tmp
 	RC=$?
 else

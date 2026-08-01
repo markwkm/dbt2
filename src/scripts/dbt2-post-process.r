@@ -7,10 +7,10 @@
 #
 
 if [ $# -lt 1 ]; then
-	echo "$(basename $0) is the DBT-2 mix log analyzer"
+	echo "$(basename "$0") is the DBT-2 mix log analyzer"
 	echo ""
 	echo "Usage:"
-	echo "  $(basename $0) mix.log [mix-1.log [...]]"
+	echo "  $(basename "$0") mix.log [mix-1.log [...]]"
 	echo
 fi
 

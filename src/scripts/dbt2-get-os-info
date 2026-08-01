@@ -10,7 +10,7 @@ while getopts "o:" opt; do
 	case ${opt} in
 	o)
 		OUTPUT_DIR=${OPTARG}
-		mkdir -p $OUTPUT_DIR
+		mkdir -p "$OUTPUT_DIR"
 		;;
 	\?)
 		exit 1
@@ -18,7 +18,7 @@ while getopts "o:" opt; do
 	esac
 done
 
-echo "$(uname -o) $(uname -m) $(uname -r)" > ${OUTPUT_DIR}/uname.txt
+echo "$(uname -o) $(uname -m) $(uname -r)" > "${OUTPUT_DIR}/uname.txt"
 
 SYSCTL="/sbin/sysctl"
 if [ ! -f "${SYSCTL}" ]; then
@@ -29,9 +29,9 @@ fi
 OS=$(uname -s)
 if [ -f ${SYSCTL} ]; then
 	if [ "${OS}" = "Linux" ]; then
-		${SYSCTL} -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.txt
+		${SYSCTL} -a 2> /dev/null | sort > "${OUTPUT_DIR}/proc.txt"
 	elif [ "${OS}" = "SunOS" ]; then
-		${SYSCTL} -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.txt
+		${SYSCTL} -a 2> /dev/null | sort > "${OUTPUT_DIR}/proc.txt"
 	else
 		echo "Unknown OS: ${OS}"
 	fi

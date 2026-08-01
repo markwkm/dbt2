@@ -6,12 +6,12 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ -z ${DBT2PGDATA} ]; then
+if [ -z "${DBT2PGDATA}" ]; then
     echo "DBT2PGDATA not defined."
     exit 1
 fi
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
     echo "DBT2DBNAME not defined."
     exit 1
 fi
@@ -22,10 +22,11 @@ fi
 
 # Initialize the PostgreSQL instance
 echo "Initializing database instance..."
-if [ -d ${DBT2PGDATA} ]; then
+if [ -d "${DBT2PGDATA}" ]; then
 	echo "PGData directory '${DBT2PGDATA}' already exists, skipping initdb..."
 else
-	initdb -D $DBT2PGDATA  -E UTF8 --locale=en_US.utf8 \
+	# shellcheck disable=SC2086 # INITDBFLAGS is intentionally word split
+	initdb -D "$DBT2PGDATA"  -E UTF8 --locale=en_US.utf8 \
 			--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 $INITDBFLAGS || \
 			exit 1
 fi

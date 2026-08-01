@@ -36,7 +36,7 @@ EOF
 explain() {
 	SQL="EXPLAIN ${*}"
 	eval "psql ${HOSTNAMEARG} ${PORTARG} -e -d ${DBT2DBNAME} -c \"${SQL}\"" \
-			>> ${OUTPUT_FILE} 2>&1
+			>> "${OUTPUT_FILE}" 2>&1
 }
 
 while [ "${#}" -gt 0 ] ; do
@@ -104,7 +104,7 @@ if [ ! "${PORT}" = "" ]; then
 fi
 
 if [ "${OUTPUT_FILE}" = "" ]; then
-	echo "usage: $(basename $0) -o <outfile>"
+	echo "usage: $(basename "$0") -o <outfile>"
 	exit 1
 fi
 
@@ -112,7 +112,7 @@ fi
 	echo "--------------------"
 	echo "Delivery Transaction"
 	echo "--------------------"
-} >> ${OUTPUT_FILE}
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT no_o_id FROM new_order WHERE no_w_id = 1 AND no_d_id = 1;
@@ -146,7 +146,7 @@ UPDATE customer SET c_delivery_cnt = c_delivery_cnt + 1, c_balance = c_balance +
 	echo "---------------------"
 	echo "New-Order Transaction"
 	echo "---------------------"
-} >> ${OUTPUT_FILE}
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT w_tax FROM warehouse WHERE w_id = 1;
@@ -192,7 +192,7 @@ INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply
 	echo "------------------------"
 	echo "Order-Status Transaction"
 	echo "------------------------"
-} >> ${OUTPUT_FILE}
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT c_id FROM customer WHERE c_w_id = 1 AND c_d_id = 1 AND c_last = 'BARBARBAR' ORDER BY c_first ASC;
@@ -214,7 +214,7 @@ SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order
 	echo "-------------------"
 	echo "Payment Transaction"
 	echo "-------------------"
-} >> ${OUTPUT_FILE}
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip FROM warehouse WHERE w_id = 1;
@@ -257,7 +257,7 @@ INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_date, h_amoun
 	echo "-----------------------"
 	echo "Stock-Level Transaction"
 	echo "-----------------------"
-} >> ${OUTPUT_FILE}
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT d_next_o_id FROM district WHERE d_w_id = 1 AND d_id = 1;

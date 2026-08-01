@@ -8,10 +8,10 @@
 
 usage()
 {
-	echo "$(basename $0) is the DBT-2 PostgreSQL Report Generator"
+	echo "$(basename "$0") is the DBT-2 PostgreSQL Report Generator"
 	echo ""
 	echo "Usage:"
-	echo "  $(basename $0) [OPTIONS]"
+	echo "  $(basename "$0") [OPTIONS]"
 	echo ""
 	echo "General options:"
 	echo "  -i PATH          results directory"
@@ -23,14 +23,14 @@ create_stat_page()
 	TAG=$2
 
 	OUTDIR="${PIDSTATDIR}/$TAG"
-	mkdir -p $OUTDIR
+	mkdir -p "$OUTDIR"
 
-	cat > ${OUTDIR}/index.rst << __EOF__
+	cat > "${OUTDIR}/index.rst" << __EOF__
 ================================================================================
 Database Test 2 pidstat $TAG Charts
 ================================================================================
 
-$(show_images $NAME $TAG)
+$(show_images "$NAME" "$TAG")
 __EOF__
 }
 
@@ -92,7 +92,7 @@ list_processes()
 
 	for T in autovacuum bgwriter checkpointer logger logical statscollector \
 			walwriter; do
-		create_stat_page $SNAME $T
+		create_stat_page "$SNAME" "$T"
 		echo "* \`$T <db/${SNAME}/sysstat/${T}/>\`__"
 	done
 	echo ""
@@ -107,7 +107,7 @@ make_list()
 		SNAME="$(basename "$(dirname "${STATDIR}")")"
 
 		PIDSTATCSV="${INDIR}/db/${SNAME}/sysstat/pidstat.csv"
-		PIDSTATDIR=$(dirname $PIDSTATCSV)
+		PIDSTATDIR=$(dirname "$PIDSTATCSV")
 
 		# Create additional HTML pages for the database charts.
 
@@ -136,18 +136,18 @@ $SNAME
    * - Database Stats Charts
      - \`dbt2 <db/${SNAME}/dbstat/db/dbt2>\`__
    * - Database Table Stats Charts:
-     - $(links_tables $SNAME)
+     - $(links_tables "$SNAME")
    * - Database Index Stats Charts:
-     - $(links_indexes $SNAME)
+     - $(links_indexes "$SNAME")
    * - Database Tables by Metric:
-     - $(links_table_metrics $SNAME)
+     - $(links_table_metrics "$SNAME")
    * - Database Indexs by Metric:
-     - $(links_index_metrics $SNAME)
+     - $(links_index_metrics "$SNAME")
 
 Per Process Statistics
 ----------------------
 
-$(list_processes $SNAME)
+$(list_processes "$SNAME")
 
 __EOF__
 	done
@@ -194,7 +194,7 @@ for DBDIR in $(find "${INDIR}" -type d -name dbstat); do
 done
 wait
 
-DBNAME=$(grep "Database Name" ${INDIR}/readme.txt | cut -d " " -f 3)
+DBNAME=$(grep "Database Name" "${INDIR}/readme.txt" | cut -d " " -f 3)
 if [ "${DBNAME}" = "" ]; then
 	echo "ERROR: Could not determine what the database name used from results"
 	exit 1

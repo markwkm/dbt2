@@ -131,7 +131,7 @@ if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
 	LOADARGS="--rows-per-commit=${ROWS_PER_COMMIT}"
 fi
 
-if [ $REBUILD_DB -eq 1 ] && [ -d $DBT2PGDATA ]; then
+if [ "$REBUILD_DB" -eq 1 ] && [ -d "${DBT2PGDATA}" ]; then
 	if [ $PRIVILEGED -eq 1 ]; then
 		echo "Restarting the database to reset database parameters..."
 		dbt2 pgsql-stop-db
@@ -165,14 +165,17 @@ if [ ! "${PORT}" = "" ]; then
 fi
 
 SEED=$(dbt2 rand -1 1 15)
-psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(${SEED});" || exit 1
+# shellcheck disable=SC2086 # PORTARG is intentionally word split
+psql ${PORTARG} -e -d "${DBT2DBNAME}" -c "SELECT setseed(${SEED});" || exit 1
 
 # Set the number of vacuumdb jobs to 1 (no parallelism) and let see
 # if the system can support a greater value.
 VACUUM_JOBS=1
 # Based on server version, enable vaccumdb parallelism if that version
 # is greater than or equal to 9.5.
-PG_VERSION_NUM=$(psql ${PORTARG} -At -d ${DBT2DBNAME} -c "SHOW server_version_num")
+# shellcheck disable=SC2086 # PORTARG is intentionally word split
+PG_VERSION_NUM=$(psql ${PORTARG} -At -d "${DBT2DBNAME}" \
+		-c "SHOW server_version_num")
 PG_VERSION_NUM=$(( PG_VERSION_NUM + 0 ))
 if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# Set default vacuum jobs to 9 because this is the number of tables

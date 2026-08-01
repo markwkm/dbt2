@@ -39,7 +39,7 @@ if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
 	echo "DBT2DBNAME not defined."
 	exit 1
 fi
@@ -83,16 +83,16 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	# 'lost+found' directory if a device was mounted at
 	# '${DBT2TSDIR}/warehouse'.
 	#
-	mkdir -p ${TS_PK_WAREHOUSE_DIR} || exit 1
-	mkdir -p ${TS_PK_DISTRICT_DIR} || exit 1
-	mkdir -p ${TS_PK_CUSTOMER_DIR} || exit 1
-	mkdir -p ${TS_PK_NEW_ORDER_DIR} || exit 1
-	mkdir -p ${TS_PK_ORDERS_DIR} || exit 1
-	mkdir -p ${TS_PK_ORDER_LINE_DIR} || exit 1
-	mkdir -p ${TS_PK_ITEM_DIR} || exit 1
-	mkdir -p ${TS_PK_STOCK_DIR} || exit 1
-	mkdir -p ${TS_INDEX1_DIR} || exit 1
-	mkdir -p ${TS_INDEX2_DIR} || exit 1
+	mkdir -p "${TS_PK_WAREHOUSE_DIR}" || exit 1
+	mkdir -p "${TS_PK_DISTRICT_DIR}" || exit 1
+	mkdir -p "${TS_PK_CUSTOMER_DIR}" || exit 1
+	mkdir -p "${TS_PK_NEW_ORDER_DIR}" || exit 1
+	mkdir -p "${TS_PK_ORDERS_DIR}" || exit 1
+	mkdir -p "${TS_PK_ORDER_LINE_DIR}" || exit 1
+	mkdir -p "${TS_PK_ITEM_DIR}" || exit 1
+	mkdir -p "${TS_PK_STOCK_DIR}" || exit 1
+	mkdir -p "${TS_INDEX1_DIR}" || exit 1
+	mkdir -p "${TS_INDEX2_DIR}" || exit 1
 
 	TS_PK_WAREHOUSE="TABLESPACE dbt2_pk_warehouse"
 	TS_PK_DISTRICT="TABLESPACE dbt2_pk_district"

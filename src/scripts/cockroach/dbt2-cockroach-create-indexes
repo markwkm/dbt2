@@ -21,7 +21,7 @@ if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
 	echo "DBT2DBNAME not defined."
 	exit 1
 fi

@@ -70,7 +70,7 @@ if [ ! "${PORT}" = "" ]; then
 	PORTARG="-l ${PORT}"
 fi
 
-if [ $REBUILD_DB -eq 1 ] && [ -d $DBT2PGDATA ]; then
+if [ "$REBUILD_DB" -eq 1 ] && [ -d "${DBT2PGDATA}" ]; then
 	dbt2 pgsql-drop-db "${PORTARG}"
 fi
 

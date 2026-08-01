@@ -8,7 +8,7 @@
 #
 
 usage() {
-	NAME="$(basename ${0})"
+	NAME="$(basename "${0}")"
 	cat <<- EOF
 		$NAME is the DBT-2 mix log analyzer
 
@@ -65,7 +65,7 @@ TMPDIR=$(mktemp -d)
 
 DBFILE="${TMPDIR}/dbt2.db"
 
-sqlite3 $DBFILE << EOF
+sqlite3 "$DBFILE" << EOF
 $SQLOPTIONS
 CREATE TABLE mix(
     "time" INTEGER
@@ -79,14 +79,14 @@ CREATE TABLE mix(
 EOF
 
 for FILE in "$@"; do
-	sqlite3 $DBFILE <<- EOF
+	sqlite3 "$DBFILE" <<- EOF
 		$SQLOPTIONS
 		.mode csv
 		.import $FILE mix
 	EOF
 done
 
-sqlite3 $DBFILE <<- EOF
+sqlite3 "$DBFILE" <<- EOF
 $SQLOPTIONS
 CREATE INDEX mix_time_txn_start
 ON mix (time)
@@ -96,11 +96,12 @@ ON mix (time)
 WHERE txn = 'TERMINATED';
 EOF
 
-TIME0=$(sqlite3 $DBFILE "SELECT min(time) FROM mix")
-STARTTIME=$(sqlite3 $DBFILE "SELECT max(time) FROM mix WHERE txn = 'START'")
-ENDTIME=$(sqlite3 $DBFILE "SELECT min(time) FROM mix WHERE txn = 'TERMINATED'")
+TIME0=$(sqlite3 "$DBFILE" "SELECT min(time) FROM mix")
+STARTTIME=$(sqlite3 "$DBFILE" "SELECT max(time) FROM mix WHERE txn = 'START'")
+ENDTIME=$(sqlite3 "$DBFILE" \
+		"SELECT min(time) FROM mix WHERE txn = 'TERMINATED'")
 
-sqlite3 $DBFILE <<- EOF
+sqlite3 "$DBFILE" <<- EOF
 $SQLOPTIONS
 CREATE INDEX mix_txn_time
 ON mix (txn, time)
@@ -133,7 +134,7 @@ WHERE time > $STARTTIME
   AND txn = 's';
 EOF
 
-RAWTOTAL=$(sqlite3 $DBFILE << EOF
+RAWTOTAL=$(sqlite3 "$DBFILE" << EOF
 SELECT count(time)
      , count(CASE WHEN code = 'E' THEN 1 END)
 FROM mix
@@ -141,10 +142,10 @@ WHERE time > $STARTTIME
   AND time < $ENDTIME
 EOF
 )
-TXNTOTAL=$(echo $RAWTOTAL | cut -d "|" -f 1)
-UNKNOWN_ERRORS=$(echo $RAWTOTAL | cut -d "|" -f 2)
+TXNTOTAL=$(echo "$RAWTOTAL" | cut -d "|" -f 1)
+UNKNOWN_ERRORS=$(echo "$RAWTOTAL" | cut -d "|" -f 2)
 
-TXNDATA=$(sqlite3 $DBFILE << EOF
+TXNDATA=$(sqlite3 "$DBFILE" << EOF
 SELECT txn
      , 100.0 * count(time) / ${TXNTOTAL}
      , avg(response)
@@ -169,14 +170,14 @@ EOF
 
 NOTXNCOUNT=0
 for TXNLINE in $TXNDATA; do
-	TXN=$(echo $TXNLINE | cut -d "|" -f 1)
-	TXNPER=$(echo $TXNLINE | cut -d "|" -f 2)
-	AVGRESPONSE=$(echo $TXNLINE | cut -d "|" -f 3)
-	TXNCOUNT=$(echo $TXNLINE | cut -d "|" -f 4)
-	ROLLBACKS=$(echo $TXNLINE | cut -d "|" -f 5)
-	ROLLBACKPER=$(echo $TXNLINE | cut -d "|" -f 6)
+	TXN=$(echo "$TXNLINE" | cut -d "|" -f 1)
+	TXNPER=$(echo "$TXNLINE" | cut -d "|" -f 2)
+	AVGRESPONSE=$(echo "$TXNLINE" | cut -d "|" -f 3)
+	TXNCOUNT=$(echo "$TXNLINE" | cut -d "|" -f 4)
+	ROLLBACKS=$(echo "$TXNLINE" | cut -d "|" -f 5)
+	ROLLBACKPER=$(echo "$TXNLINE" | cut -d "|" -f 6)
 
-	Q90RESP=$(sqlite3 $DBFILE <<- EOF
+	Q90RESP=$(sqlite3 "$DBFILE" <<- EOF
 		SELECT response
 		FROM mix
 		WHERE txn = '$TXN'
@@ -202,8 +203,8 @@ for TXNLINE in $TXNDATA; do
 	fi
 
 	printf "%12s  %6.2f  %9.3f  %9.3f  %11d  %11d  %6.2f\n" \
-			"${TXNNAME}" $TXNPER $AVGRESPONSE $Q90RESP $TXNCOUNT $ROLLBACKS \
-            $ROLLBACKPER
+			"${TXNNAME}" "$TXNPER" "$AVGRESPONSE" "$Q90RESP" "$TXNCOUNT" \
+			"$ROLLBACKS" "$ROLLBACKPER"
 done
 
 DURATION=$(( ENDTIME - STARTTIME ))

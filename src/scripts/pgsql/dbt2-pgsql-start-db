@@ -6,12 +6,12 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ -z ${DBT2PGDATA} ]; then
+if [ -z "${DBT2PGDATA}" ]; then
 	echo "DBT2PGDATA not defined."
 	exit 1
 fi
 
-if [ ! -d $DBT2PGDATA ]; then
+if [ ! -d "${DBT2PGDATA}" ]; then
 	echo "Postgres instance does not exist at $DBT2PGDATA, run dbt2-build-db"
 	exit 1
 fi
@@ -21,7 +21,7 @@ OUTDIR="."
 while getopts "fo:p:" OPT; do
 	case ${OPT} in
 	f)
-		rm -f ${DBT2PGDATA}/postmaster.pid
+		rm -f "${DBT2PGDATA}/postmaster.pid"
 		;;
 	o)
 		OUTDIR=${OPTARG}
@@ -41,9 +41,10 @@ if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
 fi
 
 if [ "${PARAMETERS}" = "" ]; then
-	pg_ctl -D ${DBT2PGDATA} -w -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -D "${DBT2PGDATA}" -w -l "${OUTDIR}/${LOGFILE}" start
 else
-	pg_ctl -D ${DBT2PGDATA} -w -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -D "${DBT2PGDATA}" -w -o "${PARAMETERS}" \
+			-l "${OUTDIR}/${LOGFILE}" start
 fi
 
 if [ ! -f "${DBT2PGDATA}/postmaster.pid" ]; then

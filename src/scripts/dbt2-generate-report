@@ -7,8 +7,8 @@
 #
 
 usage() {
-	echo "usage: $(basename $0) -h"
-	echo "usage: $(basename $0) -i <directory> [-o <directory>] [-b devices]"
+	echo "usage: $(basename "$0") -h"
+	echo "usage: $(basename "$0") -i <directory> [-o <directory>] [-b devices]"
 	echo "options:"
 	echo "       -b <comma delimited list of block devices (default: all devices)>"
 	echo "       -i <DBT-2 test output directory>"
@@ -30,14 +30,14 @@ create_stat_page()
 	DIR=$3
 	ODIR=$4
 
-	mkdir -p $ODIR
+	mkdir -p "$ODIR"
 
-	cat > ${ODIR}/index.rst << __EOF__
+	cat > "${ODIR}/index.rst" << __EOF__
 ================================================================================
 Database Test 2 $TITLE $TAG Charts
 ================================================================================
 
-$(show_images $DIR $TAG)
+$(show_images "$DIR" "$TAG")
 __EOF__
 }
 
@@ -46,11 +46,11 @@ create_pidstat_page()
 	TAG=$1
 	DIR=$2
 
-	mkdir -p $DIR
+	mkdir -p "$DIR"
 
 	PIDSTATINDEX="$(dirname "${PIDSTATCSV}")/pidstat-index.txt"
 
-	cat > ${DIR}/index.rst << __EOF__
+	cat > "${DIR}/index.rst" << __EOF__
 ================================================================================
 Database Test 2 pidstat $TAG Charts
 ================================================================================
@@ -75,18 +75,18 @@ list_multiple_systems_summary()
 			while IFS= read -r UNAMEFILE; do
 		SNAME="$(basename "$(dirname "${UNAMEFILE}")")"
 		echo "   * - $SNAME"
-		echo "     - $(cat $UNAMEFILE)"
-		echo "     - $(show_system_links ${MYTAG}/$SNAME)"
-		echo "     - $(show_profile_links ${MYTAG}/${SNAME}/profile)"
+		echo "     - $(cat "$UNAMEFILE")"
+		echo "     - $(show_system_links "${MYTAG}/$SNAME")"
+		echo "     - $(show_profile_links "${MYTAG}/${SNAME}/profile")"
 
 		if [ -f "${INDIR}/${MYTAG}/${SNAME}/sysstat/sar.datafile" ]; then
 			THISDIR="${INDIR}/${MYTAG}/$SNAME"
-			create_stat_page $MYTAG cpu $THISDIR ${THISDIR}/cpu
-			create_stat_page $MYTAG mem $THISDIR ${THISDIR}/mem
-			create_stat_page $MYTAG blockdev $THISDIR ${THISDIR}/blockdev
-			create_stat_page $MYTAG net $THISDIR ${THISDIR}/net
-			create_stat_page $MYTAG paging $THISDIR ${THISDIR}/paging
-			create_stat_page $MYTAG swap $THISDIR ${THISDIR}/swap
+			create_stat_page "$MYTAG" cpu "$THISDIR" "${THISDIR}/cpu"
+			create_stat_page "$MYTAG" mem "$THISDIR" "${THISDIR}/mem"
+			create_stat_page "$MYTAG" blockdev "$THISDIR" "${THISDIR}/blockdev"
+			create_stat_page "$MYTAG" net "$THISDIR" "${THISDIR}/net"
+			create_stat_page "$MYTAG" paging "$THISDIR" "${THISDIR}/paging"
+			create_stat_page "$MYTAG" swap "$THISDIR" "${THISDIR}/swap"
 		fi
 	done
 }
@@ -103,7 +103,7 @@ list_processes2()
 	TITLE=$1
 	MYPTAG=$2
 
-	echo $TITLE
+	echo "$TITLE"
 	echo ""
 	PIDSTATFILES="$(find "${INDIR}/${MYPTAG}" -name pidstat.csv 2> /dev/null)"
 	for PIDSTATCSV in ${PIDSTATFILES}; do
@@ -118,18 +118,18 @@ list_processes2()
 		COUNTDRIVER=$(grep dbt2-driver "$PIDSTATCSV" | grep -c -v ssh)
 		COUNTCLIENT=$(grep dbt2-client "$PIDSTATCSV" | grep -c -v ssh)
 		SNAME=$(dirname "$(dirname "${PIDSTATCSV}")")
-		SNAME=$(basename $SNAME)
+		SNAME=$(basename "$SNAME")
 
 		echo "* $SNAME"
 
-		if [ $COUNTDRIVER -gt 0 ]; then
+		if [ "$COUNTDRIVER" -gt 0 ]; then
 			PTAG="driver"
-			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
+			create_pidstat_page "$PTAG" "${INDIR}/${MYPTAG}/${SNAME}/${PTAG}"
 			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
 		fi
-		if [ $COUNTCLIENT -gt 0 ]; then
+		if [ "$COUNTCLIENT" -gt 0 ]; then
 			PTAG="client"
-			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
+			create_pidstat_page "$PTAG" "${INDIR}/${MYPTAG}/${SNAME}/${PTAG}"
 			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
 		fi
 		echo ""
@@ -271,12 +271,12 @@ if [ ! -f "$SUMMARY" ]; then
 	VERBOSE=1 dbt2 post-process "${MIXFILE}" > "${INDIR}/detailed-summary.rst"
 fi
 
-DBMS=$(grep RDBMS $INDIR/readme.txt | cut -d " " -f 2)
+DBMS=$(grep RDBMS "$INDIR/readme.txt" | cut -d " " -f 2)
 if [ "$DBMS" = "" ]; then
 	error "Could not determine what RDBMS used from results"
 fi
 
-DBNAME=$(grep "Database Name" $INDIR/readme.txt | cut -d " " -f 3)
+DBNAME=$(grep "Database Name" "$INDIR/readme.txt" | cut -d " " -f 3)
 if [ "$DBNAME" = "" ]; then
 	warning "Could not determine what the database name used from results"
 fi
@@ -288,7 +288,7 @@ find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
 done
 
 echo "Generating transaction distribution charts..."
-mkdir -p ${OUTDIR}/txn || exit 1
+mkdir -p "${OUTDIR}/txn" || exit 1
 MIXFILES="$(find "${INDIR}/driver" -type f -name 'mix*.log' -print0 \
 		2> /dev/null | xargs -0)"
 # shellcheck disable=SC2086
@@ -346,7 +346,7 @@ else
 fi
 
 REPORTFILE="${OUTDIR}/report.rst"
-cat > $REPORTFILE << __EOF__
+cat > "$REPORTFILE" << __EOF__
 ======================
 Database Test 2 Report
 ======================
@@ -360,9 +360,9 @@ Summary
 * Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)
 * DBMS: ${DBMSNAME}
 
-$(cat $SUMMARY)
+$(cat "$SUMMARY")
 
-Notes: $(head -n 2 ${INDIR}/readme.txt | tail -n 1)
+Notes: $(head -n 2 "${INDIR}/readme.txt" | tail -n 1)
 
 Transaction Charts
 ==================

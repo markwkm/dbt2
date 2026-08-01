@@ -69,17 +69,17 @@ create_cockroach()
 
 create_pgsql()
 {
-	TOPDIR=$(dirname $0)
+	TOPDIR=$(dirname "$0")
 
 	# Use the return code from `$ENGINE inspect` to determine if the container
 	# image needs to be created.
 	if ! $ENGINE inspect dbt2-base > /dev/null; then
-		${TOPDIR}/prepare-image || exit 1
+		"${TOPDIR}/prepare-image" || exit 1
 	fi
 
 	TOPDIR="${TOPDIR}/.."
 	$ENGINE build -t "dbt2-database-${DBMS}-${WAREHOUSES}w" \
-			--build-arg warehouses=$WAREHOUSES \
+			--build-arg warehouses="$WAREHOUSES" \
 			--shm-size=128m \
 			-f Containerfile.database \
 			"$TOPDIR"
@@ -95,7 +95,7 @@ create_yugabyte()
 		echo "ERROR: directory already exists ${DATADIR}"
 		exit 1
 	fi
-	mkdir -p $DATADIR
+	mkdir -p "$DATADIR"
 	eval "$ENGINE" run \
 			"$ENGINEARGS" \
 			-d \
@@ -128,15 +128,15 @@ create_yugabyte()
 # Use the specified engine from the environment, or try podman then docker.
 if [ "$ENGINE" = "" ]; then
 	ENGINE="podman"
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		ENGINE="docker"
-		if ! which $ENGINE > /dev/null 2>&1; then
+		if ! which "$ENGINE" > /dev/null 2>&1; then
 			echo "podman nor docker in path"
 			exit 1
 		fi
 	fi
 else
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		echo "specified engine $ENGINE not in path"
 		exit 1
 	fi

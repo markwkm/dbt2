@@ -136,14 +136,14 @@ while [ "${#}" -gt 0 ] ; do
 		export ROWS_PER_COMMIT="${1}"
 		;;
 	(--rows-per-commit=?*)
-		export ROWS_PER_COMMIT=${1#*--rows-per-commit=}
+		export ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(--tablespaces)
 		shift
 		export DBT2TSDIR="${1}"
 		;;
 	(--tablespaces=?*)
-		export DBT2TSDIR=${1#*--tablespaces=}
+		export DBT2TSDIR="${1#*--tablespaces=}"
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") v@PROJECT_VERSION@"

@@ -7,7 +7,7 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
 	echo "DBT2DBNAME not defined."
 	exit 1
 fi
@@ -96,7 +96,7 @@ load_table() {
 	T=$(( (WAREHOUSES + RATE - 1) / RATE ))
 	P=$(seq 1 ${T})
 	for i in ${P}; do
-		run_datagen $T $i $TABLE $WAREHOUSES $SEED
+		run_datagen "$T" "$i" "$TABLE" "$WAREHOUSES" "$SEED"
 	done
 }
 
@@ -121,5 +121,5 @@ echo "loading $RATE warehouses at a time"
 # Load one table at a time, but each table load will be parallelized.
 for TABLE in item warehouse stock district customer history orders new_order;
 do
-	load_table $TABLE $WAREHOUSES $SEED
+	load_table "$TABLE" "$WAREHOUSES" "$SEED"
 done

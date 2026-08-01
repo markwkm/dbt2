@@ -13,10 +13,10 @@ fi
 
 usage()
 {
-	echo "usage: $(basename $0) dbt2-base"
-	echo "usage: $(basename $0) dbt2-client <dbms>"
-	echo "usage: $(basename $0) dbt2-database <dbms> <warehouses>"
-	echo "usage: $(basename $0) dbt2-driver"
+	echo "usage: $(basename "$0") dbt2-base"
+	echo "usage: $(basename "$0") dbt2-client <dbms>"
+	echo "usage: $(basename "$0") dbt2-database <dbms> <warehouses>"
+	echo "usage: $(basename "$0") dbt2-driver"
 }
 
 DBMS=""
@@ -58,4 +58,4 @@ if [ $# -eq 3 ]; then
 	CONTAINER_TAG="${DBT2_TAG}-${DBMS}-${SF}w"
 fi
 
-$ENGINE run --rm -i -t ${CONTAINER_TAG} /bin/bash
+$ENGINE run --rm -i -t "${CONTAINER_TAG}" /bin/bash

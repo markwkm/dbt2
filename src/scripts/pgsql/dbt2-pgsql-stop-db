@@ -6,18 +6,18 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ -z ${DBT2PGDATA} ]; then
+if [ -z "${DBT2PGDATA}" ]; then
 	echo "DBT2PGDATA not defined."
 	exit 1
 fi
 
-if [ ! -d $DBT2PGDATA ]; then
+if [ ! -d "${DBT2PGDATA}" ]; then
 	echo "Postgres instance does not exist at $DBT2PGDATA, run dbt2-build-db"
 	exit 1
 fi
 
 # We only need to stop the database if it's running.
 if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
-	killall ${PG_AUTOVACUUM} > /dev/null 2>&1
-	pg_ctl -D ${DBT2PGDATA} -w stop ${1}
+	# shellcheck disable=SC2086 # optional extra pg_ctl stop arguments
+	pg_ctl -D "${DBT2PGDATA}" -w stop ${1}
 fi

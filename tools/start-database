@@ -5,15 +5,15 @@
 # Use the specified engine from the environment, or try podman then docker.
 if [ "$ENGINE" = "" ]; then
 	ENGINE="podman"
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		ENGINE="docker"
-		if ! which $ENGINE > /dev/null 2>&1; then
+		if ! which "$ENGINE" > /dev/null 2>&1; then
 			echo "podman nor docker in path"
 			exit 1
 		fi
 	fi
 else
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		echo "specified engine $ENGINE not in path"
 		exit 1
 	fi
@@ -50,6 +50,7 @@ fi
 
 if [ "$DBMS" = "pgsql" ]; then
 	PGDATA="/opt/pgdata"
+	# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
 	$ENGINE run \
 			$ENGINEARGS \
 			-d \

@@ -10,15 +10,15 @@ usage()
 # Use the specified engine from the environment, or try podman then docker.
 if [ "$ENGINE" = "" ]; then
 	ENGINE="podman"
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		ENGINE="docker"
-		if ! which $ENGINE > /dev/null 2>&1; then
+		if ! which "$ENGINE" > /dev/null 2>&1; then
 			echo "podman nor docker in path"
 			exit 1
 		fi
 	fi
 else
-	if ! which $ENGINE > /dev/null 2>&1; then
+	if ! which "$ENGINE" > /dev/null 2>&1; then
 		echo "specified engine $ENGINE not in path"
 		exit 1
 	fi
@@ -81,6 +81,7 @@ if [ ! "$VERSION" = "2" ]; then
 fi
 
 NO_THINK_TIME="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
+# shellcheck disable=SC2086 # ENGINEARGS is intentionally word split
 if ! $ENGINE run \
 		$ENGINEARGS \
 		--rm \

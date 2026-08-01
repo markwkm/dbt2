@@ -944,7 +944,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 	if [ "$DRIVER3" = "1" ]; then
 		DRIVER_RAMPUP_TIME=$(( ($(nproc) * FPP) - 1 ))
 		if [ ! "$TERMINALS_LIMIT" = "" ] &&
-				[ $TERMINALS_LIMIT -lt $DRIVER_RAMPUP_TIME ]; then
+				[ "$TERMINALS_LIMIT" -lt "$DRIVER_RAMPUP_TIME" ]; then
 			DRIVER_RAMPUP_TIME="${TERMINALS_LIMIT}"
 		fi
 	fi
@@ -1278,7 +1278,7 @@ for SYSTEM in ${DBLIST}; do
 done
 
 printf "Waiting for driver(s) to ramp up, "
-do_sleep $DRIVER_RAMPUP_TIME
+do_sleep "$DRIVER_RAMPUP_TIME"
 echo
 
 if [ "${PROFILE}" -eq 1 ]; then

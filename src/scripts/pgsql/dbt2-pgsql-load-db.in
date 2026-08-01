@@ -7,7 +7,7 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
 	echo "DBT2DBNAME not defined."
 	exit 1
 fi
@@ -139,7 +139,7 @@ load_table() {
 
 	$PSQL -c "ALTER TABLE $TABLE SET (autovacuum_enabled = false, toast.autovacuum_enabled = false);"
 	for i in $P; do
-		run_datagen $T $i $TABLE $WAREHOUSES $SEED &
+		run_datagen "$T" "$i" "$TABLE" "$WAREHOUSES" "$SEED" &
 	done
 	wait
 	$PSQL -c "ALTER TABLE $TABLE SET (autovacuum_enabled = true, toast.autovacuum_enabled = true);"
@@ -164,7 +164,7 @@ run_datagen()
 # Load one table at a time, but each table load will be parallelized.
 for TABLE in item warehouse stock district customer history orders new_order;
 do
-	load_table $TABLE $WAREHOUSES $SEED
+	load_table "$TABLE" "$WAREHOUSES" "$SEED"
 done
 
 ROWCOUNT="$(eval "${PSQL} -At" <<- EOF

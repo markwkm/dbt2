@@ -7,12 +7,12 @@
 #
 
 # Double check we have a value for DBT2PGDATA
-if [ -z ${DBT2PGDATA} ]; then
+if [ -z "${DBT2PGDATA}" ]; then
 	echo "DBT2PGDATA not defined."
 	exit 1
 fi
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
 	echo "DBT2DBNAME not defined."
 	exit 1
 fi

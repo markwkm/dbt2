@@ -6,7 +6,7 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ -z ${DBT2DBNAME} ]; then
+if [ -z "${DBT2DBNAME}" ]; then
     echo "DBT2DBNAME not defined."
     exit 1
 fi
@@ -51,15 +51,15 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	# 'lost+found' directory if a device was mounted at
 	# '${DBT2TSDIR}/warehouse'.
 	#
-	mkdir -p ${TS_WAREHOUSE_DIR} || exit 1
-	mkdir -p ${TS_DISTRICT_DIR} || exit 1
-	mkdir -p ${TS_CUSTOMER_DIR} || exit 1
-	mkdir -p ${TS_HISTORY_DIR} || exit 1
-	mkdir -p ${TS_NEW_ORDER_DIR} || exit 1
-	mkdir -p ${TS_ORDERS_DIR} || exit 1
-	mkdir -p ${TS_ORDER_LINE_DIR} || exit 1
-	mkdir -p ${TS_ITEM_DIR} || exit 1
-	mkdir -p ${TS_STOCK_DIR} || exit 1
+	mkdir -p "${TS_WAREHOUSE_DIR}" || exit 1
+	mkdir -p "${TS_DISTRICT_DIR}" || exit 1
+	mkdir -p "${TS_CUSTOMER_DIR}" || exit 1
+	mkdir -p "${TS_HISTORY_DIR}" || exit 1
+	mkdir -p "${TS_NEW_ORDER_DIR}" || exit 1
+	mkdir -p "${TS_ORDERS_DIR}" || exit 1
+	mkdir -p "${TS_ORDER_LINE_DIR}" || exit 1
+	mkdir -p "${TS_ITEM_DIR}" || exit 1
+	mkdir -p "${TS_STOCK_DIR}" || exit 1
 
 	TS_WAREHOUSE="TABLESPACE dbt2_warehouse"
 	TS_DISTRICT="TABLESPACE dbt2_district"
