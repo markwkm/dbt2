@@ -5,7 +5,6 @@
  * Copyright The DBT-2 Authors
  */
 
-#include <catalog/pg_type_d.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -23,7 +22,7 @@
 	"SET d_next_o_id = d_next_o_id + 1\n"                                      \
 	"WHERE d_w_id = $1\n"                                                      \
 	"  AND d_id = $2\n"                                                        \
-	"RETURNING d_tax, d_next_o_id"
+	"RETURNING d_tax, d_next_o_id - 1"
 
 #define NEW_ORDER_3                                                            \
 	"SELECT c_discount, c_last, c_credit\n"                                    \
@@ -47,16 +46,19 @@
 	"WHERE i_id = $1"
 
 #define NEW_ORDER_7                                                            \
-	"SELECT s_quantity, $1, s_data\n"                                          \
+	"SELECT s_quantity, %s, s_data\n"                                          \
 	"FROM stock\n"                                                             \
-	"WHERE s_i_id = $2\n"                                                      \
-	"  AND s_w_id = $3"
+	"WHERE s_i_id = $1\n"                                                      \
+	"  AND s_w_id = $2"
 
 #define NEW_ORDER_8                                                            \
 	"UPDATE stock\n"                                                           \
-	"SET s_quantity = s_quantity - $1\n"                                       \
-	"WHERE s_i_id = $2\n"                                                      \
-	"  AND s_w_id = $3"
+	"SET s_quantity = s_quantity - $1,\n"                                      \
+	"    s_ytd = s_ytd + $2,\n"                                                \
+	"    s_order_cnt = s_order_cnt + 1,\n"                                     \
+	"    s_remote_cnt = s_remote_cnt + $3\n"                                   \
+	"WHERE s_i_id = $4\n"                                                      \
+	"  AND s_w_id = $5"
 
 #define NEW_ORDER_9                                                            \
 	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n"          \
@@ -68,7 +70,7 @@ int execute_new_order_cockroach(
 		struct db_context_t *dbc, struct new_order_t *data) {
 	PGresult *res;
 	const char *paramValues[9];
-	const Oid paramTypes[3] = {TEXTOID, INT4OID, INT4OID};
+	char query[512];
 
 	char c_id[C_ID_LEN + 1];
 	char d_id[D_ID_LEN + 1];
@@ -84,6 +86,8 @@ int execute_new_order_cockroach(
 	char ol_number[O_OL_CNT_LEN + 1];
 	char ol_supply_w_id[W_ID_LEN + 1];
 	char qty[OL_QUANTITY_LEN + 1];
+	char decr_qty[OL_QUANTITY_LEN + 1];
+	char remote_cnt[2];
 	char my_s_dist[S_DIST_LEN + 1];
 
 	int i;
@@ -142,8 +146,8 @@ int execute_new_order_cockroach(
 		LOG_ERROR_MESSAGE(
 				"NO2 %s\n"
 				"NO2 d_w_id = %s\n"
-				"NO2 d_id = %s\n" NEW_ORDER_2,
-				w_id, d_id);
+				"NO2 d_id = %s",
+				NEW_ORDER_2, w_id, d_id);
 		PQclear(res);
 		return ERROR;
 	}
@@ -200,6 +204,7 @@ int execute_new_order_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
+	PQclear(res);
 
 	paramValues[0] = d_next_o_id;
 	paramValues[1] = d_id;
@@ -215,6 +220,7 @@ int execute_new_order_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
+	PQclear(res);
 
 	for (i = 0; i < data->o_ol_cnt; i++) {
 		snprintf(ol_i_id, I_ID_LEN, "%d", data->order_line[i].ol_i_id);
@@ -236,8 +242,8 @@ int execute_new_order_cockroach(
 			PQclear(res);
 			return ERROR;
 		}
-		fol_amount += atof(PQgetvalue(res, 0, 0)) *
-					  (float) data->order_line[i].ol_quantity;
+		fol_amount = atof(PQgetvalue(res, 0, 0)) *
+					 (float) data->order_line[i].ol_quantity;
 		snprintf(ol_amount, I_PRICE_LEN, "%f", fol_amount);
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
@@ -251,12 +257,12 @@ int execute_new_order_cockroach(
 #endif /* DEBUG */
 		PQclear(res);
 
-		paramValues[0] = s_dist[data->d_id - 1];
-		paramValues[1] = ol_i_id;
-		paramValues[2] = w_id;
+		snprintf(query, sizeof(query), NEW_ORDER_7, s_dist[data->d_id - 1]);
+		paramValues[0] = ol_i_id;
+		paramValues[1] = w_id;
 		res = PQexecParams(
-				dbc->library.libpq.conn, NEW_ORDER_7, 3, paramTypes,
-				paramValues, NULL, NULL, 0);
+				dbc->library.libpq.conn, query, 2, NULL, paramValues, NULL,
+				NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
@@ -265,15 +271,13 @@ int execute_new_order_cockroach(
 		if (PQntuples(res) == 0) {
 			LOG_ERROR_MESSAGE(
 					"NO7 %s\n"
-					"NO7 [%d] s_dist = %s"
 					"NO7 [%d] ol_i_id = %s"
 					"NO7 [%d] w_id = %s",
-					NEW_ORDER_7, i, s_dist[data->d_id - 1], i, ol_i_id, i,
-					w_id);
+					query, i, ol_i_id, i, w_id);
 			PQclear(res);
 			return ERROR;
 		}
-		if (atoi(PQgetvalue(res, 0, 0)) >
+		if (atoi(PQgetvalue(res, 0, 0)) >=
 			(data->order_line[i].ol_quantity + 10)) {
 			decr_quantity = data->order_line[i].ol_quantity;
 		} else {
@@ -292,12 +296,18 @@ int execute_new_order_cockroach(
 #endif /* DEBUG */
 		PQclear(res);
 
-		snprintf(qty, OL_QUANTITY_LEN, "%d", decr_quantity);
-		paramValues[0] = qty;
-		paramValues[1] = ol_i_id;
-		paramValues[2] = w_id;
+		snprintf(decr_qty, OL_QUANTITY_LEN, "%d", decr_quantity);
+		snprintf(qty, OL_QUANTITY_LEN, "%d", data->order_line[i].ol_quantity);
+		snprintf(
+				remote_cnt, sizeof(remote_cnt), "%d",
+				data->order_line[i].ol_supply_w_id != data->w_id);
+		paramValues[0] = decr_qty;
+		paramValues[1] = qty;
+		paramValues[2] = remote_cnt;
+		paramValues[3] = ol_i_id;
+		paramValues[4] = w_id;
 		res = PQexecParams(
-				dbc->library.libpq.conn, NEW_ORDER_8, 3, NULL, paramValues,
+				dbc->library.libpq.conn, NEW_ORDER_8, 5, NULL, paramValues,
 				NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
@@ -306,7 +316,7 @@ int execute_new_order_cockroach(
 					"NO8 [%d] decr_quantity = %s\n"
 					"NO8 [%d] ol_i_id = %s\n"
 					"NO8 [%d] w_id = %s",
-					NEW_ORDER_8, i, qty, i, ol_i_id, i, w_id);
+					NEW_ORDER_8, i, decr_qty, i, ol_i_id, i, w_id);
 			PQclear(res);
 			return ERROR;
 		}
@@ -323,7 +333,6 @@ int execute_new_order_cockroach(
 		PQclear(res);
 
 		snprintf(ol_number, O_OL_CNT_LEN, "%d", i + 1);
-		snprintf(qty, OL_QUANTITY_LEN, "%d", data->order_line[i].ol_quantity);
 		snprintf(
 				ol_supply_w_id, W_ID_LEN, "%d",
 				data->order_line[i].ol_supply_w_id);
@@ -342,17 +351,18 @@ int execute_new_order_cockroach(
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			LOG_ERROR_MESSAGE(
-					"NO8[%d][%d] d_next_o_id %s\n"
+					"NO9[%d] d_next_o_id %s\n"
 					"NO9[%d] d_id %s\n"
 					"NO9[%d] w_id %s\n"
 					"NO9[%d] ol_number %s\n"
 					"NO9[%d] ol_i_id %s\n"
 					"NO9[%d] ol_supply_w_id %s\n"
 					"NO9[%d] qty %s\n"
+					"NO9[%d] ol_amount %s\n"
 					"NO9[%d] s_dist %s",
 					i, paramValues[0], i, paramValues[1], i, paramValues[2], i,
 					paramValues[3], i, paramValues[4], i, paramValues[5], i,
-					paramValues[6], i, paramValues[7]);
+					paramValues[6], i, paramValues[7], i, paramValues[8]);
 			PQclear(res);
 			return ERROR;
 		}
