@@ -255,7 +255,8 @@ RUN mkdir -p /usr/local/share/licenses/toml-cli-${TOMLCLIVER} && \
          https://github.com/gnprice/toml-cli/raw/v${TOMLCLIVER}/LICENSE
 
 WORKDIR /usr/local
-RUN curl -SsOL \
-         https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-${ARCH}.AppImage && \
+ARG APPIMAGETOOLVER="1.9.1"
+RUN curl -fSsOL \
+         https://github.com/AppImage/appimagetool/releases/download/${APPIMAGETOOLVER}/appimagetool-${ARCH}.AppImage && \
     chmod +x appimagetool-${ARCH}.AppImage && \
     ./appimagetool-${ARCH}.AppImage --appimage-extract
