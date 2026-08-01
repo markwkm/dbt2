@@ -12,6 +12,9 @@ while getopts "o:" opt; do
 		OUTPUT_DIR=${OPTARG}
 		mkdir -p $OUTPUT_DIR
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 

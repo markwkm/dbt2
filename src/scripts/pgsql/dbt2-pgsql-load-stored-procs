@@ -43,6 +43,9 @@ while getopts "i:l:t:" OPT; do
 	t)
 		TYPE=${OPTARG}
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 

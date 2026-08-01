@@ -29,6 +29,9 @@ while getopts "l:t" OPT; do
 	t)
 		USE_TABLESPACES=1
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 

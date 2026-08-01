@@ -258,6 +258,9 @@ while getopts "hi:" opt; do
 		MIXLOG="${INDIR}/mix.log"
 		OUTDIR="$INDIR"
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 

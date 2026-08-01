@@ -29,6 +29,9 @@ while getopts "fo:p:" OPT; do
 	p)
 		PARAMETERS=${OPTARG}
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 

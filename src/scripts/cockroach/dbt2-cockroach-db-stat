@@ -23,6 +23,9 @@ while getopts "D:l:i:o:s:" opt; do
 	s)
 		SAMPLE_LENGTH=$OPTARG
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 

@@ -17,6 +17,9 @@ while getopts "l:" OPT; do
 	l)
 		PORT=${OPTARG}
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 
