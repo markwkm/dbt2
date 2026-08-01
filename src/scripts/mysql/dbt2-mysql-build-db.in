@@ -7,7 +7,7 @@
 # Copyright The DBT-2 Authors
 #
 
-HOSTNAME=`hostname`
+HOSTNAME=$(hostname)
 
 usage() {
 	cat << EOF
@@ -98,6 +98,8 @@ done
 create_tables()
 {
 
+# shellcheck disable=SC2034 # the table definitions are used through
+# eval indirection
 if [ "$DB_SCHEME" = "OPTIMIZED" ]; then
 
 CUSTOMER="CREATE TABLE customer (
@@ -367,8 +369,6 @@ done
 
 #DEFAULTs
 
-DIR=`dirname ${0}`
-
 LOCAL=""
 VERBOSE=""
 DB_PASSWORD=""
@@ -376,12 +376,13 @@ DB_PATH=""
 DB_NAME="dbt2"
 
 DB_HOST="localhost"
-DB_PATH=${DB_PATH}
 DB_USER="root"
 DB_ENGINE="INNODB"
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
 PRIVILEGED=0
+# shellcheck disable=SC2034 # accepted from the build script for
+# interface compatibility, the data is loaded from flat files
 ROWS_PER_COMMIT=0
 SP_PATH=""
 WAREHOUSES=1
@@ -429,9 +430,11 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--rows-per-commit)
 		shift
+		# shellcheck disable=SC2034 # see initialization above
 		ROWS_PER_COMMIT="${1}"
 		;;
 	(--rows-per-commit=?*)
+		# shellcheck disable=SC2034 # see initialization above
 		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(--socket)
@@ -492,12 +495,13 @@ if [ ! -d "$DB_PATH" ]; then
   exit 1
 fi
 
-if [ "$DB_ENGINE" != "INNODB" -a "$DB_ENGINE" != "MYISAM" -a "$DB_ENGINE" != "BDB" ]; then
+if [ "$DB_ENGINE" != "INNODB" ] && [ "$DB_ENGINE" != "MYISAM" ] && \
+   [ "$DB_ENGINE" != "BDB" ]; then
   usage "$DB_ENGINE. Please specifey correct storage engine [MYISAM|INNODB|BDB]"
   exit 1
 fi
 
-if [ "$DB_SCHEME" != "OPTIMIZED" -a "$DB_SCHEME" != "ORIG" ]; then
+if [ "$DB_SCHEME" != "OPTIMIZED" ] && [ "$DB_SCHEME" != "ORIG" ]; then
   usage "$DB_SCHEME. Please specifey correct database scheme [OPTIMIZED|ORIG]"
   exit 1
 fi
@@ -512,7 +516,7 @@ if [ "${PRIVILEGED}" -eq 1 ]; then
 	fi
 
 	if [ ! -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
-		eval "${DIR}/dbt2 mysql-start-db ${DEFAULTS_FILE_ARG}" || exit 1
+		eval "dbt2 mysql-start-db ${DEFAULTS_FILE_ARG}" || exit 1
 	fi
 fi
 

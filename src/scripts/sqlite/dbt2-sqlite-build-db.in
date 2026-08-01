@@ -76,6 +76,8 @@ done
 create_tables()
 {
 
+# shellcheck disable=SC2034 # the table definitions are used through
+# eval indirection
 if [ "$DB_SCHEME" = "OPTIMIZED" ]; then
 
 CUSTOMER="CREATE TABLE customer (
@@ -355,9 +357,6 @@ done
 
 #DEFAULTs
 
-DIR=`dirname ${0}`
-
-LOCAL=""
 VERBOSE=""
 DB_PATH=""
 DB_NAME=""
@@ -367,6 +366,8 @@ DB_NAME="./dbt2.sqlite"
 DB_PATH=${DBDATA}
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
+# shellcheck disable=SC2034 # accepted from the build script for
+# interface compatibility, the data is loaded from flat files
 ROWS_PER_COMMIT=0
 WAREHOUSES=1
 
@@ -389,9 +390,11 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--rows-per-commit)
 		shift
+		# shellcheck disable=SC2034 # see initialization above
 		ROWS_PER_COMMIT="${1}"
 		;;
 	(--rows-per-commit=?*)
+		# shellcheck disable=SC2034 # see initialization above
 		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(-v)
@@ -423,14 +426,14 @@ if [ "$DB_PATH" = "" ]; then
   exit 1
 fi
 
-mkdir -p $DB_PATH
+mkdir -p "$DB_PATH"
 if [ ! -d "$DB_PATH" ]; then
   usage "Directory '$DB_PATH' not exists. Please specify
        correct path to data files using -f <absolute path>"
   exit 1
 fi
 
-if [ "$DB_SCHEME" != "OPTIMIZED" -a "$DB_SCHEME" != "ORIG" ]; then
+if [ "$DB_SCHEME" != "OPTIMIZED" ] && [ "$DB_SCHEME" != "ORIG" ]; then
   usage "$DB_SCHEME. Please specifey correct database scheme [OPTIMIZED|ORIG]"
   exit 1
 fi

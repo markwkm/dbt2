@@ -147,9 +147,9 @@ if [ ! -d "$PATH_SP" ]; then
   exit 1
 fi
 
-MYSQL_VER=`$MYSQL --version | sed -e "s/.* \([0-9]*\).*,.*/\1/"`
+MYSQL_VER=$("$MYSQL" --version | sed -e "s/.* \([0-9]*\).*,.*/\1/")
 
-if [ $MYSQL_VER -lt 5 ]; then
+if [ "$MYSQL_VER" -lt 5 ]; then
   usage "In order to load stored procedures you have to use mysql client binary from MySQL 
        distribution 5.0 or higher. Please specify correct binary using -c #"
   exit 1

@@ -6,20 +6,20 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ "x" = "x${DBT2DATADIR}" ]; then
+if [ "${DBT2DATADIR}" = "" ]; then
 	echo "ERROR: DBT2DATADIR must be set"
 	exit 1
 fi
 
 LOGFILE="dbt2.log"
 OUTDIR="."
-HOSTNAME=`hostname`
+HOSTNAME=$(hostname)
 
-while getopts "fo:p:s:" OPT; do
+while getopts "fo:p:" OPT; do
 	case ${OPT} in
 	f)
 		if [ -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
-			rm ${DBT2DATADIR}/${HOSTNAME}.pid
+			rm "${DBT2DATADIR}/${HOSTNAME}.pid"
 		fi
 		;;
 	o)
@@ -29,6 +29,9 @@ while getopts "fo:p:s:" OPT; do
 		DEFAULTS_FILE=${OPTARG}
 		DEFAULTS_FILE_ARG="--defaults-file=${DEFAULTS_FILE}"
 		;;
+	\?)
+		exit 1
+		;;
 	esac
 done
 
@@ -36,8 +39,9 @@ if [ -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
 	echo "MySQL pid file '${DBT2DATADIR}/${HOSTNAME}.pid' already exists."
 	exit 1
 fi
+# shellcheck disable=SC2086 # DEFAULTS_FILE_ARG is intentionally word split
 nohup mysqld_safe ${DEFAULTS_FILE_ARG} \
-		--log-error=${OUTDIR}/${LOGFILE} > /dev/null 2>&1 &
+		--log-error="${OUTDIR}/${LOGFILE}" > /dev/null 2>&1 &
 sleep 10
 
 exit 0
