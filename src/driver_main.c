@@ -154,6 +154,10 @@ int parse_arguments(int argc, char *argv[]) {
 			printf("invalid flag: %s\n", argv[i]);
 			return ERROR;
 		}
+		if (i + 1 >= argc) {
+			printf("missing value for flag: %s\n", argv[i]);
+			return ERROR;
+		}
 		flag = argv[i] + 1;
 		if (strcmp(flag, "a") == 0) {
 #ifdef DRIVER3
@@ -175,32 +179,44 @@ int parse_arguments(int argc, char *argv[]) {
 #endif /* DRIVER3 */
 		} else if (strcmp(flag, "b") == 0) {
 #ifdef DRIVER3
-			strcpy(dname, argv[i + 1]);
+			snprintf(dname, sizeof(dname), "%s", argv[i + 1]);
 #else
 #endif /* DRIVER3 */
 		} else if (strcmp(flag, "d") == 0) {
 #ifdef DRIVER3
-			strncpy(sname, argv[i + 1], sizeof(sname));
+			snprintf(sname, sizeof(sname), "%s", argv[i + 1]);
 #else
 			set_client_hostname(argv[i + 1]);
 #endif /* DRIVER3 */
 #ifdef DRIVER3
-#ifdef HAVE_LIBPQ
 		} else if (strcmp(flag, "P") == 0) {
-			extern char postmaster_port[32];
-			strcpy(postmaster_port, argv[i + 1]);
+#ifdef HAVE_LIBPQ
+			{
+				extern char postmaster_port[32];
+				snprintf(
+						postmaster_port, sizeof(postmaster_port), "%s",
+						argv[i + 1]);
+			}
 #endif /* HAVE_LIBPQ */
 #ifdef HAVE_MYSQL
-			extern char dbt2_mysql_port[32];
-			strcpy(dbt2_mysql_port, argv[i + 1]);
+			{
+				extern char dbt2_mysql_port[32];
+				snprintf(
+						dbt2_mysql_port, sizeof(dbt2_mysql_port), "%s",
+						argv[i + 1]);
+			}
+#endif /* HAVE_MYSQL */
+#ifdef HAVE_MYSQL
 		} else if (strcmp(flag, "S") == 0) {
 			extern char dbt2_mysql_socket[256];
-			strncpy(dbt2_mysql_socket, argv[i + 1], sizeof(dbt2_mysql_socket));
+			snprintf(
+					dbt2_mysql_socket, sizeof(dbt2_mysql_socket), "%s",
+					argv[i + 1]);
 #endif /* HAVE_MYSQL */
 #if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
 		} else if (strcmp(flag, "u") == 0) {
 			extern char dbt2_user[128];
-			strncpy(dbt2_user, argv[i + 1], sizeof(dbt2_user));
+			snprintf(dbt2_user, sizeof(dbt2_user), "%s", argv[i + 1]);
 #endif /* defined(HAVE_MYSQL) || defined(HAVE_ODBC) */
 #endif /* DRIVER3 */
 		} else if (strcmp(flag, "p") == 0) {
