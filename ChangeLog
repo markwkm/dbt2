@@ -7,6 +7,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix CPack description and license file settings to use absolute paths
 - Disable in-source builds
 - Rename Makefile.cmake to Makefile
+- appimage: fix AppStream metadata to match the component identifier and
+  desktop file naming
 
 v0.61.7 (2025-07-01)
 
