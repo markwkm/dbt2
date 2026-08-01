@@ -59,6 +59,9 @@ vX.Y.Z (YYYY-MM-DD)
 - nonsp: delivery credits the customer with the sum of ol_amount instead of
   ol_amount * ol_quantity and processes the oldest undelivered order instead of
   an arbitrary one, per TPC-C Clause 2.7.4
+- driver: new order order line counts are generated within [5 .. 15] and
+  payment amounts within [1.00 .. 5000.00], per TPC-C Clauses 2.4.1.3 and
+  2.5.1.3
 - driver: remote warehouse selection draws uniformly from the warehouses other
   than the home warehouse instead of wrapping to an invalid or home warehouse,
   per TPC-C Clause 2.5.1.2

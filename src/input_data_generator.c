@@ -42,6 +42,7 @@ int generate_input_data(pcg64f_random_t *rng, int type, void *data, int w_id) {
 		break;
 	case INTEGRITY:
 		generate_integrity_data(w_id, (struct integrity_t *) data);
+		break;
 	default:
 		return ERROR;
 	}
@@ -74,7 +75,7 @@ int generate_new_order_data(
 	data->w_id = w_id;
 	data->d_id = get_random(rng, D_ID_MAX) + 1;
 	data->c_id = get_nurand(rng, 1023, 1, 3000);
-	data->o_ol_cnt = (int) get_random(rng, 10) + 6;
+	data->o_ol_cnt = (int) get_random(rng, 11) + 5;
 	for (i = 0; i < data->o_ol_cnt; i++) {
 		data->order_line[i].ol_i_id = get_nurand(rng, 8191, 1, 100000);
 		if (table_cardinality.warehouses > 1) {
@@ -159,7 +160,7 @@ int generate_payment_data(
 			data->c_w_id = 1;
 		}
 	}
-	data->h_amount = (double) (get_random(rng, 500000) + 101) / 100.0;
+	data->h_amount = (double) (get_random(rng, 499901) + 100) / 100.0;
 
 	return OK;
 }
