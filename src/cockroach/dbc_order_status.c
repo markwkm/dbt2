@@ -95,7 +95,7 @@ int execute_order_status_cockroach(
 			PQclear(res);
 			return ERROR;
 		}
-		strncpy(c_id, PQgetvalue(res, 0, 0), C_ID_LEN);
+		strncpy(c_id, PQgetvalue(res, (PQntuples(res) - 1) / 2, 0), C_ID_LEN);
 #ifdef DEBUG
 		for (i = 0; i < PQntuples(res); i++) {
 			LOG_ERROR_MESSAGE("OS1[%d] c_id %s", i, PQgetvalue(res, i, 0));
@@ -156,7 +156,7 @@ int execute_order_status_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
-	strncpy(o_id, PQgetvalue(res, 0, 0), C_ID_LEN);
+	strncpy(o_id, PQgetvalue(res, 0, 0), O_ID_LEN);
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -170,6 +170,7 @@ int execute_order_status_cockroach(
 #endif /* DEBUG */
 	PQclear(res);
 
+	paramValues[2] = o_id;
 	res = PQexecParams(
 			dbc->library.libpq.conn, ORDER_STATUS_4, 3, NULL, paramValues, NULL,
 			NULL, 0);
