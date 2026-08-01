@@ -166,9 +166,10 @@ void gen_customers() {
 
 	if (part > 1) {
 		pcg64f_advance_r(
-				&rng, (part - 1) * (warehouses / partitions) *
-							  DISTRICT_CARDINALITY *
-							  (customers * 10 + 2 * (customers - 1000)));
+				&rng, (pcg128_t) start * DISTRICT_CARDINALITY *
+							  (customers * 10 +
+							   (customers > 1000 ? 2 * (customers - 1000)
+												 : 0)));
 	}
 
 	for (i = start; i < end; i++) {
@@ -426,9 +427,7 @@ void gen_districts() {
 	}
 
 	if (part > 1) {
-		pcg64f_advance_r(
-				&rng, (part - 1) * (warehouses / partitions) *
-							  DISTRICT_CARDINALITY * 7);
+		pcg64f_advance_r(&rng, (pcg128_t) start * DISTRICT_CARDINALITY * 7);
 	}
 
 	for (i = start; i < end; i++) {
@@ -628,8 +627,7 @@ void gen_history() {
 
 	if (part > 1) {
 		pcg64f_advance_r(
-				&rng, (part - 1) * (warehouses / partitions) *
-							  DISTRICT_CARDINALITY * customers);
+				&rng, (pcg128_t) start * DISTRICT_CARDINALITY * customers);
 	}
 
 	for (i = start; i < end; i++) {
@@ -812,8 +810,7 @@ void gen_items() {
 	}
 
 	if (part > 1) {
-		pcg64f_advance_r(
-				&rng, round((double) (part - 1) * partition_size * 5.0));
+		pcg64f_advance_r(&rng, (pcg128_t) start * 5);
 	}
 
 	for (i = start; i < end; i++) {
@@ -1202,9 +1199,9 @@ void gen_orders() {
 
 	if (part > 1) {
 		pcg64f_advance_r(
-				&rng, (part - 1) * (warehouses / partitions) *
-							  DISTRICT_CARDINALITY *
-							  ((customers - 1) + 2101 + orders));
+				&rng, (pcg128_t) start * DISTRICT_CARDINALITY *
+							  ((customers - 1) +
+							   (orders < 2101 ? orders : 2101) + orders));
 	}
 
 	for (i = start; i < end; i++) {
@@ -1558,8 +1555,7 @@ void gen_stock() {
 	}
 
 	if (part > 1) {
-		pcg64f_advance_r(
-				&rng, (part - 1) * (warehouses / partitions) * items * 13);
+		pcg64f_advance_r(&rng, (pcg128_t) start * items * 13);
 	}
 
 	for (i = start; i < end; i++) {
@@ -1801,7 +1797,7 @@ void gen_warehouses() {
 	}
 
 	if (part > 1) {
-		pcg64f_advance_r(&rng, (part - 1) * (warehouses / partitions) * 7);
+		pcg64f_advance_r(&rng, (pcg128_t) start * 7);
 	}
 
 	for (i = start; i < end; i++) {
