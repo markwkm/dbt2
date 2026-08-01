@@ -114,7 +114,7 @@ make_list()
 		# Create additional HTML pages for the database charts.
 
 		if which dbt-pgsql-generate-db-report > /dev/null 2>&1; then
-			dbt-pgsql-generate-db-report -t "Database Test 2" -d dbt2 \
+			dbt-pgsql-generate-db-report -t "Database Test 2" -d "${DBNAME}" \
 					-i "${INDIR}/db/${SNAME}/dbstat"
 		fi
 		if which dbt-pgsql-generate-table-report > /dev/null 2>&1; then
@@ -136,7 +136,7 @@ $SNAME
 .. list-table::
 
    * - Database Stats Charts
-     - \`dbt2 <db/${SNAME}/dbstat/db/dbt2>\`__
+     - \`${DBNAME} <db/${SNAME}/dbstat/db/${DBNAME}>\`__
    * - Database Table Stats Charts:
      - $(links_tables "$SNAME")
    * - Database Index Stats Charts:
@@ -192,17 +192,22 @@ while getopts "hi:" opt; do
 	esac
 done
 
-# shellcheck disable=SC2044
-for DBDIR in $(find "${INDIR}" -type d -name dbstat); do
-	ts plot-pgsql -d dbt2 -i "${DBDIR}" &
-done
-wait
+if [ "${INDIR}" = "" ] || [ ! -d "${INDIR}" ]; then
+	echo "ERROR: specify a valid results directory with -i"
+	exit 1
+fi
 
 DBNAME=$(grep "Database Name" "${INDIR}/readme.txt" | cut -d " " -f 3)
 if [ "${DBNAME}" = "" ]; then
 	echo "ERROR: Could not determine what the database name used from results"
 	exit 1
 fi
+
+# shellcheck disable=SC2044
+for DBDIR in $(find "${INDIR}" -type d -name dbstat); do
+	ts plot-pgsql -d "${DBNAME}" -i "${DBDIR}" &
+done
+wait
 
 cat << __EOF__
 PostgreSQL Report
