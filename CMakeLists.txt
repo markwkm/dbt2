@@ -122,8 +122,7 @@ add_custom_target(appimage
     COMMAND cp -p ../../LICENSE
             ../AppDir/usr/share/licenses/dbt2-${PROJECT_VERSION}/
     COMMAND mkdir -p ../AppDir/usr/bin ../AppDir/usr/share/metainfo
-    COMMAND cp -p ${APPIMAGE_SOURCE_DIR}/org.osdl.dbt2.appdata.xml
-            ../AppDir/usr/share/metainfo
+    COMMAND cp -p org.osdl.dbt2.appdata.xml ../AppDir/usr/share/metainfo
     COMMAND cp -p ${APPIMAGE_SOURCE_DIR}/dbt2.svg
                   ${APPIMAGE_SOURCE_DIR}/org.osdl.dbt2.desktop AppRun ../AppDir
     COMMAND cp -p `command -v gnuplot`
