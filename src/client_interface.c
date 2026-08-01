@@ -8,6 +8,7 @@
 #include <_socket.h>
 #include <client_interface.h>
 #include <common.h>
+#include <errno.h>
 #include <logging.h>
 
 int connect_to_client(char *addr, int port) {
@@ -25,8 +26,7 @@ int receive_transaction_data(int s, struct client_transaction_t *client_data) {
 	if (length == -1) {
 		LOG_ERROR_MESSAGE("cannot receive interaction data");
 		return ERROR;
-	} else if (length == 0) {
-		LOG_ERROR_MESSAGE("socket closed on _receive");
+	} else if (length == ERR_SOCKET_CLOSED) {
 		return ERROR_SOCKET_CLOSED;
 	} else if (length != sizeof(struct client_transaction_t)) {
 		LOG_ERROR_MESSAGE("did not receive all data");
@@ -42,11 +42,12 @@ int send_transaction_data(int s, struct client_transaction_t *client_data) {
 	length =
 			_send(s, (void *) client_data, sizeof(struct client_transaction_t));
 	if (length == -1) {
+		if (errno == EPIPE || errno == ECONNRESET) {
+			LOG_ERROR_MESSAGE("socket closed on _send");
+			return ERROR_SOCKET_CLOSED;
+		}
 		LOG_ERROR_MESSAGE("cannot send transaction data");
 		return ERROR;
-	} else if (length == 0) {
-		LOG_ERROR_MESSAGE("socket closed on _send");
-		return ERROR_SOCKET_CLOSED;
 	} else if (length != sizeof(struct client_transaction_t)) {
 		LOG_ERROR_MESSAGE("did not send all data");
 		return ERROR;

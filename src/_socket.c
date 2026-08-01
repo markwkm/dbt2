@@ -54,7 +54,6 @@ int _connect(char *address, unsigned short port) {
 
 	s = getaddrinfo(address, port_str, &hints, &result);
 	if (s != 0) {
-		close(sockfd);
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
 		return -1;
 	}
@@ -106,19 +105,17 @@ int _receive(int s, void *data, int length) {
 }
 
 int _send(int s, void *data, int length) {
-	int sent = 0;
+	int sent;
 	int remaining = length;
-	do {
-		sent = send(s, (void *) data, remaining, 0);
+	while (remaining > 0) {
+		sent = send(s, (void *) data, remaining, MSG_NOSIGNAL);
 		if (sent == -1) {
 			return -1;
-		} else if (sent == 0) {
-			return 0;
 		}
 		data += sent;
 		remaining -= sent;
-	} while (sent != length);
-	return sent;
+	}
+	return length;
 }
 
 int _listen(int port) {
@@ -146,7 +143,7 @@ int _listen(int port) {
 		return ERR_SOCKET_BIND;
 	}
 
-	if (listen(sockfd, 1) < 0) {
+	if (listen(sockfd, SOMAXCONN) < 0) {
 		perror("_listen");
 		return ERR_SOCKET_LISTEN;
 	}

@@ -75,16 +75,9 @@ recv_data_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
 
 	rc = _receive(
 			ri->socket, &client_data, sizeof(struct client_transaction_t));
-	if (rc == ERROR_SOCKET_CLOSED) {
-		LOG_ERROR_MESSAGE(
-				"[%d] socket %d unexpectedly closed", getpid(), ri->socket);
+	if (rc == ERR_SOCKET_CLOSED) {
 		ev_io_stop(loop, watcher);
-		return;
-	} else if (rc == 0) {
-		LOG_ERROR_MESSAGE(
-				"[%d] socket %d unexpectedly received 0 data", getpid(),
-				ri->socket);
-		ev_io_stop(loop, watcher);
+		close(ri->socket);
 		return;
 	} else if (rc == -1) {
 		LOG_ERROR_MESSAGE(
