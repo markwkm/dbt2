@@ -12,6 +12,8 @@ vX.Y.Z (YYYY-MM-DD)
 - appimage: fix AppRun quoting, empty ARGV0 handling, and usage output
 - appimage: move Containerfile.appimage to appimage/Containerfile so all
   AppImage related files are in the appimage/ directory
+- appimage: use archive.debian.org apt repositories in the container image
+  now that debian 10 (buster) is end-of-life
 
 v0.61.7 (2025-07-01)
 

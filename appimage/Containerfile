@@ -6,6 +6,16 @@ FROM debian:10
 
 ARG ARCH
 
+# debian 10 (buster) is end-of-life so its repositories have moved to
+# archive.debian.org, and buster-updates is not archived.  The archived
+# Release files are no longer updated, so their Valid-Until dates must be
+# ignored.
+RUN sed -i -e '/buster-updates/d' \
+        -e 's|deb.debian.org|archive.debian.org|g' \
+        /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' \
+         > /etc/apt/apt.conf.d/99check-valid-until
+
 RUN apt-get -qq -y update && \
     apt-get -qq -y dist-upgrade && \
     apt-get -qq -y install bison \
