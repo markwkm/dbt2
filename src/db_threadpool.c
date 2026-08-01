@@ -132,8 +132,9 @@ void *db_worker(void *data) {
 }
 
 int db_threadpool_init() {
-	struct timespec ts, rem;
+	struct timespec ts, ts0, rem;
 	int i;
+	int *worker_id;
 	extern int errno;
 
 	if (sem_init(&db_worker_count, 0, 0) != 0) {
@@ -149,6 +150,16 @@ int db_threadpool_init() {
 
 	last_txn = (time_t *) malloc(sizeof(time_t) * db_connections);
 
+	/*
+	 * Give each worker its own slot to read its id from; passing the
+	 * address of the loop variable races with the loop advancing it.
+	 */
+	worker_id = (int *) malloc(sizeof(int) * db_connections);
+	if (worker_count == NULL || last_txn == NULL || worker_id == NULL) {
+		LOG_ERROR_MESSAGE("error allocating worker bookkeeping");
+		return ERROR;
+	}
+
 	for (i = 0; i < db_connections; i++) {
 		int ret;
 		pthread_t tid;
@@ -161,10 +172,8 @@ int db_threadpool_init() {
 		 * initializing the array with zeros.
 		 */
 		time(&last_txn[i]);
+		worker_id[i] = i;
 
-		/*
-		 * Is it possible for i to change before db_worker can copy it?
-		 */
 		if (pthread_attr_init(&attr) != 0) {
 			LOG_ERROR_MESSAGE("could not init pthread attr");
 			return ERROR;
@@ -173,7 +182,7 @@ int db_threadpool_init() {
 			LOG_ERROR_MESSAGE("could not set pthread stack size");
 			return ERROR;
 		}
-		ret = pthread_create(&tid, &attr, &db_worker, &i);
+		ret = pthread_create(&tid, &attr, &db_worker, &worker_id[i]);
 		if (ret != 0) {
 			LOG_ERROR_MESSAGE("error creating db thread");
 			if (ret == EAGAIN) {
@@ -188,13 +197,14 @@ int db_threadpool_init() {
 		/*
 		 * Don't let the database connection attempts occur too fast.
 		 */
-		while (nanosleep(&ts, &rem) == -1) {
+		ts0 = ts;
+		while (nanosleep(&ts0, &rem) == -1) {
 			if (errno == EINTR) {
-				memcpy(&ts, &rem, sizeof(struct timespec));
+				memcpy(&ts0, &rem, sizeof(struct timespec));
 			} else {
 				LOG_ERROR_MESSAGE(
-						"sleep time invalid %d s %ls ns", ts.tv_sec,
-						ts.tv_nsec);
+						"sleep time invalid %ld s %ld ns", (long) ts0.tv_sec,
+						(long) ts0.tv_nsec);
 				break;
 			}
 		}
