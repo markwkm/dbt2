@@ -23,7 +23,7 @@ usage()
 # as specified by pg_config.
 if [ ! "${APPDIR}" = "" ]; then
 	SHAREDIR="${APPDIR}/usr/share/postgresql"
-elif ! command -v pg_config > /dev/null; then
+elif command -v pg_config > /dev/null; then
 	SHAREDIR=$(pg_config --sharedir)
 fi
 
