@@ -58,9 +58,11 @@ if [ "$DB_NAME" = "" ]; then
 fi
 
 
-echo "--------------------" >> $OUTPUT_FILE
-echo "Delivery Transaction" >> $OUTPUT_FILE
-echo "--------------------" >> $OUTPUT_FILE
+{
+	echo "--------------------"
+	echo "Delivery Transaction"
+	echo "--------------------"
+} >> $OUTPUT_FILE
 
 SQL="EXPLAIN SELECT no_o_id FROM new_order WHERE no_w_id = 1 AND no_d_id = 1;"
 #echo "$SQL" >> $OUTPUT_FILE
@@ -90,9 +92,11 @@ printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 ##echo "$SQL" >> $OUTPUT_FILE
 #printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 
-echo "---------------------" >> $OUTPUT_FILE
-echo "New-Order Transaction" >> $OUTPUT_FILE
-echo "---------------------" >> $OUTPUT_FILE
+{
+	echo "---------------------"
+	echo "New-Order Transaction"
+	echo "---------------------"
+} >> $OUTPUT_FILE
 
 SQL="EXPLAIN SELECT w_tax FROM warehouse WHERE w_id = 1;"
 #echo "$SQL" >> $OUTPUT_FILE
@@ -134,9 +138,11 @@ printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 ##echo "$SQL" >> $OUTPUT_FILE
 #printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 
-echo "------------------------" >> $OUTPUT_FILE
-echo "Order-Status Transaction" >> $OUTPUT_FILE
-echo "------------------------" >> $OUTPUT_FILE
+{
+	echo "------------------------"
+	echo "Order-Status Transaction"
+	echo "------------------------"
+} >> $OUTPUT_FILE
 
 SQL="EXPLAIN SELECT c_id FROM customer WHERE c_w_id = 1 AND c_d_id = 1 AND c_last = 'BARBARBAR' ORDER BY c_first ASC;"
 #echo "$SQL" >> $OUTPUT_FILE
@@ -154,9 +160,11 @@ SQL="EXPLAIN SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery
 #echo "$SQL" >> $OUTPUT_FILE
 printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 
-echo "-------------------" >> $OUTPUT_FILE
-echo "Payment Transaction" >> $OUTPUT_FILE
-echo "-------------------" >> $OUTPUT_FILE
+{
+	echo "-------------------"
+	echo "Payment Transaction"
+	echo "-------------------"
+} >> $OUTPUT_FILE
 
 SQL="EXPLAIN SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip FROM warehouse WHERE w_id = 1;"
 #echo "$SQL" >> $OUTPUT_FILE
@@ -194,9 +202,11 @@ printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 ##echo "$SQL" >> $OUTPUT_FILE
 #printf ".explain on\n%s\n" "$SQL" | $SQLITE_BIN -batch $DB_NAME >> $OUTPUT_FILE
 
-echo "-----------------------" >> $OUTPUT_FILE
-echo "Stock-Level Transaction" >> $OUTPUT_FILE
-echo "-----------------------" >> $OUTPUT_FILE
+{
+	echo "-----------------------"
+	echo "Stock-Level Transaction"
+	echo "-----------------------"
+} >> $OUTPUT_FILE
 
 SQL="EXPLAIN SELECT d_next_o_id FROM district WHERE d_w_id = 1 AND d_id = 1;"
 #echo "$SQL" >> $OUTPUT_FILE

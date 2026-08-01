@@ -108,9 +108,11 @@ if [ "x${OUTPUT_FILE}" = "x" ]; then
 	exit 1
 fi
 
-echo "--------------------" >> ${OUTPUT_FILE}
-echo "Delivery Transaction" >> ${OUTPUT_FILE}
-echo "--------------------" >> ${OUTPUT_FILE}
+{
+	echo "--------------------"
+	echo "Delivery Transaction"
+	echo "--------------------"
+} >> ${OUTPUT_FILE}
 
 explain "
 SELECT no_o_id FROM new_order WHERE no_w_id = 1 AND no_d_id = 1;
@@ -140,9 +142,11 @@ explain "
 UPDATE customer SET c_delivery_cnt = c_delivery_cnt + 1, c_balance = c_balance + 1 WHERE c_id = 1 AND c_w_id = 1 AND c_d_id = 1;
 "
 
-echo "---------------------" >> ${OUTPUT_FILE}
-echo "New-Order Transaction" >> ${OUTPUT_FILE}
-echo "---------------------" >> ${OUTPUT_FILE}
+{
+	echo "---------------------"
+	echo "New-Order Transaction"
+	echo "---------------------"
+} >> ${OUTPUT_FILE}
 
 explain "
 SELECT w_tax FROM warehouse WHERE w_id = 1;
@@ -184,9 +188,11 @@ explain "
 INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d, ol_quantity, ol_amount, ol_dist_info) VALUES (-1, 1, 1, 1, 1, 1, NULL, 1, 1.0, 'hello kitty');
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Order-Status Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
+{
+	echo "------------------------"
+	echo "Order-Status Transaction"
+	echo "------------------------"
+} >> ${OUTPUT_FILE}
 
 explain "
 SELECT c_id FROM customer WHERE c_w_id = 1 AND c_d_id = 1 AND c_last = 'BARBARBAR' ORDER BY c_first ASC;
@@ -204,9 +210,11 @@ explain "
 SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line WHERE ol_w_id = 1 AND ol_d_id = 1 AND ol_o_id = 1;
 "
 
-echo "-------------------" >> ${OUTPUT_FILE}
-echo "Payment Transaction" >> ${OUTPUT_FILE}
-echo "-------------------" >> ${OUTPUT_FILE}
+{
+	echo "-------------------"
+	echo "Payment Transaction"
+	echo "-------------------"
+} >> ${OUTPUT_FILE}
 
 explain "
 SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip FROM warehouse WHERE w_id = 1;
@@ -245,9 +253,11 @@ explain "
 INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_date, h_amount, h_data) VALUES (1, 1, 1, 1, 1, current_timestamp, 1.0, 'ab    cd');
 "
 
-echo "-----------------------" >> ${OUTPUT_FILE}
-echo "Stock-Level Transaction" >> ${OUTPUT_FILE}
-echo "-----------------------" >> ${OUTPUT_FILE}
+{
+	echo "-----------------------"
+	echo "Stock-Level Transaction"
+	echo "-----------------------"
+} >> ${OUTPUT_FILE}
 
 explain "
 SELECT d_next_o_id FROM district WHERE d_w_id = 1 AND d_id = 1;
