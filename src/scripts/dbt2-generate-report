@@ -15,12 +15,12 @@ usage() {
 }
 
 error() {
-	echo "ERROR: $@"
+	echo "ERROR: $*"
 	exit 1
 }
 
 warning() {
-	echo "WARNING: $@"
+	echo "WARNING: $*"
 }
 
 create_stat_page()

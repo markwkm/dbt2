@@ -23,10 +23,9 @@ fi
 # Covert the list of file names from the comand line into a quoted and comma
 # separated list for R.
 FILENAMES=""
-for FILENAME in $@; do
-	FILENAMES="$FILENAMES \"$FILENAME\""
+for FILENAME in "$@"; do
+	FILENAMES="${FILENAMES}${FILENAMES:+,}\"${FILENAME}\""
 done
-FILENAMES=$(echo $FILENAMES | sed -e "s/ /,/g")
 
 R --slave --no-save << __EOF__
 filenames <- c($FILENAMES)

@@ -34,7 +34,7 @@ EOF
 }
 
 explain() {
-	SQL="EXPLAIN ${@}"
+	SQL="EXPLAIN ${*}"
 	eval "psql ${HOSTNAMEARG} ${PORTARG} -e -d ${DBT2DBNAME} -c \"${SQL}\"" \
 			>> ${OUTPUT_FILE} 2>&1
 }
