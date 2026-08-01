@@ -42,7 +42,7 @@
 	"  AND ol_d_id = $3"
 
 #define DELIVERY_5                                                             \
-	"SELECT SUM(ol_amount * ol_quantity)\n"                                    \
+	"SELECT SUM(ol_amount)\n"                                                  \
 	"FROM order_line\n"                                                        \
 	"WHERE ol_o_id = $1\n"                                                     \
 	"  AND ol_w_id = $2\n"                                                     \
@@ -97,6 +97,11 @@ int execute_delivery_cockroach(
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
+		}
+		if (PQntuples(res) == 0) {
+			/* No pending orders in this district, skip it. */
+			PQclear(res);
+			continue;
 		}
 		strncpy(o_id, PQgetvalue(res, 0, 0), O_ID_LEN);
 #ifdef DEBUG
