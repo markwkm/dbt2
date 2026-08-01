@@ -1219,7 +1219,7 @@ void gen_orders() {
 				current = prev = head;
 
 				/* Find a random place in the list to insert a number. */
-				iter = (int) get_random(&rng, k - 1);
+				iter = (int) get_random(&rng, k);
 				while (iter > 0) {
 					prev = current;
 					if (current != NULL) {
