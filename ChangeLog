@@ -22,6 +22,12 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix bashisms in the POSIX shell scripts
 - Convert the remaining bash scripts to POSIX shell
 - Remove eval from the container tool scripts where it served no purpose
+- yugabyte: parse and forward the documented --rows-per-commit build
+  option and remove references to tablespace settings that were never set
+- cockroach: initialize the rows-per-commit default so every build stops
+  printing an integer expression error
+- pgsql: drop-db no longer requires DBT2PGDATA, and -r rebuilds attempt the
+  drop even without a local data directory
 - pgsql: fix the plans -oFILE spelling assigning the file name to the port
 - cockroach: db-stat passes the database name to pgsql-plans so plan
   collection works without an inherited DBT2DBNAME

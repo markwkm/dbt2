@@ -131,7 +131,7 @@ if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
 	LOADARGS="--rows-per-commit=${ROWS_PER_COMMIT}"
 fi
 
-if [ "$REBUILD_DB" -eq 1 ] && [ -d "${DBT2PGDATA}" ]; then
+if [ "$REBUILD_DB" -eq 1 ]; then
 	if [ $PRIVILEGED -eq 1 ]; then
 		echo "Restarting the database to reset database parameters..."
 		dbt2 pgsql-stop-db
