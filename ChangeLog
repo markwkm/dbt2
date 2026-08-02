@@ -18,6 +18,12 @@ vX.Y.Z (YYYY-MM-DD)
   them on a never-opened cursor, and raises ORA-20001 for an unused
   item so the one percent rollback case rolls back atomically and is
   counted as a rollback, per TPC-C Clause 2.4.2
+- oracle: payment selects the median customer matching a last name
+  instead of an arbitrary one, increases c_ytd_payment by the payment
+  amount instead of one, increments c_payment_cnt, prepends the
+  formatted payment amount to c_data instead of replacing it, and
+  separates w_name and d_name with four spaces in h_data,
+  per TPC-C Clause 2.5.2
 - pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
   and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
   and s_remote_cnt, applies the +91 quantity adjustment only when stock does
