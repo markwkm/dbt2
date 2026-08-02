@@ -178,8 +178,20 @@ int get_think_time(pcg64f_random_t *rng, int mean_think_time) {
 
 int init_common() {
 	int rc = OK;
+	char *locale;
 
-	printf("setting locale: %s\n", setlocale(LC_ALL, "en_US.utf8"));
+	/*
+	 * A UTF-8 locale is required so wcstombs() can convert the
+	 * generated strings; fall back if en_US.utf8 is not installed.
+	 */
+	locale = setlocale(LC_ALL, "en_US.utf8");
+	if (locale == NULL) {
+		locale = setlocale(LC_ALL, "C.utf8");
+	}
+	if (locale == NULL) {
+		locale = setlocale(LC_ALL, "");
+	}
+	printf("setting locale: %s\n", locale);
 
 	/* Initialize struct to have default table cardinalities. */
 	table_cardinality.warehouses = 1;
