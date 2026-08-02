@@ -1,9 +1,27 @@
 #!/bin/sh
 
-oneTimeSetUp() {
-	THISDIR=$(dirname "$0")
-	TOPDIR="${THISDIR}/../.."
+THISDIR=$(dirname "$0")
+TOPDIR="${THISDIR}/../.."
+
+# The location of the datagen binary may be given as the first argument,
+# otherwise assume a debug build exists.
+if [ $# -gt 0 ]; then
+	DATAGEN="$1"
+	shift
+else
 	DATAGEN="${TOPDIR}/build/debug/src/dbt2-datagen"
+fi
+
+if [ ! -x "${DATAGEN}" ]; then
+	echo "ERROR: dbt2-datagen not found: ${DATAGEN}" 1>&2
+	exit 1
+fi
+
+count_lines() {
+	wc -l < "$1" | tr -d "[:space:]"
+}
+
+oneTimeSetUp() {
 	DATAFILE_O="${SHUNIT_TMPDIR}/order.data"
 	DATAFILE_OL="${SHUNIT_TMPDIR}/order_line.data"
 	COLUMNS_O="1,2,3,4,6,7,8"
@@ -14,7 +32,8 @@ testSingleFile() {
 	SCALE_FACTOR=1
 
 	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table orders
-	COUNT=$(wc -l "${DATAFILE_O}" | cut -f 1 -d " ")
+	assertTrue "datagen" $?
+	COUNT=$(count_lines "${DATAFILE_O}")
 	assertEquals "order cardinality" 30000 "$COUNT"
 
 	# order_line rows can vary, can't predict and test number of rows
@@ -27,7 +46,8 @@ testPartitionedFileSplit() {
 
 	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table orders \
 			--seed $SEED
-	COUNT=$(wc -l "${DATAFILE_O}" | cut -f 1 -d " ")
+	assertTrue "datagen" $?
+	COUNT=$(count_lines "${DATAFILE_O}")
 	assertEquals "order cardinality" 300000 "$COUNT"
 
 	# order_line rows can vary, and should be stable when we fix the seed, but
@@ -35,12 +55,14 @@ testPartitionedFileSplit() {
 
 	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table orders \
 			--seed $SEED -P 2 -p 1
-	COUNT=$(wc -l "${DATAFILE_O}.1" | cut -f 1 -d " ")
+	assertTrue "datagen" $?
+	COUNT=$(count_lines "${DATAFILE_O}.1")
 	assertEquals "order top half" 150000 "$COUNT"
 
 	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table orders \
 			--seed $SEED -P 2 -p 2
-	COUNT=$(wc -l "${DATAFILE_O}.2" | cut -f 1 -d " ")
+	assertTrue "datagen" $?
+	COUNT=$(count_lines "${DATAFILE_O}.2")
 	assertEquals "order bottom half" 150000 "$COUNT"
 
 	# Strip out timestamp column that is not stable, changes depending on when
@@ -63,5 +85,10 @@ testPartitionedFileSplit() {
 	assertEquals "order_line match" 0 $?
 }
 
+SHUNIT2=$(command -v shunit2)
+if [ "${SHUNIT2}" = "" ]; then
+	echo "ERROR: shunit2 not found in PATH" 1>&2
+	exit 1
+fi
 # shellcheck source=/dev/null
-. "$(which shunit2)"
+. "${SHUNIT2}"

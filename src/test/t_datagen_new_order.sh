@@ -22,50 +22,42 @@ count_lines() {
 }
 
 oneTimeSetUp() {
-	DATAFILE="${SHUNIT_TMPDIR}/customer.data"
-	COLUMNS="1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21"
+	DATAFILE="${SHUNIT_TMPDIR}/new_order.data"
 }
 
 testSingleFile() {
 	SCALE_FACTOR=1
 
-	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table customer
+	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table new_order
 	assertTrue "datagen" $?
 	COUNT=$(count_lines "${DATAFILE}")
-	assertEquals "cardinality" 30000 "$COUNT"
+	assertEquals "cardinality" 9000 "$COUNT"
 }
 
 testPartitionedFileSplit() {
-	SEED=3
+	SEED=12
 	SCALE_FACTOR=10
 
-	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table customer \
+	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table new_order \
 			--seed $SEED
 	assertTrue "datagen" $?
 	COUNT=$(count_lines "${DATAFILE}")
-	assertEquals "cardinality" 300000 "$COUNT"
+	assertEquals "cardinality" 90000 "$COUNT"
 
-	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table customer \
+	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table new_order \
 			--seed $SEED -P 2 -p 1
 	assertTrue "datagen" $?
 	COUNT=$(count_lines "${DATAFILE}.1")
-	assertEquals "top half" 150000 "$COUNT"
+	assertEquals "top half" 45000 "$COUNT"
 
-	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table customer \
+	$DATAGEN -d "$SHUNIT_TMPDIR" -w $SCALE_FACTOR --table new_order \
 			--seed $SEED -P 2 -p 2
 	assertTrue "datagen" $?
 	COUNT=$(count_lines "${DATAFILE}.2")
-	assertEquals "bottom half" 150000 "$COUNT"
+	assertEquals "bottom half" 45000 "$COUNT"
 
-	# Strip out timestamp column that is not stable, changes depending on when
-	# data is created.
-
-	cut -f "$COLUMNS" "${DATAFILE}" > "${SHUNIT_TMPDIR}/c.orig"
-
-	cut -f "$COLUMNS" "${DATAFILE}.1" > "${SHUNIT_TMPDIR}/c.new"
-	cut -f "$COLUMNS" "${DATAFILE}.2" >> "${SHUNIT_TMPDIR}/c.new"
-
-	diff "${SHUNIT_TMPDIR}/c.orig" "${SHUNIT_TMPDIR}/c.new"
+	cat "${DATAFILE}.1" "${DATAFILE}.2" > "${DATAFILE}.rebuilt"
+	diff "${DATAFILE}" "${DATAFILE}.rebuilt"
 	assertEquals "match" 0 $?
 }
 

@@ -1,9 +1,27 @@
 #!/bin/sh
 
-oneTimeSetUp() {
-	THISDIR=$(dirname "$0")
-	TOPDIR="${THISDIR}/../.."
+THISDIR=$(dirname "$0")
+TOPDIR="${THISDIR}/../.."
+
+# The location of the datagen binary may be given as the first argument,
+# otherwise assume a debug build exists.
+if [ $# -gt 0 ]; then
+	DATAGEN="$1"
+	shift
+else
 	DATAGEN="${TOPDIR}/build/debug/src/dbt2-datagen"
+fi
+
+if [ ! -x "${DATAGEN}" ]; then
+	echo "ERROR: dbt2-datagen not found: ${DATAGEN}" 1>&2
+	exit 1
+fi
+
+count_lines() {
+	wc -l < "$1" | tr -d "[:space:]"
+}
+
+oneTimeSetUp() {
 	SEED=23
 
 	mkdir -p "${SHUNIT_TMPDIR}/1"
@@ -39,7 +57,7 @@ testSingleFileCardinality() {
 	SCALE_FACTOR=1
 	DATAFILE="${SHUNIT_TMPDIR}/1/warehouse.data"
 
-	COUNT=$(wc -l "${DATAFILE}" | cut -f 1 -d " ")
+	COUNT=$(count_lines "${DATAFILE}")
 	assertEquals "cardinality" $SCALE_FACTOR "$COUNT"
 }
 
@@ -47,7 +65,7 @@ testPartitionedFileByLine() {
 	SCALE_FACTOR=10
 	DATAFILE="${SHUNIT_TMPDIR}/${SCALE_FACTOR}/warehouse.data"
 
-	COUNT=$(wc -l "${DATAFILE}" | cut -f 1 -d " ")
+	COUNT=$(count_lines "${DATAFILE}")
 	assertEquals "cardinality" $SCALE_FACTOR "$COUNT"
 
 	diff "${DATAFILE}" "${DATAFILE}.rebuilt"
@@ -58,7 +76,7 @@ testPartitionedFileSplit() {
 	SCALE_FACTOR=100
 	DATAFILE="${SHUNIT_TMPDIR}/${SCALE_FACTOR}/warehouse.data"
 
-	COUNT=$(wc -l "${DATAFILE}" | cut -f 1 -d " ")
+	COUNT=$(count_lines "${DATAFILE}")
 	assertEquals "cardinality" $SCALE_FACTOR "$COUNT"
 
 	cat "${DATAFILE}.1" "${DATAFILE}.2" > "${DATAFILE}.rebuilt"
@@ -66,5 +84,10 @@ testPartitionedFileSplit() {
 	assertEquals "match" 0 $?
 }
 
+SHUNIT2=$(command -v shunit2)
+if [ "${SHUNIT2}" = "" ]; then
+	echo "ERROR: shunit2 not found in PATH" 1>&2
+	exit 1
+fi
 # shellcheck source=/dev/null
-. "$(which shunit2)"
+. "${SHUNIT2}"
