@@ -82,6 +82,12 @@ vX.Y.Z (YYYY-MM-DD)
   more, no longer rounds order line amounts to whole dollars through a bare
   NUMERIC parameter, examines i_data and s_data for the brand or generic
   classification, and computes the order total, per TPC-C Clause 2.4.2
+- mysql: payment selects the median customer matching a last name instead
+  of the first, updates the customer in place under a row lock so no
+  fractional balance or concurrent update is lost, increases c_ytd_payment
+  by the payment amount, increments c_payment_cnt, includes the payment
+  amount in the bad credit c_data information, and separates the history
+  warehouse and district names with four spaces, per TPC-C Clause 2.5.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments

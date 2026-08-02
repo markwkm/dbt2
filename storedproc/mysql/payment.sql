@@ -4,9 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.5.2.
- * July 10, 2002
- *     Not selecting n/2 for customer search by c_last.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.5.2.
  */
 
 drop procedure if exists payment;
@@ -45,9 +43,12 @@ DECLARE  out_c_since VARCHAR(28);
 DECLARE  out_c_credit VARCHAR(2);
 DECLARE  out_c_credit_lim FIXED(24, 12);
 DECLARE  out_c_discount REAL;
-DECLARE  out_c_balance NUMERIC;
+DECLARE  out_c_balance NUMERIC(24, 12);
 DECLARE  out_c_data VARCHAR(500);
-DECLARE  out_c_ytd_payment INTEGER;
+DECLARE  out_c_ytd_payment NUMERIC(24, 12);
+
+DECLARE  tmp_count INTEGER;
+DECLARE  tmp_offset INTEGER;
 
 
 #        /* Goofy temporaty variables. */
@@ -93,13 +94,22 @@ DECLARE  tmp_h_data VARCHAR(30);
 #         * middle, not the first one.
 #         */
         IF in_c_id = 0 THEN
+                SELECT count(*)
+                INTO tmp_count
+                FROM customer
+                WHERE c_w_id = in_c_w_id
+                  AND c_d_id = in_c_d_id
+                  AND c_last = in_c_last;
+
+                SET tmp_offset = (tmp_count - 1) DIV 2;
+
                 SELECT c_id
                 INTO out_c_id
                 FROM customer
                 WHERE c_w_id = in_c_w_id
                   AND c_d_id = in_c_d_id
                   AND c_last = in_c_last
-                ORDER BY c_first ASC limit 1;
+                ORDER BY c_first ASC limit tmp_offset, 1;
         ELSE
                 SET out_c_id = in_c_id;
         END IF;
@@ -115,13 +125,14 @@ DECLARE  tmp_h_data VARCHAR(30);
         FROM customer
         WHERE c_w_id = in_c_w_id
           AND c_d_id = in_c_d_id
-          AND c_id = out_c_id;
+          AND c_id = out_c_id
+        FOR UPDATE;
 
 #        /* Check credit rating. */
         IF out_c_credit = 'BC' THEN
                 SELECT out_c_id
                 INTO tmp_c_id;
-                SELECT in_c_d_id 
+                SELECT in_c_d_id
                 INTO tmp_c_d_id;
                 SELECT in_c_w_id
                 INTO tmp_c_w_id;
@@ -129,26 +140,30 @@ DECLARE  tmp_h_data VARCHAR(30);
                 INTO tmp_d_id;
                 SELECT in_w_id
                 INTO tmp_w_id;
+                SELECT in_h_amount
+                INTO tmp_h_amount;
 
-                SET out_c_data = concat(tmp_c_id,' ',tmp_c_d_id,' ',tmp_c_w_id,' ',tmp_d_id,' ',tmp_w_id);
+                SET out_c_data = concat(tmp_c_id,' ',tmp_c_d_id,' ',tmp_c_w_id,' ',tmp_d_id,' ',tmp_w_id,' ',tmp_h_amount);
 
                 UPDATE customer
-                SET c_balance = out_c_balance - in_h_amount,
-                    c_ytd_payment = out_c_ytd_payment + 1,
+                SET c_balance = c_balance - in_h_amount,
+                    c_ytd_payment = c_ytd_payment + in_h_amount,
+                    c_payment_cnt = c_payment_cnt + 1,
                     c_data = substring(concat(out_c_data, ' ', c_data), 1, 500)
                 WHERE c_id = out_c_id
                   AND c_w_id = in_c_w_id
                   AND c_d_id = in_c_d_id;
         ELSE
                 UPDATE customer
-                SET c_balance = out_c_balance - in_h_amount,
-                    c_ytd_payment = out_c_ytd_payment + 1
+                SET c_balance = c_balance - in_h_amount,
+                    c_ytd_payment = c_ytd_payment + in_h_amount,
+                    c_payment_cnt = c_payment_cnt + 1
                 WHERE c_id = out_c_id
                   AND c_w_id = in_c_w_id
                   AND c_d_id = in_c_d_id;
         END IF;
 
-        SET tmp_h_data = concat(out_w_name,' ', out_d_name);
+        SET tmp_h_data = concat(out_w_name,'    ', out_d_name);
         INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,
                              h_date, h_amount, h_data)
         VALUES (out_c_id, in_c_d_id, in_c_w_id, in_d_id, in_w_id,
