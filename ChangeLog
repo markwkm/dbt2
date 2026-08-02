@@ -24,6 +24,10 @@ vX.Y.Z (YYYY-MM-DD)
   formatted payment amount to c_data instead of replacing it, and
   separates w_name and d_name with four spaces in h_data,
   per TPC-C Clause 2.5.2
+- oracle: order status selects the median customer matching a last
+  name, reads the customer's most recent order instead of an arbitrary
+  one, and retrieves every line of the order instead of the first,
+  per TPC-C Clause 2.6.2
 - pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
   and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
   and s_remote_cnt, applies the +91 quantity adjustment only when stock does
