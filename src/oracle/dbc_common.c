@@ -220,6 +220,14 @@ int ocierror(char *fname, int lineno, OCIError *errhp, sword status) {
 			return (errcode);
 		if (errcode == COLUMN_VALUE_NULL)
 			return (errcode);
+		if (errcode == NO_DATA_FOUND)
+			return (errcode);
+		/*
+		 * The expected New-Order rollback case: the neworder
+		 * procedure raises ORA-20001 for an unused item number.
+		 */
+		if (errcode == ITEM_NOT_VALID)
+			return (errcode);
 		while (lstat != OCI_NO_DATA) {
 			fprintf(stderr, "Module %s Line %d\n", fname, lineno);
 			fprintf(stderr, "Error - %s\n", errbuf);

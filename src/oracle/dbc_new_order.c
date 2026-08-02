@@ -228,6 +228,10 @@ retry:
 					OCI_DEFAULT);
 			retries++;
 			goto retry;
+		} else if (errcode == ITEM_NOT_VALID) {
+			/* The expected New-Order rollback case. */
+			data->rollback = 1;
+			return ERROR;
 		} else {
 			return ERROR;
 		}

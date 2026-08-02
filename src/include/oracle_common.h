@@ -61,6 +61,8 @@
 #define SNAPSHOT_TOO_OLD 1555  /* ORA-01555: snapshot too old */
 #define NOT_SAFE_REPLAY 25408  /* ORA-25408: can not safely replay call */
 #define COLUMN_VALUE_NULL 1405 /* ORA-01405: fetched column value is NULL */
+#define NO_DATA_FOUND 1403	   /* ORA-01403: no data found */
+#define ITEM_NOT_VALID 20001   /* ORA-20001: New-Order rollback case */
 
 /* Per-transaction contexts, defined in the respective src/oracle files. */
 struct deliveryctx;
