@@ -23,7 +23,7 @@
 
 #include "pcg_variants.h"
 
-#if defined(HAVE_ODBC) || defined(ORACLEODBC) || defined(LIBMYSQL)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC) || defined(HAVE_ORACLE)
 #define DB_USER "dbt"
 #define DB_PASS "dbt"
 #endif

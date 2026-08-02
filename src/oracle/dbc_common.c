@@ -1,90 +1,107 @@
 /*
-	This file is released under the terms of the Artistic License.  Please see
- 	the file LICENSE, included in this package, for details.
- 	Copyright (C) 2006 Anurag Vora & Oracle Corporation. All rights reserved.
-*/
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Anurag Vora & Oracle Corporation. All rights reserved.
+ * Copyright The DBT-2 Authors
+ */
 
-#include <pthread.h>
-#include "common.h"
-#include "logging.h"
-#include "oracle_common.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-char oracle_dbname[32] = "dbt2";
-char oracle_host[128] = "localhost";
-char oracle_user[32] = "dbt";
-char oracle_pass[32] = "dbt";
-char oracle_port_t[32] = "0";
-char oracle_socket_t[256] = "/tmp/mysql.sock";
+#include "common.h"
+#include "db.h"
+#include "logging.h"
+#include "oracle_delivery.h"
+#include "oracle_integrity.h"
+#include "oracle_new_order.h"
+#include "oracle_order_status.h"
+#include "oracle_payment.h"
+#include "oracle_stock_level.h"
 
-extern int init_delivery_txn (struct db_context_t *dbc);
-extern int init_integrity_txn (struct db_context_t *dbc);
-extern int init_nord_txn (struct db_context_t *dbc);
-extern int init_order_status_txn (struct db_context_t *dbc);
-extern int init_payment_txn (struct db_context_t *dbc);
-extern int init_stock_level_txn (struct db_context_t *dbc);
-
-int commit_transaction(struct db_context_t *dbc)
-{
-
-	/* This is already handled by each transaction */
+int commit_transaction_oracle(struct db_context_t *dbc) {
+	/* Each transaction commits with OCI_COMMIT_ON_SUCCESS. */
 	return OK;
 }
 
 /* Open a connection to the database. */
-int _connect_to_db(struct db_context_t *dbc)
-{
+int connect_to_db_oracle(struct db_context_t *dbc) {
+	struct db_context_oracle *ora = &dbc->library.oracle;
 	int rc;
-#ifdef DBT2_OCI_THREADED
-	OCIInitialize(OCI_THREADED|OCI_OBJECT,(dvoid *)0,0,0,0);
-#else
-	OCIInitialize(OCI_DEFAULT|OCI_OBJECT,(dvoid *)0,0,0,0);
-#endif
-	OCIEnvInit(&(dbc->oracleenv), OCI_DEFAULT, 0, (dvoid **)0);
 
-	OCIHandleAlloc((dvoid *)(dbc->oracleenv), (dvoid **)&(dbc->oraclesrv), OCI_HTYPE_SERVER, 0 , (dvoid **)0);
-	OCIHandleAlloc((dvoid *)(dbc->oracleenv), (dvoid **)&(dbc->errhp), OCI_HTYPE_ERROR, 0 , (dvoid **)0);
-	OCIHandleAlloc((dvoid *)(dbc->oracleenv), (dvoid **)&(dbc->oraclesvc), OCI_HTYPE_SVCCTX, 0 , (dvoid **)0);
+	OCIInitialize(OCI_THREADED | OCI_OBJECT, (dvoid *) 0, 0, 0, 0);
+	OCIEnvInit(&ora->oracleenv, OCI_DEFAULT, 0, (dvoid **) 0);
 
-	if ((rc=OCIServerAttach((dbc->oraclesrv), (dbc->errhp), (text *)oracle_dbname,strlen(oracle_dbname),OCI_DEFAULT))) {
-		OCIERROR((dbc->errhp),OCIServerAttach((dbc->oraclesrv), (dbc->errhp), (text *)oracle_dbname,strlen(oracle_dbname),OCI_DEFAULT));
+	OCIHandleAlloc(
+			(dvoid *) ora->oracleenv, (dvoid **) &ora->oraclesrv,
+			OCI_HTYPE_SERVER, 0, (dvoid **) 0);
+	OCIHandleAlloc(
+			(dvoid *) ora->oracleenv, (dvoid **) &ora->errhp, OCI_HTYPE_ERROR,
+			0, (dvoid **) 0);
+	OCIHandleAlloc(
+			(dvoid *) ora->oracleenv, (dvoid **) &ora->oraclesvc,
+			OCI_HTYPE_SVCCTX, 0, (dvoid **) 0);
+
+	rc = OCIServerAttach(
+			ora->oraclesrv, ora->errhp, (text *) ora->dbname,
+			strlen(ora->dbname), OCI_DEFAULT);
+	if (rc != OCI_SUCCESS) {
+		OCIERROR(ora->errhp, rc);
+		LOG_ERROR_MESSAGE("connection to '%s' failed", ora->dbname);
 		return ERROR;
 	}
 
-	OCIAttrSet((dvoid *)(dbc->oraclesvc), OCI_HTYPE_SVCCTX, (dvoid *)(dbc->oraclesrv),
-			(ub4)0,OCI_ATTR_SERVER, (dbc->errhp));
+	OCIAttrSet(
+			(dvoid *) ora->oraclesvc, OCI_HTYPE_SVCCTX,
+			(dvoid *) ora->oraclesrv, (ub4) 0, OCI_ATTR_SERVER, ora->errhp);
 
-	OCIHandleAlloc((dvoid *)(dbc->oracleenv), (dvoid **)&(dbc->oracleusr), OCI_HTYPE_SESSION, 0 , (dvoid **)0);
-	OCIAttrSet((dvoid *)(dbc->oracleusr), OCI_HTYPE_SESSION, (dvoid *)oracle_user, (ub4)strlen(oracle_user),
-			OCI_ATTR_USERNAME, (dbc->errhp));
-	OCIAttrSet((dvoid *)(dbc->oracleusr), OCI_HTYPE_SESSION, (dvoid *)oracle_pass, (ub4)strlen(oracle_pass),
-			OCI_ATTR_PASSWORD, (dbc->errhp));
+	OCIHandleAlloc(
+			(dvoid *) ora->oracleenv, (dvoid **) &ora->oracleusr,
+			OCI_HTYPE_SESSION, 0, (dvoid **) 0);
+	OCIAttrSet(
+			(dvoid *) ora->oracleusr, OCI_HTYPE_SESSION, (dvoid *) ora->user,
+			(ub4) strlen(ora->user), OCI_ATTR_USERNAME, ora->errhp);
+	OCIAttrSet(
+			(dvoid *) ora->oracleusr, OCI_HTYPE_SESSION, (dvoid *) ora->pass,
+			(ub4) strlen(ora->pass), OCI_ATTR_PASSWORD, ora->errhp);
 
-	OCIERROR((dbc->errhp), OCISessionBegin((dbc->oraclesvc), (dbc->errhp), (dbc->oracleusr), OCI_CRED_RDBMS, OCI_DEFAULT));
+	rc = OCISessionBegin(
+			ora->oraclesvc, ora->errhp, ora->oracleusr, OCI_CRED_RDBMS,
+			OCI_DEFAULT);
+	if (rc != OCI_SUCCESS) {
+		OCIERROR(ora->errhp, rc);
+		LOG_ERROR_MESSAGE(
+				"session begin failed for user '%s' on '%s'", ora->user,
+				ora->dbname);
+		return ERROR;
+	}
 
-	OCIAttrSet((dbc->oraclesvc), OCI_HTYPE_SVCCTX, (dbc->oracleusr), 0, OCI_ATTR_SESSION, (dbc->errhp));
+	OCIAttrSet(
+			ora->oraclesvc, OCI_HTYPE_SVCCTX, ora->oracleusr, 0,
+			OCI_ATTR_SESSION, ora->errhp);
 
-	if ( (rc = init_delivery_txn (dbc)) != OK ) {
+	if (init_delivery_txn_oracle(dbc) != OK) {
 		LOG_ERROR_MESSAGE("Delivery context initialization failed");
 		return ERROR;
 	}
-	if ( (rc = init_integrity_txn (dbc)) != OK ) {
+	if (init_integrity_txn_oracle(dbc) != OK) {
 		LOG_ERROR_MESSAGE("Integrity context initialization failed");
 		return ERROR;
 	}
-	if ( (rc = init_nord_txn (dbc)) != OK ) {
+	if (init_nord_txn_oracle(dbc) != OK) {
 		LOG_ERROR_MESSAGE("Neworder context initialization failed");
 		return ERROR;
 	}
-	if ( (rc = init_order_status_txn (dbc)) != OK ) {
+	if (init_order_status_txn_oracle(dbc) != OK) {
 		LOG_ERROR_MESSAGE("Orderstatus context initialization failed");
 		return ERROR;
 	}
-	if ( (rc = init_payment_txn (dbc)) != OK ) {
+	if (init_payment_txn_oracle(dbc) != OK) {
 		LOG_ERROR_MESSAGE("Payment context initialization failed");
 		return ERROR;
 	}
-	if ( (rc = init_stock_level_txn (dbc)) != OK ) {
+	if (init_stock_level_txn_oracle(dbc) != OK) {
 		LOG_ERROR_MESSAGE("Stocklevel context initialization failed");
 		return ERROR;
 	}
@@ -93,137 +110,140 @@ int _connect_to_db(struct db_context_t *dbc)
 }
 
 /* Disconnect from the database and free the connection handle. */
-int _disconnect_from_db(struct db_context_t *dbc)
-{
-	if (dbc->dctx) {
-		free(dbc->dctx);
-		//LOG_ERROR_MESSAGE("Freed dctx");
-	}
-	if (dbc->ictx) {
-		free(dbc->ictx);
-		//LOG_ERROR_MESSAGE("Freed ictx");
-	}
-	if (dbc->nctx) {
-		free(dbc->nctx);
-		//LOG_ERROR_MESSAGE("Freed nctx");
-	}
-	if (dbc->octx) {
-		free(dbc->octx);
-		//LOG_ERROR_MESSAGE("Freed octx");
-	}
-	if (dbc->pctx) {
-		free(dbc->pctx);
-		//LOG_ERROR_MESSAGE("Freed pctx");
-	}
-	if (dbc->sctx) {
-		free(dbc->sctx);
-		//LOG_ERROR_MESSAGE("Freed sctx");
-	}
+int disconnect_from_db_oracle(struct db_context_t *dbc) {
+	struct db_context_oracle *ora = &dbc->library.oracle;
 
-	OCIERROR(dbc->errhp,OCISessionEnd ( dbc->oraclesvc,dbc->errhp, dbc->oracleusr, OCI_DEFAULT));
-	OCIERROR(dbc->errhp,OCIServerDetach ( dbc->oraclesrv, dbc->errhp, OCI_DEFAULT));
-	OCIHandleFree((dvoid *)(dbc->oracleusr), OCI_HTYPE_SESSION);
-	OCIHandleFree((dvoid *)(dbc->oraclesvc), OCI_HTYPE_SVCCTX);
-	OCIHandleFree((dvoid *)(dbc->errhp), OCI_HTYPE_ERROR);
-	OCIHandleFree((dvoid *)(dbc->oraclesrv), OCI_HTYPE_SERVER);
-	OCIHandleFree((dvoid *)(dbc->oracleenv), OCI_HTYPE_ENV);
+	free(ora->dctx);
+	ora->dctx = NULL;
+	free(ora->ictx);
+	ora->ictx = NULL;
+	free(ora->nctx);
+	ora->nctx = NULL;
+	free(ora->octx);
+	ora->octx = NULL;
+	free(ora->pctx);
+	ora->pctx = NULL;
+	free(ora->sctx);
+	ora->sctx = NULL;
+
+	OCIERROR(
+			ora->errhp,
+			OCISessionEnd(
+					ora->oraclesvc, ora->errhp, ora->oracleusr, OCI_DEFAULT));
+	OCIERROR(
+			ora->errhp,
+			OCIServerDetach(ora->oraclesrv, ora->errhp, OCI_DEFAULT));
+	OCIHandleFree((dvoid *) ora->oracleusr, OCI_HTYPE_SESSION);
+	OCIHandleFree((dvoid *) ora->oraclesvc, OCI_HTYPE_SVCCTX);
+	OCIHandleFree((dvoid *) ora->errhp, OCI_HTYPE_ERROR);
+	OCIHandleFree((dvoid *) ora->oraclesrv, OCI_HTYPE_SERVER);
+	OCIHandleFree((dvoid *) ora->oracleenv, OCI_HTYPE_ENV);
 
 	return OK;
 }
 
-int _db_init(char * _oracle_dbname, char *_oracle_host, char * _oracle_user, 
-             char * _oracle_pass, char * _oracle_port)
-{
-	/* Copy values only if it's not NULL. */
-	if (_oracle_dbname != NULL) {
-		strcpy(oracle_dbname, _oracle_dbname);
-	}
-	if (_oracle_host != NULL) {
-		strcpy(oracle_host, _oracle_host);
-       	}
-	if (_oracle_user != NULL) {
-		strcpy(oracle_user, _oracle_user);
-       	}
-	if (_oracle_pass != NULL) {
-		strcpy(oracle_pass, _oracle_pass);
-	}
-	if (_oracle_port != NULL) {
-		strcpy(oracle_port_t, _oracle_port);
-	}
-	/*if (_oracle_socket != NULL) {
-		strcpy(oracle_socket_t, _oracle_socket);
-	}*/
-	return OK;
-}
+int rollback_transaction_oracle(struct db_context_t *dbc) {
+	struct db_context_oracle *ora = &dbc->library.oracle;
 
-int rollback_transaction(struct db_context_t *dbc)
-{
-	OCITransRollback(dbc->oraclesvc,dbc->errhp,OCI_DEFAULT);
+	OCITransRollback(ora->oraclesvc, ora->errhp, OCI_DEFAULT);
 	return STATUS_ROLLBACK;
 }
 
-int ocierror(fname, lineno, errhp, status)
-char *fname;
-int lineno;
-OCIError *errhp;
-sword status;
-{
-  text errbuf[512];
-  sb4 errcode;
-  sb4 lstat;
-  ub4 recno=2;
+int db_init_oracle(
+		struct db_context_t *dbc, char *dbname, char *user, char *pass) {
+	dbc->connect = connect_to_db_oracle;
+	dbc->commit_transaction = commit_transaction_oracle;
+	dbc->disconnect = disconnect_from_db_oracle;
+	dbc->rollback_transaction = rollback_transaction_oracle;
+	dbc->execute_delivery = execute_delivery_oracle;
+	dbc->execute_integrity = execute_integrity_oracle;
+	dbc->execute_new_order = execute_new_order_oracle;
+	dbc->execute_order_status = execute_order_status_oracle;
+	dbc->execute_payment = execute_payment_oracle;
+	dbc->execute_stock_level = execute_stock_level_oracle;
 
-  switch (status) {
-  case OCI_SUCCESS:
-    break;
-  case OCI_SUCCESS_WITH_INFO:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-    fprintf(stderr,"Error - OCI_SUCCESS_WITH_INFO\n");
-    lstat = OCIErrorGet (errhp, recno++, (text *) NULL, &errcode, errbuf,
-                           (ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
-    fprintf(stderr,"Error - %s\n", errbuf);
-    break;
-  case OCI_NEED_DATA:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-    fprintf(stderr,"Error - OCI_NEED_DATA\n");
-    return (IRRECERR);
-  case OCI_NO_DATA:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-    fprintf(stderr,"Error - OCI_NO_DATA\n");
-    return (IRRECERR);
-  case OCI_ERROR:
-    lstat = OCIErrorGet (errhp, (ub4) 1,
-                   (text *) NULL, &errcode, errbuf,
-                        (ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
-    if (errcode == NOT_SERIALIZABLE) return (errcode);
-    if (errcode == SNAPSHOT_TOO_OLD) return (errcode);
-    if (errcode == NOT_SAFE_REPLAY) return (errcode);
-    if (errcode == COLUMN_VALUE_NULL) return (errcode);
-    while (lstat != OCI_NO_DATA)
-    {
-      fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-      fprintf(stderr,"Error - %s\n", errbuf);
-      lstat = OCIErrorGet (errhp, recno++, (text *) NULL, &errcode, errbuf,
-                           (ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
-    }
-    return (errcode);
-  case OCI_INVALID_HANDLE:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-   fprintf(stderr,"Error - OCI_INVALID_HANDLE\n");
-    exit(-1);
-  case OCI_STILL_EXECUTING:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-    fprintf(stderr,"Error - OCI_STILL_EXECUTE\n");
-    return (IRRECERR);
-  case OCI_CONTINUE:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-    fprintf(stderr,"Error - OCI_CONTINUE\n");
-    return (IRRECERR);
-  default:
-    fprintf(stderr,"Module %s Line %d\n", fname, lineno);
-    fprintf(stderr,"Status - %s\n", (char *)status);
-    return (IRRECERR);
-  }
-  return (RECOVERR);
+	/* Copy values only if it's not NULL or empty. */
+	if (dbname != NULL && dbname[0] != '\0') {
+		strncpy(dbc->library.oracle.dbname, dbname, ORACLE_DBNAME_LEN);
+	} else {
+		strncpy(dbc->library.oracle.dbname, "//localhost:1521/FREEPDB1",
+				ORACLE_DBNAME_LEN);
+	}
+	if (user != NULL && user[0] != '\0') {
+		strncpy(dbc->library.oracle.user, user, ORACLE_USER_LEN);
+	} else {
+		strncpy(dbc->library.oracle.user, DB_USER, ORACLE_USER_LEN);
+	}
+	if (pass != NULL && pass[0] != '\0') {
+		strncpy(dbc->library.oracle.pass, pass, ORACLE_PASS_LEN);
+	} else {
+		strncpy(dbc->library.oracle.pass, DB_PASS, ORACLE_PASS_LEN);
+	}
+
+	return OK;
 }
 
+int ocierror(char *fname, int lineno, OCIError *errhp, sword status) {
+	text errbuf[512];
+	sb4 errcode;
+	sb4 lstat;
+	ub4 recno = 2;
+
+	switch (status) {
+	case OCI_SUCCESS:
+		break;
+	case OCI_SUCCESS_WITH_INFO:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Error - OCI_SUCCESS_WITH_INFO\n");
+		lstat = OCIErrorGet(
+				errhp, recno++, (text *) NULL, &errcode, errbuf,
+				(ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
+		fprintf(stderr, "Error - %s\n", errbuf);
+		break;
+	case OCI_NEED_DATA:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Error - OCI_NEED_DATA\n");
+		return (IRRECERR);
+	case OCI_NO_DATA:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Error - OCI_NO_DATA\n");
+		return (IRRECERR);
+	case OCI_ERROR:
+		lstat = OCIErrorGet(
+				errhp, (ub4) 1, (text *) NULL, &errcode, errbuf,
+				(ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
+		if (errcode == NOT_SERIALIZABLE)
+			return (errcode);
+		if (errcode == SNAPSHOT_TOO_OLD)
+			return (errcode);
+		if (errcode == NOT_SAFE_REPLAY)
+			return (errcode);
+		if (errcode == COLUMN_VALUE_NULL)
+			return (errcode);
+		while (lstat != OCI_NO_DATA) {
+			fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+			fprintf(stderr, "Error - %s\n", errbuf);
+			lstat = OCIErrorGet(
+					errhp, recno++, (text *) NULL, &errcode, errbuf,
+					(ub4) sizeof(errbuf), OCI_HTYPE_ERROR);
+		}
+		return (errcode);
+	case OCI_INVALID_HANDLE:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Error - OCI_INVALID_HANDLE\n");
+		exit(-1);
+	case OCI_STILL_EXECUTING:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Error - OCI_STILL_EXECUTE\n");
+		return (IRRECERR);
+	case OCI_CONTINUE:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Error - OCI_CONTINUE\n");
+		return (IRRECERR);
+	default:
+		fprintf(stderr, "Module %s Line %d\n", fname, lineno);
+		fprintf(stderr, "Status - %d\n", (int) status);
+		return (IRRECERR);
+	}
+	return (RECOVERR);
+}

@@ -8,6 +8,9 @@ vX.Y.Z (YYYY-MM-DD)
 - Change in generic odbc layer to add support for Oracle and performance
   enhancements.
 - oracle: update CMakeList.txt to search for oci.h and libclntsh
+- oracle: port the OCI backend to the multi-backend database context
+  interface and wire runtime dispatch into the client, driver, and
+  transaction test programs
 - pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
   and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
   and s_remote_cnt, applies the +91 quantity adjustment only when stock does

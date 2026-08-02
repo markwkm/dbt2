@@ -25,7 +25,7 @@ int max_driver_connections = 1024;
 int sockfd;
 char sname[SNAMELEN + 1] = "";
 
-#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC) || defined(HAVE_ORACLE)
 char dbt2_user[128] = DB_USER;
 char dbt2_pass[128] = DB_PASS;
 #endif
@@ -71,6 +71,12 @@ int init_dbc(struct db_context_t *dbc) {
 		db_init_odbc(sname, "", "");
 		break;
 #endif /* HAVE_ODBC */
+
+#ifdef HAVE_ORACLE
+	case DBMSORACLE:
+		db_init_oracle(dbc, sname, dbt2_user, dbt2_pass);
+		break;
+#endif /* HAVE_ORACLE */
 
 	default:
 		printf("unrecognized dbms code: %d\n", dbms);

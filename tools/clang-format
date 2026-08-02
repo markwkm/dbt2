@@ -8,6 +8,7 @@ for DIR in \
 		src/mysql \
 		src/libpq \
 		src/odbc \
+		src/oracle \
 		src/nonsp \
 		src/sqlite \
 		storedproc/pgsql/c \

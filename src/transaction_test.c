@@ -89,6 +89,10 @@ int main(int argc, char *argv[]) {
 		if (argv[i][1] == 'a') {
 			if (strcmp(argv[i + 1], "cockroach") == 0) {
 				dbms = DBMSCOCKROACH;
+#ifdef HAVE_ORACLE
+			} else if (strcmp(argv[i + 1], "oracle") == 0) {
+				dbms = DBMSORACLE;
+#endif /* HAVE_ORACLE */
 			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
 			} else {
@@ -222,6 +226,12 @@ int main(int argc, char *argv[]) {
 			db_init_odbc(connect_str, "", "");
 			break;
 #endif /* HAVE_ODBC */
+
+#ifdef HAVE_ORACLE
+		case DBMSORACLE:
+			db_init_oracle(&dbc, connect_str, NULL, NULL);
+			break;
+#endif /* HAVE_ORACLE */
 
 		default:
 			LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);

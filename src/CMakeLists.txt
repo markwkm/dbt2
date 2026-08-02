@@ -153,12 +153,15 @@ message (STATUS "Checking for Oracle header file 'oci.h'")
 find_path(ORACLE_INCLUDE_DIR
     NAMES oci.h
     HINTS $ENV{ORACLE_HOME}/sdk/include
+          $ENV{ORACLE_HOME}/rdbms/public
+          $ENV{ORACLE_HOME}/include
 )
 
 message (STATUS "Checking for Oracle library file 'libclntsh'")
 find_library(ORACLE_LIBRARY
     NAMES clntsh
     HINTS $ENV{ORACLE_HOME}/lib
+          $ENV{ORACLE_HOME}
 )
 
 if (ORACLE_INCLUDE_DIR AND ORACLE_LIBRARY)

@@ -88,8 +88,12 @@ int parse_arguments(int argc, char *argv[]) {
 		case 'a':
 			if (strcmp(optarg, "cockroach") == 0) {
 				dbms = DBMSCOCKROACH;
+			} else if (strcmp(optarg, "mysql") == 0) {
+				dbms = DBMSMYSQL;
 			} else if (strcmp(optarg, "odbc") == 0) {
 				dbms = DBMSODBC;
+			} else if (strcmp(optarg, "oracle") == 0) {
+				dbms = DBMSORACLE;
 			} else if (strcmp(optarg, "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
 			} else if (strcmp(optarg, "sqlite") == 0) {
@@ -150,7 +154,7 @@ int parse_arguments(int argc, char *argv[]) {
 			strcpy(dbt2_mysql_socket, optarg);
 #endif
 			break;
-#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC) || defined(HAVE_ORACLE)
 		case 'u':
 			strncpy(dbt2_user, optarg, 127);
 			break;
@@ -158,7 +162,7 @@ int parse_arguments(int argc, char *argv[]) {
 		case 'x':
 			connections_per_process = atoi(optarg);
 			break;
-#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC) || defined(HAVE_ORACLE)
 		case 'z':
 			strncpy(dbt2_pass, optarg, 127);
 			break;
@@ -202,7 +206,7 @@ void usage(char *name) {
 	printf("Usage:\n");
 	printf("  %s [OPTION]\n\n", name);
 	printf("General options:\n");
-	printf("  -a <dbms>      cockroach|mysql|pgsql|yugabyte\n");
+	printf("  -a <dbms>      cockroach|mysql|oracle|pgsql|yugabyte\n");
 #ifdef CLIENT1
 	printf("  -f             set forced sleep\n");
 	printf("  -c #           number of database connections\n");
@@ -243,6 +247,13 @@ void usage(char *name) {
 	printf("  -u <db user>\n");
 	printf("  -z <db password>\n");
 #endif /* HAVE_MYSQL */
+#ifdef HAVE_ORACLE
+	printf("\nOracle options:\n");
+	printf("  -d <connect>   connect identifier, e.g. "
+		   "//localhost:1521/FREEPDB1\n");
+	printf("  -u <db user>\n");
+	printf("  -z <db password>\n");
+#endif /* HAVE_ORACLE */
 #ifdef HAVE_SQLITE3
 	printf("\nSQLite options:\n");
 	printf("  -d <db_file>   path to database file\n");

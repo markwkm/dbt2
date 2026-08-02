@@ -165,6 +165,8 @@ int parse_arguments(int argc, char *argv[]) {
 				dbms = DBMSCOCKROACH;
 			} else if (strcmp(argv[i + 1], "odbc") == 0) {
 				dbms = DBMSODBC;
+			} else if (strcmp(argv[i + 1], "oracle") == 0) {
+				dbms = DBMSORACLE;
 			} else if (strcmp(argv[i + 1], "mysql") == 0) {
 				dbms = DBMSMYSQL;
 			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
@@ -213,11 +215,11 @@ int parse_arguments(int argc, char *argv[]) {
 					dbt2_mysql_socket, sizeof(dbt2_mysql_socket), "%s",
 					argv[i + 1]);
 #endif /* HAVE_MYSQL */
-#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC) || defined(HAVE_ORACLE)
 		} else if (strcmp(flag, "u") == 0) {
 			extern char dbt2_user[128];
 			snprintf(dbt2_user, sizeof(dbt2_user), "%s", argv[i + 1]);
-#endif /* defined(HAVE_MYSQL) || defined(HAVE_ODBC) */
+#endif /* HAVE_MYSQL || HAVE_ODBC || HAVE_ORACLE */
 #endif /* DRIVER3 */
 		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));
@@ -324,7 +326,7 @@ void usage(char *name) {
 	printf("  %s [OPTION]\n", name);
 	printf("\nGeneral options:\n");
 #ifdef DRIVER3
-	printf("  -a <dbms>      cockroach|mysql|pgsql|yugabyte\n");
+	printf("  -a <dbms>      cockroach|mysql|oracle|pgsql|yugabyte\n");
 #endif /* DRIVER3 */
 #if defined(DRIVER1) || defined(DRIVER2)
 	printf("  -d <address>   client network address\n");

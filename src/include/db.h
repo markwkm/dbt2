@@ -63,9 +63,9 @@ struct sql_result_mysql {
 };
 #endif /* HAVE_MYSQL */
 
-#ifdef LIBORACLE
+#ifdef HAVE_ORACLE
 #include "oracle_common.h"
-#endif /* LIBORACLE */
+#endif /* HAVE_ORACLE */
 
 #ifdef HAVE_ODBC
 #ifdef IODBC
@@ -125,6 +125,7 @@ struct sql_result_sqlite {
 #define DBMSMYSQL 3
 #define DBMSODBC 4
 #define DBMSSQLITE 5
+#define DBMSORACLE 6
 
 struct sql_result_t {
   int type;
@@ -172,6 +173,9 @@ struct db_context_t {
 #ifdef HAVE_ODBC
     struct db_context_odbc odbc;
 #endif /* HAVE_ODBC */
+#ifdef HAVE_ORACLE
+    struct db_context_oracle oracle;
+#endif /* HAVE_ORACLE */
 #ifdef HAVE_SQLITE3
     struct db_context_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
@@ -203,10 +207,13 @@ int sql_fetchrow_mysql(struct db_context_t *, struct sql_result_t *);
 char *sql_getvalue_mysql(struct db_context_t *, struct sql_result_t *, int);
 #endif /* HAVE_MYSQL */
 
-#ifdef LIBORACLE
-int db_init(char * _oracle_dbname, char *_oracle_host, char * _oracle_user,
-            char * _oracle_pass, char * _oracle_port);
-#endif /* LIBORACLE */
+#ifdef HAVE_ORACLE
+int commit_transaction_oracle(struct db_context_t *);
+int connect_to_db_oracle(struct db_context_t *);
+int db_init_oracle(struct db_context_t *, char *, char *, char *);
+int disconnect_from_db_oracle(struct db_context_t *);
+int rollback_transaction_oracle(struct db_context_t *);
+#endif /* HAVE_ORACLE */
 
 int disconnect_from_db(struct db_context_t *);
 int process_transaction(int, struct db_context_t *, union transaction_data_t *);
