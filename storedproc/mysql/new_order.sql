@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.4.2.
  */
 drop procedure if exists new_order;
 
@@ -463,6 +463,9 @@ BEGIN
 	SET tmp_total_amount = tmp_total_amount + tmp_ol_amount;
       END IF;
     END IF;
+
+    SET tmp_total_amount = tmp_total_amount * (1 - out_c_discount)
+                         * (1 + out_w_tax + out_d_tax);
 
 END|
 delimiter ;

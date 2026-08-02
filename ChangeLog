@@ -76,6 +76,12 @@ vX.Y.Z (YYYY-MM-DD)
   stopping one value short of each maximum, per TPC-C Clause 4.3.3.1
 - datagen: the o_c_id permutation can place any customer last instead of always
   customer 1, per TPC-C Clause 4.3.3.1
+- mysql: new order reads and updates stock at the supplying warehouse,
+  maintains s_ytd, s_order_cnt, and s_remote_cnt, applies the +91 quantity
+  adjustment only when stock does not exceed the ordered quantity by 10 or
+  more, no longer rounds order line amounts to whole dollars through a bare
+  NUMERIC parameter, examines i_data and s_data for the brand or generic
+  classification, and computes the order total, per TPC-C Clause 2.4.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
