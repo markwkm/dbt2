@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.8.2.
  */
 
 drop procedure if exists stock_level;
@@ -27,16 +27,15 @@ BEGIN
 
   SELECT count(*)
   INTO low_stock
-  FROM order_line, stock, district
-  WHERE d_id = in_d_id
-        AND d_w_id = in_w_id
-        AND d_id = ol_d_id
-        AND d_w_id = ol_w_id
-        AND ol_i_id = s_i_id
-        AND ol_w_id = s_w_id
-        AND s_quantity < in_threshold
-        AND ol_o_id BETWEEN (tmp_d_next_o_id - 20)
-                        AND (tmp_d_next_o_id - 1);
+  FROM (SELECT DISTINCT ol_i_id
+        FROM order_line
+        WHERE ol_w_id = in_w_id
+          AND ol_d_id = in_d_id
+          AND ol_o_id BETWEEN (tmp_d_next_o_id - 20)
+                          AND (tmp_d_next_o_id - 1)) AS ol, stock
+  WHERE s_w_id = in_w_id
+    AND s_i_id = ol_i_id
+    AND s_quantity < in_threshold;
 
 END|
 delimiter ;

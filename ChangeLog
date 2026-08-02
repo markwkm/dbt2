@@ -94,6 +94,8 @@ vX.Y.Z (YYYY-MM-DD)
   ol_amount * ol_quantity, no longer truncates the sum to an integer, and
   locks the oldest new order row so concurrent deliveries cannot process
   the same order twice, per TPC-C Clause 2.7.4
+- mysql: stock level counts distinct items below the threshold instead of
+  counting every order line, per TPC-C Clause 2.8.2
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments
