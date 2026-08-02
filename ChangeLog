@@ -28,6 +28,9 @@ vX.Y.Z (YYYY-MM-DD)
   name, reads the customer's most recent order instead of an arbitrary
   one, and retrieves every line of the order instead of the first,
   per TPC-C Clause 2.6.2
+- oracle: delivery processes the oldest undelivered order instead of
+  an arbitrary one, sums ol_amount without multiplying by quantity,
+  and sums every order line instead of the first six, per TPC-C Clause 2.7.4
 - pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
   and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
   and s_remote_cnt, applies the +91 quantity adjustment only when stock does
