@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.6.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.6.2.
  */
 
 
@@ -103,6 +103,8 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
 
 	DECLARE out_c_id INT;
 	DECLARE out_c_last VARCHAR(255);
+	DECLARE tmp_count INT;
+	DECLARE tmp_offset INT;
         declare rc int default 0;
 
         declare c cursor for SELECT ol_i_id, ol_supply_w_id, ol_quantity, 
@@ -127,13 +129,22 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
 	 * middle, not the first one.
 	 */
 	IF in_c_id = 0 THEN
+		SELECT count(*)
+		INTO tmp_count
+		FROM customer
+		WHERE c_w_id = in_c_w_id
+		  AND c_d_id = in_c_d_id
+		  AND c_last = in_c_last;
+
+		SET tmp_offset = (tmp_count - 1) DIV 2;
+
 		SELECT c_id
-		INTO out_c_id 
+		INTO out_c_id
 		FROM customer
 		WHERE c_w_id = in_c_w_id
 		  AND c_d_id = in_c_d_id
 		  AND c_last = in_c_last
-		ORDER BY c_first ASC limit 1;
+		ORDER BY c_first ASC limit tmp_offset, 1;
 	ELSE
 		set out_c_id = in_c_id;
 	END IF;
