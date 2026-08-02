@@ -121,6 +121,7 @@ if (MYSQLCLIENT_FOUND)
             mysql/dbc_payment.c
             mysql/dbc_stock_level.c
     )
+    string (REPLACE ";" " " MYSQLCLIENT_CFLAGS "${MYSQLCLIENT_CFLAGS}")
     set (DBCFLAGS "${DBCFLAGS} -DHAVE_MYSQL ${MYSQLCLIENT_CFLAGS}")
 endif (MYSQLCLIENT_FOUND)
 
@@ -140,6 +141,7 @@ if (ODBC_FOUND)
         odbc/dbc_stock_level.c
         odbc/dbc_integrity.c
     )
+    string (REPLACE ";" " " ODBC_CFLAGS "${ODBC_CFLAGS}")
     set (DBCFLAGS "${DBCFLAGS} -DHAVE_ODBC ${ODBC_CFLAGS}")
 endif (ODBC_FOUND)
 
@@ -195,6 +197,7 @@ if (SQLITE3_FOUND)
         nonsp/dbc_integrity.c
         nonsp/dbc_nonsp.c
     )
+    string (REPLACE ";" " " SQLITE3_CFLAGS "${SQLITE3_CFLAGS}")
     set (DBCFLAGS "${DBCFLAGS} -DHAVE_SQLITE3 ${SQLITE3_CFLAGS}")
 endif (SQLITE3_FOUND)
 
