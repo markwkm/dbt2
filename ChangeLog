@@ -90,6 +90,10 @@ vX.Y.Z (YYYY-MM-DD)
   warehouse and district names with four spaces, per TPC-C Clause 2.5.2
 - mysql: order status selects the median customer matching a last name
   instead of the first, per TPC-C Clause 2.6.2
+- mysql: delivery credits the customer with the sum of ol_amount instead of
+  ol_amount * ol_quantity, no longer truncates the sum to an integer, and
+  locks the oldest new order row so concurrent deliveries cannot process
+  the same order twice, per TPC-C Clause 2.7.4
 - run: support enabling software profiling in the config file
 - run: required config file options are now optional, allowing them to be set
   with command line arguments

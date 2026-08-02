@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-2 Authors
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.7.4.
  */
 
 drop procedure if exists delivery;
@@ -15,7 +15,7 @@ CREATE PROCEDURE delivery(in_w_id INT, in_o_carrier_id INT)
 BEGIN
 
    DECLARE      out_c_id INT;
-   DECLARE      out_ol_amount INT;
+   DECLARE      out_ol_amount NUMERIC(24, 12);
    DECLARE 	tmp_d_id INT;
    DECLARE 	tmp_o_id INT default 0;
 
@@ -31,7 +31,8 @@ BEGIN
      FROM new_order
      WHERE no_w_id = in_w_id AND no_d_id = tmp_d_id
      ORDER BY no_o_id ASC
-     limit 1;
+     limit 1
+     FOR UPDATE;
 
      IF tmp_o_id > 0 
      THEN
@@ -60,7 +61,7 @@ BEGIN
          AND ol_w_id = in_w_id
          AND ol_d_id = tmp_d_id;
  
-       SELECT SUM(ol_amount * ol_quantity)
+       SELECT SUM(ol_amount)
        INTO out_ol_amount
        FROM order_line
        WHERE ol_o_id = tmp_o_id
