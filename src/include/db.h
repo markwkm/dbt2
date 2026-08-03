@@ -230,6 +230,12 @@ int connect_to_db_libpq(struct db_context_t *);
 int db_init_libpq(struct db_context_t *, char *, char *, char *);
 int disconnect_from_db_libpq(struct db_context_t *);
 int rollback_transaction_libpq(struct db_context_t *);
+
+/* Decode binary format result values. */
+float libpq_get_float4(const PGresult *, int, int);
+double libpq_get_float8(const PGresult *, int, int);
+int libpq_get_int32(const PGresult *, int, int);
+void libpq_copy_text(char *, size_t, const PGresult *, int, int);
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_ODBC

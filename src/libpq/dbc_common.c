@@ -5,6 +5,7 @@
  * Copyright The DBT-2 Authors
  */
 
+#include <arpa/inet.h>
 #include <libpq-fe.h>
 #include <stdio.h>
 #include <string.h>
@@ -111,4 +112,54 @@ int rollback_transaction_libpq(struct db_context_t *dbc) {
 	PQclear(res);
 
 	return STATUS_ROLLBACK;
+}
+
+/* Decode a REAL binary format result value. */
+float libpq_get_float4(const PGresult *res, int row, int field) {
+	union {
+		float f;
+		uint32_t i;
+	} v;
+
+	if (PQgetisnull(res, row, field)) {
+		return 0;
+	}
+	v.i = ntohl(*((uint32_t *) PQgetvalue(res, row, field)));
+	return v.f;
+}
+
+/* Decode a DOUBLE PRECISION binary format result value. */
+double libpq_get_float8(const PGresult *res, int row, int field) {
+	union {
+		double d;
+		uint64_t i;
+	} v;
+
+	if (PQgetisnull(res, row, field)) {
+		return 0;
+	}
+	v.i = ntohll(*((uint64_t *) PQgetvalue(res, row, field)));
+	return v.d;
+}
+
+/* Decode an INTEGER binary format result value. */
+int libpq_get_int32(const PGresult *res, int row, int field) {
+	if (PQgetisnull(res, row, field)) {
+		return 0;
+	}
+	return (int) ntohl(*((uint32_t *) PQgetvalue(res, row, field)));
+}
+
+/* Copy a TEXT result value into a fixed size field, tolerating NULL. */
+void libpq_copy_text(
+		char *dest, size_t n, const PGresult *res, int row, int field) {
+	if (n == 0) {
+		return;
+	}
+	if (PQgetisnull(res, row, field)) {
+		dest[0] = '\0';
+		return;
+	}
+	strncpy(dest, PQgetvalue(res, row, field), n - 1);
+	dest[n - 1] = '\0';
 }

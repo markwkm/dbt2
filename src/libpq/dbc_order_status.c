@@ -29,9 +29,7 @@ int execute_order_status_libpq(
 	uint32_t c_w_id;
 	uint32_t c_d_id;
 
-#ifdef DEBUG
 	int i;
-#endif /* DEBUG */
 
 	c_id = htonl((uint32_t) data->c_id);
 	c_w_id = htonl((uint32_t) data->c_w_id);
@@ -80,43 +78,66 @@ int execute_order_status_libpq(
 		PQclear(res);
 		return ERROR;
 	}
+	data->o_ol_cnt = PQntuples(res);
+	if (data->o_ol_cnt > O_OL_CNT_MAX) {
+		data->o_ol_cnt = O_OL_CNT_MAX;
+	}
+	for (i = 0; i < data->o_ol_cnt; i++) {
+		data->order_line[i].ol_i_id = libpq_get_int32(res, i, 0);
+		data->order_line[i].ol_supply_w_id = libpq_get_int32(res, i, 1);
+		data->order_line[i].ol_quantity =
+				(int) libpq_get_float4(res, i, 2);
+		data->order_line[i].ol_amount = libpq_get_float4(res, i, 3);
+		libpq_copy_text(
+				data->order_line[i].ol_delivery_d,
+				sizeof(data->order_line[i].ol_delivery_d), res, i, 4);
+	}
+	if (PQntuples(res) > 0) {
+		data->c_id = libpq_get_int32(res, 0, 5);
+		libpq_copy_text(data->c_first, sizeof(data->c_first), res, 0, 6);
+		libpq_copy_text(data->c_middle, sizeof(data->c_middle), res, 0, 7);
+		if (!PQgetisnull(res, 0, 8)) {
+			mbstowcs(data->c_last, PQgetvalue(res, 0, 8), C_LAST_LEN + 1);
+		}
+		data->c_balance = libpq_get_float8(res, 0, 9);
+		data->o_id = libpq_get_int32(res, 0, 10);
+		data->o_carrier_id = libpq_get_int32(res, 0, 11);
+		libpq_copy_text(
+				data->o_entry_d, sizeof(data->o_entry_d), res, 0, 12);
+	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		union {
-			float f;
-			uint32_t i;
-		} v2, v3;
+		int j;
 
-		uint64_t v4;
-		time_t time4;
-		uint32_t v4mantissa;
-		struct tm *tm4;
-
-		v2.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 2)));
-		v3.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 3)));
-		v4 = ntohll(*((uint64_t *) PQgetvalue(res, i, 4)));
-
-		time4 = v4 / (uint64_t) 1000000 +
-				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-						(uint64_t) SECS_PER_DAY;
-		v4mantissa =
-				v4 -
-				(uint64_t) (time4 - (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-											SECS_PER_DAY) *
-						(uint64_t) 1000000;
-
-		/* For ease of coding, assume and print timestamps in GMT. */
-		tm4 = gmtime(&time4);
-
-		LOG_ERROR_MESSAGE(
-				"OS[%d] %s=%d %s=%d %s=%f %s=%f "
-				"%s=%04d-%02d-%02d %02d:%02d:%02d.%6d",
-				i, PQfname(res, 0),
-				ntohl(*((uint32_t *) PQgetvalue(res, i, 0))), PQfname(res, 1),
-				ntohl(*((uint32_t *) PQgetvalue(res, i, 1))), PQfname(res, 2),
-				v2.f, PQfname(res, 3), v3.f, PQfname(res, 4),
-				tm4->tm_year + 1900, tm4->tm_mon + 1, tm4->tm_mday,
-				tm4->tm_hour, tm4->tm_min, tm4->tm_sec, v4mantissa);
+		for (j = 0; j < PQnfields(res); j++) {
+			switch (j) {
+			case 0:
+			case 1:
+			case 5:
+			case 10:
+			case 11:
+				LOG_ERROR_MESSAGE(
+						"OS[%d] %s = %d", i, PQfname(res, j),
+						libpq_get_int32(res, i, j));
+				break;
+			case 2:
+			case 3:
+				LOG_ERROR_MESSAGE(
+						"OS[%d] %s = %f", i, PQfname(res, j),
+						libpq_get_float4(res, i, j));
+				break;
+			case 9:
+				LOG_ERROR_MESSAGE(
+						"OS[%d] %s = %f", i, PQfname(res, j),
+						libpq_get_float8(res, i, j));
+				break;
+			default:
+				LOG_ERROR_MESSAGE(
+						"OS[%d] %s = %s", i, PQfname(res, j),
+						PQgetvalue(res, i, j));
+				break;
+			}
+		}
 	}
 #endif /* DEBUG */
 	PQclear(res);

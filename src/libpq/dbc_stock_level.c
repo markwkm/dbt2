@@ -71,6 +71,9 @@ int execute_stock_level_libpq(
 		PQclear(res);
 		return ERROR;
 	}
+	if (PQntuples(res) > 0) {
+		data->low_stock = libpq_get_int32(res, 0, 0);
+	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(

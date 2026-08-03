@@ -96,101 +96,71 @@ int execute_payment_libpq(struct db_context_t *dbc, struct payment_t *data) {
 		PQclear(res);
 		return ERROR;
 	}
+	if (PQntuples(res) > 0) {
+		libpq_copy_text(
+				data->w_street_1, sizeof(data->w_street_1), res, 0, 0);
+		libpq_copy_text(
+				data->w_street_2, sizeof(data->w_street_2), res, 0, 1);
+		libpq_copy_text(data->w_city, sizeof(data->w_city), res, 0, 2);
+		libpq_copy_text(data->w_state, sizeof(data->w_state), res, 0, 3);
+		libpq_copy_text(data->w_zip, sizeof(data->w_zip), res, 0, 4);
+		libpq_copy_text(
+				data->d_street_1, sizeof(data->d_street_1), res, 0, 5);
+		libpq_copy_text(
+				data->d_street_2, sizeof(data->d_street_2), res, 0, 6);
+		libpq_copy_text(data->d_city, sizeof(data->d_city), res, 0, 7);
+		libpq_copy_text(data->d_state, sizeof(data->d_state), res, 0, 8);
+		libpq_copy_text(data->d_zip, sizeof(data->d_zip), res, 0, 9);
+		libpq_copy_text(data->c_first, sizeof(data->c_first), res, 0, 10);
+		libpq_copy_text(data->c_middle, sizeof(data->c_middle), res, 0, 11);
+		if (!PQgetisnull(res, 0, 12)) {
+			mbstowcs(data->c_last, PQgetvalue(res, 0, 12), C_LAST_LEN + 1);
+		}
+		libpq_copy_text(
+				data->c_street_1, sizeof(data->c_street_1), res, 0, 13);
+		libpq_copy_text(
+				data->c_street_2, sizeof(data->c_street_2), res, 0, 14);
+		libpq_copy_text(data->c_city, sizeof(data->c_city), res, 0, 15);
+		libpq_copy_text(data->c_state, sizeof(data->c_state), res, 0, 16);
+		libpq_copy_text(data->c_zip, sizeof(data->c_zip), res, 0, 17);
+		libpq_copy_text(data->c_phone, sizeof(data->c_phone), res, 0, 18);
+		libpq_copy_text(data->c_since, sizeof(data->c_since), res, 0, 19);
+		libpq_copy_text(data->c_credit, sizeof(data->c_credit), res, 0, 20);
+		data->c_credit_lim = libpq_get_float8(res, 0, 21);
+		data->c_discount = libpq_get_float4(res, 0, 22);
+		data->c_balance = libpq_get_float8(res, 0, 23);
+		libpq_copy_text(data->c_data, sizeof(data->c_data), res, 0, 24);
+		libpq_copy_text(data->h_date, sizeof(data->h_date), res, 0, 25);
+		data->c_id = libpq_get_int32(res, 0, 26);
+		libpq_copy_text(data->w_name, sizeof(data->w_name), res, 0, 27);
+		libpq_copy_text(data->d_name, sizeof(data->d_name), res, 0, 28);
+	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		union {
-			float f;
-			uint32_t i;
-		} v22;
-
-		uint64_t v19, v25;
-		time_t time19, time25;
-		struct tm *tm19, *tm25;
-		uint32_t v19mantissa, v25mantissa;
-		uint16_t *num;
-
-		v22.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 22)));
-		v19 = ntohll(*((uint64_t *) PQgetvalue(res, i, 19)));
-		v25 = ntohll(*((uint64_t *) PQgetvalue(res, i, 25)));
-
-		/* For ease of coding, assume and print timestamps in GMT. */
-
-		time19 = v19 / (uint64_t) 1000000 +
-				 (uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-						 (uint64_t) SECS_PER_DAY;
-		tm19 = gmtime(&time19);
-		v19mantissa =
-				v19 -
-				(uint64_t) (time19 - (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-											 SECS_PER_DAY) *
-						(uint64_t) 1000000;
-
-		time25 = v25 / (uint64_t) 1000000 +
-				 (uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-						 (uint64_t) SECS_PER_DAY;
-		tm25 = gmtime(&time25);
-		v25mantissa =
-				v25 -
-				(uint64_t) (time25 - (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-											 SECS_PER_DAY) *
-						(uint64_t) 1000000;
-
-		LOG_ERROR_MESSAGE(
-				"P[%d] %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s "
-				"%s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s "
-				"%s=%s %s=%s %s=%04d-%02d-%02d %02d:%02d:%02d.%06d %s=%s "
-				"%s=%f "
-				"%s=%s %s=%04d-%02d-%02d %02d:%02d:%2d.%06d",
-				i, PQfname(res, 0), PQgetvalue(res, i, 0), PQfname(res, 1),
-				PQgetvalue(res, i, 1), PQfname(res, 2), PQgetvalue(res, i, 2),
-				PQfname(res, 3), PQgetvalue(res, i, 3), PQfname(res, 4),
-				PQgetvalue(res, i, 4), PQfname(res, 5), PQgetvalue(res, i, 5),
-				PQfname(res, 6), PQgetvalue(res, i, 6), PQfname(res, 7),
-				PQgetvalue(res, i, 7), PQfname(res, 8), PQgetvalue(res, i, 8),
-				PQfname(res, 9), PQgetvalue(res, i, 9), PQfname(res, 10),
-				PQgetvalue(res, i, 10), PQfname(res, 11),
-				PQgetvalue(res, i, 11), PQfname(res, 12),
-				PQgetvalue(res, i, 12), PQfname(res, 13),
-				PQgetvalue(res, i, 13), PQfname(res, 14),
-				PQgetvalue(res, i, 14), PQfname(res, 15),
-				PQgetvalue(res, i, 15), PQfname(res, 16),
-				PQgetvalue(res, i, 16), PQfname(res, 17),
-				PQgetvalue(res, i, 17), PQfname(res, 18),
-				PQgetvalue(res, i, 18), PQfname(res, 19), tm19->tm_year + 1900,
-				tm19->tm_mon + 1, tm19->tm_mday, tm19->tm_hour, tm19->tm_min,
-				tm19->tm_sec, v19mantissa, PQfname(res, 20),
-				PQgetvalue(res, i, 20), PQfname(res, 22), v22.f,
-				PQfname(res, 24), PQgetvalue(res, i, 24), PQfname(res, 25),
-				tm25->tm_year + 1900, tm25->tm_mon + 1, tm25->tm_mday,
-				tm25->tm_hour, tm25->tm_min, tm25->tm_sec, v25mantissa);
-		/*
-		 * For ease of coding, don't reconstruct the numerics, just dump out
-		 * each segment.
-		 */
-		num = (uint16_t *) PQgetvalue(res, i, 21);
-		if (num) {
-			LOG_ERROR_MESSAGE(
-					"%s %u %u %u %u", PQfname(res, 21), ntohs(num[0]),
-					ntohs(num[1]), ntohs(num[2]), ntohs(num[3]));
-			for (j = 4; j < PQgetlength(res, i, 21) / sizeof(uint16_t); j++) {
+		for (j = 0; j < PQnfields(res); j++) {
+			switch (j) {
+			case 21:
+			case 23:
 				LOG_ERROR_MESSAGE(
-						"%d %s %u", j, PQfname(res, 21), ntohs(num[j]));
-			}
-		} else {
-			LOG_ERROR_MESSAGE("%d %s is NULL", i, PQfname(res, 21));
-		}
-
-		num = (uint16_t *) PQgetvalue(res, i, 23);
-		if (num) {
-			LOG_ERROR_MESSAGE(
-					"%s %u %u %u %u", PQfname(res, 23), ntohs(num[0]),
-					ntohs(num[1]), ntohs(num[2]), ntohs(num[3]));
-			for (j = 4; j < PQgetlength(res, i, 23) / sizeof(uint16_t); j++) {
+						"P[%d] %s = %f", i, PQfname(res, j),
+						libpq_get_float8(res, i, j));
+				break;
+			case 22:
 				LOG_ERROR_MESSAGE(
-						"%d %s %u", j, PQfname(res, 23), ntohs(num[j]));
+						"P[%d] %s = %f", i, PQfname(res, j),
+						libpq_get_float4(res, i, j));
+				break;
+			case 26:
+				LOG_ERROR_MESSAGE(
+						"P[%d] %s = %d", i, PQfname(res, j),
+						libpq_get_int32(res, i, j));
+				break;
+			default:
+				LOG_ERROR_MESSAGE(
+						"P[%d] %s = %s", i, PQfname(res, j),
+						PQgetvalue(res, i, j));
+				break;
 			}
-		} else {
-			LOG_ERROR_MESSAGE("%d %s is NULL", i, PQfname(res, 23));
 		}
 	}
 #endif /* DEBUG */

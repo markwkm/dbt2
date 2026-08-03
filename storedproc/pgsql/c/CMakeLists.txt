@@ -1,4 +1,5 @@
 install (FILES dbt2--0.45.0.sql
+               dbt2--0.45.0--0.46.0.sql
                dbt2common.h
                dbt2.control
                delivery.c

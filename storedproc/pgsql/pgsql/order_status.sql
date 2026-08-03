@@ -17,7 +17,15 @@ CREATE OR REPLACE FUNCTION order_status (
     ol_supply_w_id INTEGER,
     ol_quantity REAL,
     ol_amount REAL,
-    ol_delivery_d TIMESTAMP
+    ol_delivery_d TEXT,
+    out_c_id INTEGER,
+    out_c_first TEXT,
+    out_c_middle TEXT,
+    out_c_last TEXT,
+    out_c_balance DOUBLE PRECISION,
+    out_o_id INTEGER,
+    out_o_carrier_id INTEGER,
+    out_o_entry_d TEXT
 ) AS $$
 DECLARE
 	tmp_c_first VARCHAR;
@@ -71,6 +79,15 @@ BEGIN
   	AND o_c_id = tmp_c_id
 	ORDER BY o_id DESC
     LIMIT 1;
+
+	out_c_id := tmp_c_id;
+	out_c_first := tmp_c_first;
+	out_c_middle := tmp_c_middle;
+	out_c_last := tmp_c_last;
+	out_c_balance := tmp_c_balance;
+	out_o_id := tmp_o_id;
+	out_o_carrier_id := tmp_o_carrier_id;
+	out_o_entry_d := tmp_o_entry_d;
 
 	FOR ol IN
 		SELECT order_line.ol_i_id, order_line.ol_supply_w_id,

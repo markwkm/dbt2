@@ -41,11 +41,14 @@ typedef struct {
 	char c_phone[4 * (C_PHONE_LEN + 1)];
 	char c_since[C_SINCE_LEN + 1];
 	char c_credit[C_CREDIT_LEN + 1];
-	float c_credit_lim;
+	double c_credit_lim;
 	float c_discount;
-	float c_balance;
+	double c_balance;
 	char c_data[4 * (C_DATA_BC_LEN + 1)];
 	char h_date[H_DATE_LEN + 1];
+	int c_id;
+	char w_name[4 * (W_NAME_LEN + 1)];
+	char d_name[4 * (D_NAME_LEN + 1)];
 } payment_row;
 
 /*
@@ -248,6 +251,7 @@ Datum payment(PG_FUNCTION_ARGS) {
 			tuple = tuptable->vals[0];
 
 			w_name = SPI_getvalue(tuple, tupdesc, 1);
+			strncpy(pp->w_name, w_name, 4 * W_NAME_LEN);
 			w_street_1 = SPI_getvalue(tuple, tupdesc, 2);
 			strncpy(pp->w_street_1, w_street_1, 4 * W_STREET_1_LEN);
 			w_street_2 = SPI_getvalue(tuple, tupdesc, 3);
@@ -279,6 +283,7 @@ Datum payment(PG_FUNCTION_ARGS) {
 			tuple = tuptable->vals[0];
 
 			d_name = SPI_getvalue(tuple, tupdesc, 1);
+			strncpy(pp->d_name, d_name, 4 * D_NAME_LEN);
 			d_street_1 = SPI_getvalue(tuple, tupdesc, 2);
 			strncpy(pp->d_street_1, d_street_1, 4 * D_STREET_1_LEN);
 			d_street_2 = SPI_getvalue(tuple, tupdesc, 3);
@@ -322,6 +327,8 @@ Datum payment(PG_FUNCTION_ARGS) {
 		} else {
 			my_c_id = c_id;
 		}
+
+		pp->c_id = my_c_id;
 
 		args[0] = Int32GetDatum(c_w_id);
 		args[1] = Int32GetDatum(c_d_id);
@@ -463,7 +470,7 @@ Datum payment(PG_FUNCTION_ARGS) {
 	if (call_cntr < max_calls) {
 		HeapTuple tuple;
 		Datum result;
-		char **values = (char **) palloc(26 * sizeof(char *));
+		char **values = (char **) palloc(29 * sizeof(char *));
 
 		payment_row *pp = (payment_row *) funcctx->user_fctx;
 
@@ -502,6 +509,9 @@ Datum payment(PG_FUNCTION_ARGS) {
 		values[23] = psprintf("%.2f", pp->c_balance);
 		values[24] = pp->c_data;
 		values[25] = pp->h_date;
+		values[26] = psprintf("%d", pp->c_id);
+		values[27] = pp->w_name;
+		values[28] = pp->d_name;
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);
 		result = HeapTupleGetDatum(tuple);

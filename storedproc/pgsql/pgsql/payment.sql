@@ -35,18 +35,18 @@ CREATE OR REPLACE FUNCTION payment (
     c_state TEXT,
     c_zip TEXT,
     c_phone TEXT,
-    c_since TIMESTAMP,
+    c_since TEXT,
     c_credit TEXT,
-    c_credit_lim NUMERIC,
+    c_credit_lim DOUBLE PRECISION,
     c_discount REAL,
-    c_balance NUMERIC,
+    c_balance DOUBLE PRECISION,
     c_data TEXT,
-    h_date TIMESTAMP
+    h_date TEXT,
+    out_c_id INTEGER,
+    w_name TEXT,
+    d_name TEXT
 ) AS $$
 DECLARE
-    d_name VARCHAR;
-    w_name VARCHAR;
-
     tmp_c_id INTEGER;
 BEGIN
 	UPDATE warehouse
@@ -133,6 +133,8 @@ BEGIN
             substring(w_name || '    ' || d_name, 1, 24))
     RETURNING history.h_date
     INTO payment.h_date;
+
+    out_c_id := tmp_c_id;
 
     RETURN NEXT;
 END;

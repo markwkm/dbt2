@@ -130,6 +130,16 @@ typedef struct {
 	char brand_generic;
 } no_order_line;
 
+typedef struct {
+	float w_tax;
+	float d_tax;
+	int o_id;
+	char c_last[4 * (C_LAST_LEN + 1)];
+	char c_credit[C_CREDIT_LEN + 1];
+	float c_discount;
+	no_order_line ol[15];
+} no_result;
+
 Datum new_order(PG_FUNCTION_ARGS) {
 	FuncCallContext *funcctx;
 	int call_cntr;
@@ -181,6 +191,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 		Datum args[9];
 		char nulls[9] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
+		no_result *res;
 		no_order_line *pp;
 
 		if (o_ol_cnt < 1 || o_ol_cnt > 15) {
@@ -237,8 +248,8 @@ Datum new_order(PG_FUNCTION_ARGS) {
 		plan_queries(statements);
 
 		funcctx->user_fctx = MemoryContextAllocZero(
-				funcctx->multi_call_memory_ctx,
-				sizeof(no_order_line) * o_ol_cnt);
+				funcctx->multi_call_memory_ctx, sizeof(no_result));
+		res = (no_result *) funcctx->user_fctx;
 
 		args[0] = Int32GetDatum(w_id);
 		ret = SPI_execute_plan(NEW_ORDER_1, args, nulls, true, 0);
@@ -248,6 +259,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 			tuple = tuptable->vals[0];
 
 			w_tax = SPI_getvalue(tuple, tupdesc, 1);
+			res->w_tax = atof(w_tax);
 			elog(DEBUG1, "w_tax = %s", w_tax);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
@@ -263,7 +275,9 @@ Datum new_order(PG_FUNCTION_ARGS) {
 			tuple = tuptable->vals[0];
 
 			d_tax = SPI_getvalue(tuple, tupdesc, 1);
+			res->d_tax = atof(d_tax);
 			d_next_o_id = atoi(SPI_getvalue(tuple, tupdesc, 2));
+			res->o_id = d_next_o_id;
 			elog(DEBUG1, "d_tax = %s", d_tax);
 			elog(DEBUG1, "d_next_o_id = %d", d_next_o_id);
 		} else {
@@ -281,8 +295,11 @@ Datum new_order(PG_FUNCTION_ARGS) {
 			tuple = tuptable->vals[0];
 
 			c_discount = SPI_getvalue(tuple, tupdesc, 1);
+			res->c_discount = atof(c_discount);
 			c_last = SPI_getvalue(tuple, tupdesc, 2);
+			strncpy(res->c_last, c_last, 4 * C_LAST_LEN);
 			c_credit = SPI_getvalue(tuple, tupdesc, 3);
+			strncpy(res->c_credit, c_credit, C_CREDIT_LEN);
 			elog(DEBUG1, "c_discount = %s", c_discount);
 			elog(DEBUG1, "c_last = %s", c_last);
 			elog(DEBUG1, "c_credit = %s", c_credit);
@@ -312,7 +329,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 							errmsg("NEW_ORDER_6 failed")));
 		}
 
-		pp = (no_order_line *) funcctx->user_fctx;
+		pp = res->ol;
 		for (i = 0; i < o_ol_cnt; i++) {
 			int decr_quantity;
 
@@ -337,7 +354,7 @@ Datum new_order(PG_FUNCTION_ARGS) {
 				elog(DEBUG1, "i_data[%d] = %s", i, i_data[i]);
 			} else {
 				/* Item doesn't exist, rollback transaction. */
-				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+				ereport(ERROR, (errcode(MAKE_SQLSTATE('D', 'B', 'T', '2', 'R')),
 								errmsg("NEW_ORDER_7 failed: item not found")));
 			}
 
@@ -423,9 +440,10 @@ Datum new_order(PG_FUNCTION_ARGS) {
 	if (call_cntr < max_calls) {
 		HeapTuple tuple;
 		Datum result;
-		char **values = (char **) palloc(8 * sizeof(char *));
+		char **values = (char **) palloc(14 * sizeof(char *));
 
-		no_order_line *pp = (no_order_line *) funcctx->user_fctx;
+		no_result *res = (no_result *) funcctx->user_fctx;
+		no_order_line *pp = res->ol;
 
 		values[0] = psprintf("%d", pp[funcctx->call_cntr].ol_supply_w_id);
 		values[1] = psprintf("%d", pp[funcctx->call_cntr].ol_i_id);
@@ -437,6 +455,12 @@ Datum new_order(PG_FUNCTION_ARGS) {
 		values[7] = (char *) palloc(2 * sizeof(char));
 		values[7][0] = pp[funcctx->call_cntr].brand_generic;
 		values[7][1] = '\0';
+		values[8] = psprintf("%.4f", res->w_tax);
+		values[9] = psprintf("%.4f", res->d_tax);
+		values[10] = psprintf("%d", res->o_id);
+		values[11] = res->c_last;
+		values[12] = res->c_credit;
+		values[13] = psprintf("%.4f", res->c_discount);
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);
 		result = HeapTupleGetDatum(tuple);

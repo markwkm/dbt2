@@ -71,9 +71,9 @@ static cached_statement statements[] = {
 
 		{NULL}};
 
-/* One returned order line: the 5 output columns as C strings. */
+/* One returned row: the output columns as C strings. */
 typedef struct {
-	char *values[5];
+	char *values[13];
 } order_status_row;
 
 /* Prototypes to prevent potential gcc warnings. */
@@ -227,14 +227,30 @@ Datum order_status(PG_FUNCTION_ARGS) {
 					 "-------------");
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			order_status_row *rows;
+			char *header[8];
+			MemoryContext spicontext;
 
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 
 			/*
 			 * Copy the results out of the SPI tuple table before
-			 * SPI_finish releases it.
+			 * SPI_finish releases it.  SPI_execute_plan restored the
+			 * SPI memory context, so switch back to allocate the
+			 * copies with the lifetime of the set returning function.
 			 */
+			spicontext =
+					MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
+			header[0] = psprintf("%d", my_c_id);
+			header[1] = c_first ? pstrdup(c_first) : NULL;
+			header[2] = c_middle ? pstrdup(c_middle) : NULL;
+			header[3] = my_c_last ? pstrdup(my_c_last) : NULL;
+			header[4] = c_balance ? pstrdup(c_balance) : NULL;
+			header[5] = psprintf("%d", o_id);
+			header[6] = o_carrier_id ? pstrdup(o_carrier_id) : NULL;
+			header[7] = o_entry_d ? pstrdup(o_entry_d) : NULL;
+			MemoryContextSwitchTo(spicontext);
+
 			rows = (order_status_row *) MemoryContextAllocZero(
 					funcctx->multi_call_memory_ctx,
 					sizeof(order_status_row) * count);
@@ -248,6 +264,9 @@ Datum order_status(PG_FUNCTION_ARGS) {
 						rows[j].values[k] = MemoryContextStrdup(
 								funcctx->multi_call_memory_ctx, value);
 					}
+				}
+				for (k = 0; k < 8; k++) {
+					rows[j].values[5 + k] = header[k];
 				}
 				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9s  %13s", j + 1,
 					 rows[j].values[0] ? rows[j].values[0] : "",
@@ -264,8 +283,11 @@ Datum order_status(PG_FUNCTION_ARGS) {
 
 		/*
 		 * Generate attribute metadata for the declared return type,
-		 * needed later to produce tuples from raw C strings.
+		 * needed later to produce tuples from raw C strings.  This
+		 * must outlive SPI_finish, so allocate it with the lifetime
+		 * of the set returning function.
 		 */
+		MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
 			TYPEFUNC_COMPOSITE) {
 			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),

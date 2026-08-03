@@ -40,6 +40,7 @@
 #define I_NAME_LEN 96
 
 #define W_CITY_LEN 80
+#define W_NAME_LEN 40
 #define W_STATE_LEN 8
 #define W_STREET_1_LEN 80
 #define W_STREET_2_LEN 80

@@ -167,6 +167,14 @@ int execute_new_order_libpq(
 			dbc->library.libpq.conn, UDF_NEW_ORDER, 50, NULL, paramValues,
 			paramLengths, paramFormats, 1);
 	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		char *sqlstate = PQresultErrorField(res, PG_DIAG_SQLSTATE);
+
+		/* The intentional New-Order rollback, about 1% of input. */
+		if (sqlstate != NULL && strcmp(sqlstate, "DBT2R") == 0) {
+			data->rollback = 1;
+			PQclear(res);
+			return ERROR;
+		}
 		LOG_ERROR_MESSAGE("NO %s", PQerrorMessage(dbc->library.libpq.conn));
 		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
 			strcmp("no connection to the server\n",
@@ -178,7 +186,29 @@ int execute_new_order_libpq(
 		PQclear(res);
 		return ERROR;
 	}
-	data->rollback = atoi(PQgetvalue(res, 0, 0));
+	data->rollback = 0;
+	data->total_amount = 0;
+	for (i = 0; i < PQntuples(res) && i < O_OL_CNT_MAX; i++) {
+		data->order_line[i].ol_supply_w_id = libpq_get_int32(res, i, 0);
+		data->order_line[i].ol_i_id = libpq_get_int32(res, i, 1);
+		libpq_copy_text(
+				data->order_line[i].i_name, sizeof(data->order_line[i].i_name),
+				res, i, 2);
+		data->order_line[i].ol_quantity = libpq_get_int32(res, i, 3);
+		data->order_line[i].s_quantity = libpq_get_int32(res, i, 4);
+		data->order_line[i].i_price = libpq_get_float4(res, i, 5);
+		data->order_line[i].ol_amount = libpq_get_float4(res, i, 6);
+		data->order_line[i].brand_generic = PQgetvalue(res, i, 7)[0];
+		data->total_amount += data->order_line[i].ol_amount;
+	}
+	if (PQntuples(res) > 0) {
+		data->w_tax = libpq_get_float4(res, 0, 8);
+		data->d_tax = libpq_get_float4(res, 0, 9);
+		data->o_id = libpq_get_int32(res, 0, 10);
+		libpq_copy_text(data->c_last, sizeof(data->c_last), res, 0, 11);
+		libpq_copy_text(data->c_credit, sizeof(data->c_credit), res, 0, 12);
+		data->c_discount = libpq_get_float4(res, 0, 13);
+	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		union {

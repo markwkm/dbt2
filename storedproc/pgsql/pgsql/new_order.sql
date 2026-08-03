@@ -39,7 +39,13 @@ CREATE OR REPLACE FUNCTION new_order (
     s_quantity INTEGER,
     i_price REAL,
     ol_amount REAL,
-    brand_generic CHAR
+    brand_generic CHAR,
+    w_tax REAL,
+    d_tax REAL,
+    o_id INTEGER,
+    c_last TEXT,
+    c_credit TEXT,
+    c_discount REAL
 ) AS $$
 DECLARE
     i INTEGER;
@@ -86,7 +92,7 @@ BEGIN
     ol[13] := order_line_14;
     ol[14] := order_line_15;
 
-    SELECT w_tax
+    SELECT warehouse.w_tax
     INTO out_w_tax
     FROM warehouse
     WHERE warehouse.w_id = new_order.w_id;
@@ -95,15 +101,22 @@ BEGIN
     SET d_next_o_id = d_next_o_id + 1
     WHERE d_w_id = w_id
       AND district.d_id = new_order.d_id
-    RETURNING d_tax, d_next_o_id - 1
+    RETURNING district.d_tax, d_next_o_id - 1
     INTO out_d_tax, out_d_next_o_id;
 
-    SELECT c_discount, c_last, c_credit
+    SELECT customer.c_discount, customer.c_last, customer.c_credit
     INTO out_c_discount, out_c_last, out_c_credit
     FROM customer
     WHERE c_w_id = w_id
       AND c_d_id = d_id
       AND customer.c_id = new_order.c_id;
+
+    w_tax := out_w_tax;
+    d_tax := out_d_tax;
+    o_id := out_d_next_o_id;
+    c_last := out_c_last;
+    c_credit := out_c_credit;
+    c_discount := out_c_discount;
 
     INSERT INTO new_order (no_o_id, no_d_id, no_w_id)
     VALUES (out_d_next_o_id, d_id, w_id);
@@ -126,7 +139,7 @@ BEGIN
         WHERE i_id = ol_i_id;
 
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'item not found';
+            RAISE EXCEPTION 'item not found' USING ERRCODE = 'DBT2R';
         END IF;
 
         ol_amount := i_price * ol_quantity;
