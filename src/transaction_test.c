@@ -12,6 +12,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
@@ -79,6 +80,12 @@ int main(int argc, char *argv[]) {
 		printf("-d <connect string>\n");
 		printf("\tdatabase hostname\n");
 #endif /* HAVE_LIBPQ */
+#ifdef HAVE_MYSQL
+		printf("\nMySQL:\n");
+		printf("-d <connect string>\n");
+		printf("\tsocket file, connects as root to the database named by\n");
+		printf("\tDBT2DBNAME, default dbt2\n");
+#endif /* HAVE_MYSQL */
 #ifdef HAVE_SQLITE3
 		printf("\nSQLite:\n");
 		printf("-d <connect string>\n");
@@ -95,6 +102,10 @@ int main(int argc, char *argv[]) {
 		if (argv[i][1] == 'a') {
 			if (strcmp(argv[i + 1], "cockroach") == 0) {
 				dbms = DBMSCOCKROACH;
+#ifdef HAVE_MYSQL
+			} else if (strcmp(argv[i + 1], "mysql") == 0) {
+				dbms = DBMSMYSQL;
+#endif /* HAVE_MYSQL */
 #ifdef HAVE_ORACLE
 			} else if (strcmp(argv[i + 1], "oracle") == 0) {
 				dbms = DBMSORACLE;
@@ -218,11 +229,14 @@ int main(int argc, char *argv[]) {
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_MYSQL
-		case DBMSMYSQL:
-			/* TODO: Implement this for MySQL */
-			printf("error: not implemented for mysql");
-			exit(1);
+		case DBMSMYSQL: {
+			char *dbname = getenv("DBT2DBNAME");
+
+			db_init_mysql(
+					&dbc, dbname ? dbname : "dbt2", "localhost", "root", "",
+					"0", connect_str);
 			break;
+		}
 #endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3

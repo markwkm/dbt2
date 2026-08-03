@@ -249,6 +249,7 @@ vX.Y.Z (YYYY-MM-DD)
   Order-Status, and Stock-Level, and report the intentional New-Order
   rollback with a dedicated SQLSTATE; the dbt2 extension is updated to
   0.46.0
+- transaction-test: accept mysql as a dbms option
 
 v0.61.7 (2025-07-01)
 
