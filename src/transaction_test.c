@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 			   argv[0]);
 		printf("\n\n");
 		printf("-a <dbms>\n");
-		printf("\tcockroach|mysql|pgsql|yugabyte\n");
+		printf("\tcockroach|mysql|pgsql|sqlite|yugabyte\n");
 		printf("-t (d|n|o|p|s)\n");
 		printf("\td = Delivery, n = New-Order, o = Order-Status,\n");
 		printf("\tp = Payment, s = Stock-Level\n");
@@ -78,6 +78,11 @@ int main(int argc, char *argv[]) {
 		printf("-d <connect string>\n");
 		printf("\tdatabase hostname\n");
 #endif /* HAVE_LIBPQ */
+#ifdef HAVE_SQLITE3
+		printf("\nSQLite:\n");
+		printf("-d <connect string>\n");
+		printf("\tdatabase filename\n");
+#endif /* HAVE_SQLITE3 */
 		return 1;
 	}
 
@@ -95,6 +100,10 @@ int main(int argc, char *argv[]) {
 #endif /* HAVE_ORACLE */
 			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
+#ifdef HAVE_SQLITE3
+			} else if (strcmp(argv[i + 1], "sqlite") == 0) {
+				dbms = DBMSSQLITE;
+#endif /* HAVE_SQLITE3 */
 			} else {
 				printf("unrecognized dbms option: %s", argv[i + 1]);
 				exit(1);
