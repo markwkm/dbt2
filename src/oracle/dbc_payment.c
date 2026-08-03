@@ -18,7 +18,7 @@ struct paymentctx {
 	int c_w_id;
 	int c_d_id;
 
-	char c_last[C_LAST_LEN + 1];
+	char c_last[4 * (C_LAST_LEN + 1)];
 
 	float h_amount;
 
@@ -91,7 +91,9 @@ int execute_payment_oracle(struct db_context_t *dbc, struct payment_t *data) {
 	dbc->library.oracle.pctx->c_id = data->c_id;
 	dbc->library.oracle.pctx->c_w_id = data->c_w_id;
 	dbc->library.oracle.pctx->c_d_id = data->c_d_id;
-	strncpy(dbc->library.oracle.pctx->c_last, data->c_last, C_LAST_LEN + 1);
+	wcstombs(
+			dbc->library.oracle.pctx->c_last, data->c_last,
+			4 * (C_LAST_LEN + 1));
 	dbc->library.oracle.pctx->h_amount = data->h_amount;
 
 	int retries = 0;

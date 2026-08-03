@@ -252,6 +252,8 @@ vX.Y.Z (YYYY-MM-DD)
 - transaction-test: accept mysql as a dbms option
 - mysql: return the transaction output data for New-Order, Payment,
   and Order-Status
+- oracle: payment and order status convert the wide character last
+  name instead of copying its raw bytes
 
 v0.61.7 (2025-07-01)
 

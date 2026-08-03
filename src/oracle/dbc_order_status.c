@@ -14,7 +14,7 @@ struct ordstatusctx {
 	int c_id;
 	int c_w_id;
 	int c_d_id;
-	char c_last[C_LAST_LEN + 1];
+	char c_last[4 * (C_LAST_LEN + 1)];
 
 	OCIStmt *curo1;
 
@@ -73,7 +73,9 @@ int execute_order_status_oracle(
 	dbc->library.oracle.octx->c_id = data->c_id;
 	dbc->library.oracle.octx->c_w_id = data->c_w_id;
 	dbc->library.oracle.octx->c_d_id = data->c_d_id;
-	strncpy(dbc->library.oracle.octx->c_last, data->c_last, C_LAST_LEN + 1);
+	wcstombs(
+			dbc->library.oracle.octx->c_last, data->c_last,
+			4 * (C_LAST_LEN + 1));
 
 	int retries = 0;
 	int execstatus = 0;
