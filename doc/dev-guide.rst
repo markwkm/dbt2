@@ -78,7 +78,7 @@ A test per database management system builds a small database and executes
 each of the five transactions through `dbt2-transaction-test`, verifying the
 stored procedures or client side SQL against that system.  These tests are
 labeled `integration` and report as skipped when the database system is
-unavailable.  MySQL, PostgreSQL, and SQLite are currently covered.
+unavailable.  MySQL, Oracle, PostgreSQL, and SQLite are currently covered.
 The MySQL and PostgreSQL tests run a private server on a socket in
 their temporary directories, so they need the server binaries in
 addition to the client programs but no running server.  One test each exercises the pl/pgsql stored
@@ -87,6 +87,30 @@ implementation.  The pl/C functions are built and loaded without
 being installed, which additionally needs the server development
 headers, make, and PostgreSQL 18 or later, and that test skips when
 they are unavailable.
+
+An Oracle server cannot run as a throwaway process in a temporary
+directory, so the Oracle test connects as the user `dbt`, password
+`dbt`, to an existing database, or manages one itself, and needs
+`sqlplus` and `sqlldr` in the path.  The test drops and recreates
+the dbt2 tables and stored procedures in that account's schema each
+run.  The `DBT2ORACLE` environment variable (an EZConnect string)
+names the database; when it is not set the test probes Oracle
+Database Free's fixed local address `//localhost:1521/FREEPDB1` and
+uses it if the `dbt` account answers.  When nothing answers and the
+host holds an Oracle Database Free software home, the test starts
+the FREE database and creates the dbt account if the database
+exists but is not running (the official container images ship it
+created but stopped), creates the database from the software home's
+seed template when it does not exist, which takes about ten
+minutes, and leaves it running for later runs to find through the
+probe.  Database management commands run
+as the oracle software owner: directly when the test runs as
+oracle, through `su` when it runs as root, and otherwise through
+`su` with the fixed oracle account password the official container
+images set.  Because the schema is shared, only one run at a time
+may use a given database.  For example::
+
+    DBT2ORACLE=//dbhost:1521/FREEPDB1 ctest -R transaction_oracle -V
 
 AppImage
 ========

@@ -28,6 +28,12 @@ add_test(NAME transaction_mysql
                  ${CMAKE_BINARY_DIR}/dbt2-mysql-build-db)
 set_tests_properties(transaction_mysql
                      PROPERTIES LABELS integration SKIP_RETURN_CODE 77)
+add_test(NAME transaction_oracle
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_oracle.sh
+                 $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>
+                 ${CMAKE_BINARY_DIR}/dbt2-oracle-build-db)
+set_tests_properties(transaction_oracle
+                     PROPERTIES LABELS integration SKIP_RETURN_CODE 77)
 add_test(NAME transaction_pgsql_c
          COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_pgsql.sh
                  $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>
