@@ -81,6 +81,7 @@ int db_init_sqlite(struct db_context_t *dbc, char *dbname) {
   } else {
     strncpy(dbc->library.sqlite.dbname, "./dbt2.sqlite", SQLITE3_DBNAME_LEN);
   }
+  dbc->library.sqlite.dbname[SQLITE3_DBNAME_LEN] = '\0';
   return OK;
 }
 

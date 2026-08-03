@@ -24,7 +24,7 @@
 
 #include "entropy.h"
 
-char connect_str[32] = "";
+char *connect_str = "";
 int mode_altered = 0;
 
 int main(int argc, char *argv[]) {
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 				exit(1);
 			}
 		} else if (argv[i][1] == 'd') {
-			strcpy(connect_str, argv[i + 1]);
+			connect_str = argv[i + 1];
 		} else if (argv[i][1] == 't') {
 			if (argv[i + 1][0] == 'd') {
 				transaction = DELIVERY;
