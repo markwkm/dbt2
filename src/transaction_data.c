@@ -8,9 +8,30 @@
  */
 
 #include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
 #include <transaction_data.h>
 
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+
+/*
+ * Print a string padded to a field width counted in characters, which
+ * multibyte encoding makes differ from the byte count printf pads to.
+ */
+static void fprint_padded(FILE *fp, char *s, int width) {
+	size_t len;
+	int pad;
+
+	len = mbstowcs(NULL, s, 0);
+	if (len == (size_t) -1) {
+		len = strlen(s);
+	}
+	pad = width - (int) len;
+	fprintf(fp, "%s", s);
+	while (pad-- > 0) {
+		fputc(' ', fp);
+	}
+}
 
 union data_pointer_t {
 	struct delivery_t *de;
@@ -48,13 +69,14 @@ int dump(FILE *fp, int type, void *data) {
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.no->o_ol_cnt);
 		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s BG\n", "##",
 				"ol_i_id", "i_name", "i_price", "ol_supply_w_id", "ol_quantity",
-				"s_quantity", "ol_ammount");
+				"s_quantity", "ol_amount");
 		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s --\n", "--",
 				"-------", "------------------------", "---------",
 				"--------------", "-----------", "----------", "----------");
 		for (i = 0; i < ptr.no->o_ol_cnt; i++) {
-			fprintf(fp, "%2d %7d %24s %9.2f %14d %11d %10d %10.2f %c\n", i + 1,
-					ptr.no->order_line[i].ol_i_id, ptr.no->order_line[i].i_name,
+			fprintf(fp, "%2d %7d ", i + 1, ptr.no->order_line[i].ol_i_id);
+			fprint_padded(fp, ptr.no->order_line[i].i_name, 24);
+			fprintf(fp, " %9.2f %14d %11d %10d %10.2f %c\n",
 					ptr.no->order_line[i].i_price,
 					ptr.no->order_line[i].ol_supply_w_id,
 					ptr.no->order_line[i].ol_quantity,
@@ -83,8 +105,10 @@ int dump(FILE *fp, int type, void *data) {
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.os->o_ol_cnt);
 		fprintf(fp, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  "
 					"ol_delivery_d\n");
+		fprintf(fp, "--  -------  --------------  -----------  ---------  "
+					"-------------------\n");
 		for (i = 0; i < ptr.os->o_ol_cnt; i++) {
-			fprintf(fp, "%2d  %7d  %14d  %11d  %9.2f  %s\n", i,
+			fprintf(fp, "%2d  %7d  %14d  %11d  %9.2f  %s\n", i + 1,
 					ptr.os->order_line[i].ol_i_id,
 					ptr.os->order_line[i].ol_supply_w_id,
 					ptr.os->order_line[i].ol_quantity,
