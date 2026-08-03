@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 			   argv[0]);
 		printf("\n\n");
 		printf("-a <dbms>\n");
-		printf("\tcockroach|mysql|pgsql|sqlite|yugabyte\n");
+		printf("\tcockroach|mysql|oracle|pgsql|sqlite|yugabyte\n");
 		printf("-t (d|n|o|p|s)\n");
 		printf("\td = Delivery, n = New-Order, o = Order-Status,\n");
 		printf("\tp = Payment, s = Stock-Level\n");
@@ -86,6 +86,12 @@ int main(int argc, char *argv[]) {
 		printf("\tsocket file, connects as root to the database named by\n");
 		printf("\tDBT2DBNAME, default dbt2\n");
 #endif /* HAVE_MYSQL */
+#ifdef HAVE_ORACLE
+		printf("\nOracle:\n");
+		printf("-d <connect string>\n");
+		printf("\tEZConnect string or tnsnames.ora alias, connects as\n");
+		printf("\t%s, default //localhost:1521/FREEPDB1\n", DB_USER);
+#endif /* HAVE_ORACLE */
 #ifdef HAVE_SQLITE3
 		printf("\nSQLite:\n");
 		printf("-d <connect string>\n");

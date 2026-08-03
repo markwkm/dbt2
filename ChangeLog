@@ -257,6 +257,8 @@ vX.Y.Z (YYYY-MM-DD)
 - oracle: return the transaction output data for New-Order, Payment,
   and Order-Status
 - oracle: include string.h in the transaction callers
+- transaction-test: describe the oracle dbms option in the usage
+  message
 
 v0.61.7 (2025-07-01)
 
