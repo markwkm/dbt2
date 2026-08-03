@@ -5,6 +5,6 @@ EXTENSION = dbt2
 DATA = dbt2--0.45.0.sql
 PGFILEDESC = "DBT-2 C stored functions"
 
-PG_CPPFLAGS=-g -fno-omit-frame-pointer -Wall
+PG_CFLAGS=-g -fno-omit-frame-pointer -Wall
 PGXS := $(shell pg_config --pgxs)
 include $(PGXS)
