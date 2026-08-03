@@ -89,6 +89,7 @@ int execute_new_order_cockroach(
 	char decr_qty[OL_QUANTITY_LEN + 1];
 	char remote_cnt[2];
 	char my_s_dist[S_DIST_LEN + 1];
+	char i_data[I_DATA_LEN + 1];
 
 	int i;
 #ifdef DEBUG
@@ -100,6 +101,9 @@ int execute_new_order_cockroach(
 	snprintf(o_ol_cnt, sizeof(o_ol_cnt), "%d", data->o_ol_cnt);
 	snprintf(o_all_local, sizeof(o_all_local), "%d", data->o_all_local);
 	snprintf(w_id, sizeof(w_id), "%d", data->w_id);
+
+	data->rollback = 0;
+	data->total_amount = 0;
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -126,6 +130,7 @@ int execute_new_order_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
+	data->w_tax = atof(PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 	for (j = 0; j < PQntuples(res); j++) {
 		LOG_ERROR_MESSAGE("NO1[%d] w_tax %s", j, PQgetvalue(res, j, 0));
@@ -152,6 +157,8 @@ int execute_new_order_cockroach(
 		return ERROR;
 	}
 	snprintf(d_next_o_id, sizeof(d_next_o_id), "%s", PQgetvalue(res, 0, 1));
+	data->d_tax = atof(PQgetvalue(res, 0, 0));
+	data->o_id = atoi(PQgetvalue(res, 0, 1));
 #ifdef DEBUG
 	for (j = 0; j < PQntuples(res); j++) {
 		LOG_ERROR_MESSAGE(
@@ -181,6 +188,10 @@ int execute_new_order_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
+	data->c_discount = atof(PQgetvalue(res, 0, 0));
+	snprintf(data->c_last, sizeof(data->c_last), "%s", PQgetvalue(res, 0, 1));
+	snprintf(data->c_credit, sizeof(data->c_credit), "%s",
+			 PQgetvalue(res, 0, 2));
 #ifdef DEBUG
 	for (j = 0; j < PQntuples(res); j++) {
 		LOG_ERROR_MESSAGE(
@@ -239,12 +250,20 @@ int execute_new_order_cockroach(
 					"NO6 %s\n"
 					"NO6 [%d] ol_i_id = %s",
 					NEW_ORDER_6, i, ol_i_id);
+			/* Item doesn't exist, rollback transaction. */
+			data->rollback = 1;
 			PQclear(res);
 			return ERROR;
 		}
 		fol_amount = atof(PQgetvalue(res, 0, 0)) *
 					 (float) data->order_line[i].ol_quantity;
 		snprintf(ol_amount, sizeof(ol_amount), "%f", fol_amount);
+		data->order_line[i].i_price = atof(PQgetvalue(res, 0, 0));
+		snprintf(data->order_line[i].i_name, sizeof(data->order_line[i].i_name),
+				 "%s", PQgetvalue(res, 0, 1));
+		snprintf(i_data, sizeof(i_data), "%s", PQgetvalue(res, 0, 2));
+		data->order_line[i].ol_amount = fol_amount;
+		data->total_amount += fol_amount;
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE(
@@ -284,6 +303,13 @@ int execute_new_order_cockroach(
 			decr_quantity = data->order_line[i].ol_quantity - 91;
 		}
 		snprintf(my_s_dist, sizeof(my_s_dist), "%s", PQgetvalue(res, 0, 1));
+		data->order_line[i].s_quantity = atoi(PQgetvalue(res, 0, 0));
+		if (strstr(i_data, "ORIGINAL") &&
+			strstr(PQgetvalue(res, 0, 2), "ORIGINAL")) {
+			data->order_line[i].brand_generic = 'B';
+		} else {
+			data->order_line[i].brand_generic = 'G';
+		}
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE(

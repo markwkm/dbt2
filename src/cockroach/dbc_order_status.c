@@ -56,9 +56,7 @@ int execute_order_status_cockroach(
 	char c_last[4 * (C_LAST_LEN + 1)];
 	char o_id[O_ID_LEN + 1];
 
-#ifdef DEBUG
 	int i;
-#endif /* DEBUG */
 
 	snprintf(c_d_id, sizeof(c_d_id), "%d", data->c_d_id);
 	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
@@ -107,6 +105,7 @@ int execute_order_status_cockroach(
 	} else {
 		snprintf(c_id, sizeof(c_id), "%d", data->c_id);
 	}
+	data->c_id = atoi(c_id);
 
 	paramValues[2] = c_id;
 	res = PQexecParams(
@@ -127,6 +126,12 @@ int execute_order_status_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
+	snprintf(data->c_first, sizeof(data->c_first), "%s",
+			 PQgetvalue(res, 0, 0));
+	snprintf(data->c_middle, sizeof(data->c_middle), "%s",
+			 PQgetvalue(res, 0, 1));
+	mbstowcs(data->c_last, PQgetvalue(res, 0, 2), C_LAST_LEN + 1);
+	data->c_balance = atof(PQgetvalue(res, 0, 3));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -159,6 +164,10 @@ int execute_order_status_cockroach(
 		return ERROR;
 	}
 	snprintf(o_id, sizeof(o_id), "%s", PQgetvalue(res, 0, 0));
+	data->o_id = atoi(PQgetvalue(res, 0, 0));
+	data->o_carrier_id = atoi(PQgetvalue(res, 0, 1));
+	snprintf(data->o_entry_d, sizeof(data->o_entry_d), "%s",
+			 PQgetvalue(res, 0, 2));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -190,6 +199,19 @@ int execute_order_status_cockroach(
 				ORDER_STATUS_4, c_w_id, c_d_id, o_id);
 		PQclear(res);
 		return ERROR;
+	}
+	data->o_ol_cnt = PQntuples(res);
+	if (data->o_ol_cnt > O_OL_CNT_MAX) {
+		data->o_ol_cnt = O_OL_CNT_MAX;
+	}
+	for (i = 0; i < data->o_ol_cnt; i++) {
+		data->order_line[i].ol_i_id = atoi(PQgetvalue(res, i, 0));
+		data->order_line[i].ol_supply_w_id = atoi(PQgetvalue(res, i, 1));
+		data->order_line[i].ol_quantity = atoi(PQgetvalue(res, i, 2));
+		data->order_line[i].ol_amount = atof(PQgetvalue(res, i, 3));
+		snprintf(data->order_line[i].ol_delivery_d,
+				 sizeof(data->order_line[i].ol_delivery_d), "%s",
+				 PQgetvalue(res, i, 4));
 	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {

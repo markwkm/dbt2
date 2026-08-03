@@ -124,6 +124,15 @@ int execute_payment_cockroach(
 		return ERROR;
 	}
 	snprintf(w_name, sizeof(w_name), "%s", PQgetvalue(res, 0, 0));
+	snprintf(data->w_name, sizeof(data->w_name), "%s", PQgetvalue(res, 0, 0));
+	snprintf(data->w_street_1, sizeof(data->w_street_1), "%s",
+			 PQgetvalue(res, 0, 1));
+	snprintf(data->w_street_2, sizeof(data->w_street_2), "%s",
+			 PQgetvalue(res, 0, 2));
+	snprintf(data->w_city, sizeof(data->w_city), "%s", PQgetvalue(res, 0, 3));
+	snprintf(data->w_state, sizeof(data->w_state), "%s",
+			 PQgetvalue(res, 0, 4));
+	snprintf(data->w_zip, sizeof(data->w_zip), "%s", PQgetvalue(res, 0, 5));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -162,6 +171,15 @@ int execute_payment_cockroach(
 		return ERROR;
 	}
 	snprintf(d_name, sizeof(d_name), "%s", PQgetvalue(res, 0, 0));
+	snprintf(data->d_name, sizeof(data->d_name), "%s", PQgetvalue(res, 0, 0));
+	snprintf(data->d_street_1, sizeof(data->d_street_1), "%s",
+			 PQgetvalue(res, 0, 1));
+	snprintf(data->d_street_2, sizeof(data->d_street_2), "%s",
+			 PQgetvalue(res, 0, 2));
+	snprintf(data->d_city, sizeof(data->d_city), "%s", PQgetvalue(res, 0, 3));
+	snprintf(data->d_state, sizeof(data->d_state), "%s",
+			 PQgetvalue(res, 0, 4));
+	snprintf(data->d_zip, sizeof(data->d_zip), "%s", PQgetvalue(res, 0, 5));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -241,6 +259,30 @@ int execute_payment_cockroach(
 	} else {
 		LOG_ERROR_MESSAGE("P4 unrecognized credit %s", PQgetvalue(res, 0, 10));
 	}
+	data->c_id = atoi(c_id);
+	snprintf(data->c_first, sizeof(data->c_first), "%s",
+			 PQgetvalue(res, 0, 0));
+	snprintf(data->c_middle, sizeof(data->c_middle), "%s",
+			 PQgetvalue(res, 0, 1));
+	mbstowcs(data->c_last, PQgetvalue(res, 0, 2), C_LAST_LEN + 1);
+	snprintf(data->c_street_1, sizeof(data->c_street_1), "%s",
+			 PQgetvalue(res, 0, 3));
+	snprintf(data->c_street_2, sizeof(data->c_street_2), "%s",
+			 PQgetvalue(res, 0, 4));
+	snprintf(data->c_city, sizeof(data->c_city), "%s", PQgetvalue(res, 0, 5));
+	snprintf(data->c_state, sizeof(data->c_state), "%s",
+			 PQgetvalue(res, 0, 6));
+	snprintf(data->c_zip, sizeof(data->c_zip), "%s", PQgetvalue(res, 0, 7));
+	snprintf(data->c_phone, sizeof(data->c_phone), "%s",
+			 PQgetvalue(res, 0, 8));
+	snprintf(data->c_since, sizeof(data->c_since), "%s",
+			 PQgetvalue(res, 0, 9));
+	snprintf(data->c_credit, sizeof(data->c_credit), "%s",
+			 PQgetvalue(res, 0, 10));
+	data->c_credit_lim = atof(PQgetvalue(res, 0, 11));
+	data->c_discount = atof(PQgetvalue(res, 0, 12));
+	/* Display the balance as of after this payment. */
+	data->c_balance = atof(PQgetvalue(res, 0, 13)) - data->h_amount;
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE(
@@ -291,6 +333,7 @@ int execute_payment_cockroach(
 			return ERROR;
 		}
 		c_data[0] = '\0';
+		data->c_data[0] = '\0';
 	} else {
 		snprintf(
 				c_data, sizeof(c_data), "%s %d %d %d %d %f ", c_id,
@@ -323,6 +366,8 @@ int execute_payment_cockroach(
 			return ERROR;
 		}
 		snprintf(c_data, sizeof(c_data), "%s", PQgetvalue(res, 0, 0));
+		snprintf(data->c_data, sizeof(data->c_data), "%s",
+				 PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 		for (i = 0; i < PQntuples(res); i++) {
 			LOG_ERROR_MESSAGE("P5_BC[%d] c_data %s", i, PQgetvalue(res, i, 0));
@@ -363,6 +408,7 @@ int execute_payment_cockroach(
 		PQclear(res);
 		return ERROR;
 	}
+	snprintf(data->h_date, sizeof(data->h_date), "%s", PQgetvalue(res, 0, 0));
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
 		LOG_ERROR_MESSAGE("P8[%d] h_date %s", i, PQgetvalue(res, i, 0));

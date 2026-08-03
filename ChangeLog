@@ -243,6 +243,8 @@ vX.Y.Z (YYYY-MM-DD)
   rollback
 - transaction-test: a connect string of 32 or more bytes no longer
   overflows a fixed buffer
+- cockroach: return the transaction output data for New-Order, Payment,
+  and Order-Status, and flag the intentional New-Order rollback
 
 v0.61.7 (2025-07-01)
 
