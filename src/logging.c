@@ -37,6 +37,13 @@ int edump(int type, void *data) {
 /* Open a file to log errors to. */
 int init_logging() {
 	char log_filename[512];
+
+	if (output_path == NULL) {
+		/* No output directory to log to, e.g. dbt2-transaction-test. */
+		log_error = stderr;
+		return OK;
+	}
+
 	log_filename[511] = '\0';
 	snprintf(log_filename, 511, "%s/%s", output_path, ERROR_LOG_NAME);
 	log_error = fopen(log_filename, "w");

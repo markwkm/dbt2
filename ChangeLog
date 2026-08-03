@@ -237,6 +237,7 @@ vX.Y.Z (YYYY-MM-DD)
   pids and sweeps its process group when interrupted, and
   dbt2-post-process.sqlite3 exits cleanly on signals
 - transaction-test: accept sqlite as a dbms option
+- logging: write to stderr when no output path is set
 
 v0.61.7 (2025-07-01)
 
