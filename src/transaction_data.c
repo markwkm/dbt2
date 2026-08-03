@@ -82,7 +82,8 @@ int dump(FILE *fp, int type, void *data) {
 					ptr.no->order_line[i].ol_quantity,
 					ptr.no->order_line[i].s_quantity,
 					ptr.no->order_line[i].ol_amount,
-					ptr.no->order_line[i].brand_generic);
+					ptr.no->order_line[i].brand_generic ?
+							ptr.no->order_line[i].brand_generic : ' ');
 		}
 		fprintf(fp, "o_id = %d\n", ptr.no->o_id);
 		fprintf(fp, "total_amount = %0.2f\n", ptr.no->total_amount);
