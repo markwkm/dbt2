@@ -261,6 +261,8 @@ vX.Y.Z (YYYY-MM-DD)
   message
 - oracle: add a dbt2-oracle-build-db script that creates and loads
   the tables and stored procedures
+- container: update Containerfile.oracle to a database server and
+  build environment image that can run the oracle integration test
 
 v0.61.7 (2025-07-01)
 

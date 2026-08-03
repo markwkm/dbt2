@@ -1,31 +1,70 @@
-# Build a development environment for Oracle.
+# vim: set ft=dockerfile :
 
-FROM container-registry.oracle.com/database/express:21.3.0-xe
+# Oracle Database server and DBT-2 build environment for testing.
+#
+# This file is released under the terms of the Artistic License.  Please see
+# the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-2 Authors
+#
+# Oracle Database Free via Oracle's official container image, which can be
+# pulled without registry credentials.  The image runs on Oracle Linux 8
+# and carries the complete database software home: the OCI header files,
+# libclntsh, sqlplus, sqlldr, and the dbca seed template.  It also ships
+# the FREE database already created but stopped, and it stays stopped
+# here: running the image with an idle command replaces the base image's
+# CMD, and the oracle integration test starts the database and creates
+# the dbt account itself when nothing answers its probe; later runs find
+# the database it leaves running.
+#
+# Build:
+#
+#     podman build -t dbt2-oracle -f Containerfile.oracle .
+#
+# Run with the source tree mounted, then build the kit and run the tests
+# inside the container:
+#
+#     podman run -d --name dbt2-oracle --shm-size=2g \
+#         -v .:/home/oracle/dbt2:rw,Z dbt2-oracle sleep infinity
+#     podman exec -u root -it -w /home/oracle/dbt2 dbt2-oracle bash
+#     cmake -S . -B build/oracle -DCMAKE_BUILD_TYPE=Debug
+#     cmake --build build/oracle
+#     (cd build/oracle && ctest -R transaction_oracle -V)
+#
+# The same commands work with docker in place of podman.  Database data
+# lives under /opt/oracle/oradata and is not persisted across container
+# removal.
+
+FROM container-registry.oracle.com/database/free:latest
 
 USER root
 
-RUN yum -y update && \
-    yum -y install oracle-epel-release-el7 && \
-    yum clean all
+# The base image is built inside Oracle Cloud, which points the
+# repositories at an OCI-internal mirror through the $ociregion
+# variable; truncating the file falls back to the public
+# yum.oracle.com.  libev-devel comes from the EPEL repository that
+# oracle-epel-release-el8 adds.
+RUN : > /etc/yum/vars/ociregion && \
+    dnf -y install oracle-epel-release-el8 && \
+    dnf -y --enablerepo ol8_developer_EPEL install \
+        binutils \
+        cmake \
+        diffutils \
+        file \
+        gcc \
+        glibc-devel \
+        glibc-langpack-en \
+        gzip \
+        libev-devel \
+        make \
+        pkgconf-pkg-config \
+        tar && \
+    dnf clean all
 
-RUN yum -y update && \
-    yum -y install curl \
-                   gcc \
-                   gcc-c++ \
-                   libev-devel \
-                   make && \
-    yum clean all
+# shunit2 is not packaged for Oracle Linux.
+ARG SHUNIT2VER="2.1.8"
+RUN curl -sSL -o /usr/local/bin/shunit2 \
+         https://raw.githubusercontent.com/kward/shunit2/v${SHUNIT2VER}/shunit2 && \
+    chmod 755 /usr/local/bin/shunit2
 
-ARG ARCH="x86_64"
-
-ARG CMAKEVER="3.7.2"
-RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
-         https://github.com/Kitware/CMake/releases/download/v${CMAKEVER}/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz && \
-    tar -C /usr --strip-components=1 \
-        -xf /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz
-
-USER root
-
-# podman build --isolation=chroot -t dbt2-oracle -f Containerfile.oracle .
-# podman run -d -v .:/home/oracle/dbt2:rw,Z -e ORACLE_PWD=dbt2 -w /home/oracle/dbt2 --name dbt2ora --shm-size=2g -p 1521:1521 dbt2-oracle
-# podman exec -u root -it dbt2ora /bin/bash
+USER oracle
