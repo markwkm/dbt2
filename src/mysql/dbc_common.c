@@ -38,11 +38,15 @@ int connect_to_db_mysql(struct db_context_t *dbc) {
 	}
 
 	// FIXME: change atoi() to strtol() and check for errors
+	/*
+	 * CLIENT_MULTI_RESULTS allows the stored procedures to return the
+	 * transaction output data as result sets.
+	 */
 	if (!mysql_real_connect(
 				dbc->library.mysql.mysql, dbc->library.mysql.host,
 				dbc->library.mysql.user, dbc->library.mysql.pass,
 				dbc->library.mysql.dbname, atoi(dbc->library.mysql.port_t),
-				dbc->library.mysql.socket_t, 0)) {
+				dbc->library.mysql.socket_t, CLIENT_MULTI_RESULTS)) {
 		if (mysql_errno(dbc->library.mysql.mysql)) {
 			LOG_ERROR_MESSAGE(
 					"Connection to database '%s' failed.",

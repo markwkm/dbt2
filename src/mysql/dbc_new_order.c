@@ -16,6 +16,8 @@ int execute_new_order_mysql(
 		struct db_context_t *dbc, struct new_order_t *data) {
 	char stmt[512];
 	int rc;
+	int line;
+	int num_fields;
 
 	MYSQL_RES *result;
 	MYSQL_ROW row;
@@ -66,6 +68,69 @@ int execute_new_order_mysql(
 				mysql_error(dbc->library.mysql.mysql));
 		return ERROR;
 	}
+
+	/*
+	 * The stored procedures return the output data as result sets: one
+	 * 5 column set per order line from new_order_2() then a 7 column
+	 * set from new_order().  A transaction that rolls back stops
+	 * producing result sets where the error occurred.
+	 */
+	line = 0;
+	do {
+		result = mysql_store_result(dbc->library.mysql.mysql);
+		if (result == NULL) {
+			continue;
+		}
+		num_fields = mysql_num_fields(result);
+		row = mysql_fetch_row(result);
+		if (row == NULL) {
+			mysql_free_result(result);
+			continue;
+		}
+		if (num_fields == 5 && line < O_OL_CNT_MAX) {
+			if (row[0]) {
+				data->order_line[line].i_price = atof(row[0]);
+			}
+			if (row[1]) {
+				snprintf(
+						data->order_line[line].i_name,
+						sizeof(data->order_line[line].i_name), "%s", row[1]);
+			}
+			if (row[2]) {
+				data->order_line[line].s_quantity = atoi(row[2]);
+			}
+			if (row[3]) {
+				data->order_line[line].ol_amount = atof(row[3]);
+			}
+			if (row[4]) {
+				data->order_line[line].brand_generic = row[4][0];
+			}
+			++line;
+		} else if (num_fields == 7) {
+			if (row[0]) {
+				data->w_tax = atof(row[0]);
+			}
+			if (row[1]) {
+				data->d_tax = atof(row[1]);
+			}
+			if (row[2]) {
+				data->o_id = atoi(row[2]);
+			}
+			if (row[3]) {
+				snprintf(data->c_last, sizeof(data->c_last), "%s", row[3]);
+			}
+			if (row[4]) {
+				snprintf(data->c_credit, sizeof(data->c_credit), "%s", row[4]);
+			}
+			if (row[5]) {
+				data->c_discount = atof(row[5]);
+			}
+			if (row[6]) {
+				data->total_amount = atof(row[6]);
+			}
+		}
+		mysql_free_result(result);
+	} while (mysql_next_result(dbc->library.mysql.mysql) == 0);
 
 	rc = ERROR;
 

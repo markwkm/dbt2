@@ -464,6 +464,14 @@ BEGIN
       END IF;
     END IF;
 
+    /*
+     * Return the transaction output data as a result set, with the
+     * total amount before the discount and tax adjustment that the
+     * client applies.
+     */
+    SELECT out_w_tax, out_d_tax, o_id, out_c_last, out_c_credit,
+           out_c_discount, tmp_total_amount;
+
     SET tmp_total_amount = tmp_total_amount * (1 - out_c_discount)
                          * (1 + out_w_tax + out_d_tax);
 

@@ -244,6 +244,71 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
 
        close c;
 
+       /* Return the transaction output data as result sets. */
+       SELECT out_c_id, out_c_first, out_c_middle, out_c_last,
+              out_c_balance, out_o_id, out_o_carrier_id, out_o_entry_d,
+              out_o_ol_cnt;
+       IF out_o_ol_cnt >= 1 THEN
+              SELECT out_ol_i_id1, out_ol_supply_w_id1, out_ol_quantity1,
+                     out_ol_amount1, out_ol_delivery_d1;
+       END IF;
+       IF out_o_ol_cnt >= 2 THEN
+              SELECT out_ol_i_id2, out_ol_supply_w_id2, out_ol_quantity2,
+                     out_ol_amount2, out_ol_delivery_d2;
+       END IF;
+       IF out_o_ol_cnt >= 3 THEN
+              SELECT out_ol_i_id3, out_ol_supply_w_id3, out_ol_quantity3,
+                     out_ol_amount3, out_ol_delivery_d3;
+       END IF;
+       IF out_o_ol_cnt >= 4 THEN
+              SELECT out_ol_i_id4, out_ol_supply_w_id4, out_ol_quantity4,
+                     out_ol_amount4, out_ol_delivery_d4;
+       END IF;
+       IF out_o_ol_cnt >= 5 THEN
+              SELECT out_ol_i_id5, out_ol_supply_w_id5, out_ol_quantity5,
+                     out_ol_amount5, out_ol_delivery_d5;
+       END IF;
+       IF out_o_ol_cnt >= 6 THEN
+              SELECT out_ol_i_id6, out_ol_supply_w_id6, out_ol_quantity6,
+                     out_ol_amount6, out_ol_delivery_d6;
+       END IF;
+       IF out_o_ol_cnt >= 7 THEN
+              SELECT out_ol_i_id7, out_ol_supply_w_id7, out_ol_quantity7,
+                     out_ol_amount7, out_ol_delivery_d7;
+       END IF;
+       IF out_o_ol_cnt >= 8 THEN
+              SELECT out_ol_i_id8, out_ol_supply_w_id8, out_ol_quantity8,
+                     out_ol_amount8, out_ol_delivery_d8;
+       END IF;
+       IF out_o_ol_cnt >= 9 THEN
+              SELECT out_ol_i_id9, out_ol_supply_w_id9, out_ol_quantity9,
+                     out_ol_amount9, out_ol_delivery_d9;
+       END IF;
+       IF out_o_ol_cnt >= 10 THEN
+              SELECT out_ol_i_id10, out_ol_supply_w_id10, out_ol_quantity10,
+                     out_ol_amount10, out_ol_delivery_d10;
+       END IF;
+       IF out_o_ol_cnt >= 11 THEN
+              SELECT out_ol_i_id11, out_ol_supply_w_id11, out_ol_quantity11,
+                     out_ol_amount11, out_ol_delivery_d11;
+       END IF;
+       IF out_o_ol_cnt >= 12 THEN
+              SELECT out_ol_i_id12, out_ol_supply_w_id12, out_ol_quantity12,
+                     out_ol_amount12, out_ol_delivery_d12;
+       END IF;
+       IF out_o_ol_cnt >= 13 THEN
+              SELECT out_ol_i_id13, out_ol_supply_w_id13, out_ol_quantity13,
+                     out_ol_amount13, out_ol_delivery_d13;
+       END IF;
+       IF out_o_ol_cnt >= 14 THEN
+              SELECT out_ol_i_id14, out_ol_supply_w_id14, out_ol_quantity14,
+                     out_ol_amount14, out_ol_delivery_d14;
+       END IF;
+       IF out_o_ol_cnt >= 15 THEN
+              SELECT out_ol_i_id15, out_ol_supply_w_id15, out_ol_quantity15,
+                     out_ol_amount15, out_ol_delivery_d15;
+       END IF;
+
 END|
 
 delimiter ;

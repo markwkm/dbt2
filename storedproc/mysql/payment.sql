@@ -153,6 +153,13 @@ DECLARE  tmp_h_data VARCHAR(30);
                 WHERE c_id = out_c_id
                   AND c_w_id = in_c_w_id
                   AND c_d_id = in_c_d_id;
+
+                SELECT substring(c_data, 1, 200)
+                INTO out_c_data
+                FROM customer
+                WHERE c_id = out_c_id
+                  AND c_w_id = in_c_w_id
+                  AND c_d_id = in_c_d_id;
         ELSE
                 UPDATE customer
                 SET c_balance = c_balance - in_h_amount,
@@ -169,7 +176,18 @@ DECLARE  tmp_h_data VARCHAR(30);
         VALUES (out_c_id, in_c_d_id, in_c_w_id, in_d_id, in_w_id,
                 current_timestamp, in_h_amount, tmp_h_data);
 
-#        RETURN out_c_id;
+        /*
+         * Return the transaction output data as a result set, with the
+         * balance as of after this payment.
+         */
+        SELECT out_w_name, out_w_street_1, out_w_street_2, out_w_city,
+               out_w_state, out_w_zip, out_d_name, out_d_street_1,
+               out_d_street_2, out_d_city, out_d_state, out_d_zip,
+               out_c_id, out_c_first, out_c_middle, out_c_last,
+               out_c_street_1, out_c_street_2, out_c_city, out_c_state,
+               out_c_zip, out_c_phone, out_c_since, out_c_credit,
+               out_c_credit_lim, out_c_discount,
+               out_c_balance - in_h_amount, out_c_data;
 END|
 
 delimiter ;

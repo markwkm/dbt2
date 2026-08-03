@@ -126,6 +126,10 @@ DECLARE	tmp_brand_generic CHAR(1);
 	VALUES (in_ol_o_id, in_d_id, in_w_id, in_ol_number, in_ol_i_id,
 	        in_ol_supply_w_id, NULL, in_ol_quantity, in_ol_amount,
 	        tmp_s_dist);
+
+	/* Return the order line output data as a result set. */
+	SELECT in_i_price, in_i_name, out_s_quantity, in_ol_amount,
+	       tmp_brand_generic;
 END|
 delimiter ;
 

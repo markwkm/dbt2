@@ -181,6 +181,8 @@ testNewOrder() {
 		assertEquals "order row rolled back" "${BEFORE}" "${AFTER}"
 	else
 		assertEquals "order row created" $((BEFORE + 1)) "${AFTER}"
+		echo "${OUTPUT}" | grep -q "^total_amount = 0.00$"
+		assertFalse "total_amount returned" $?
 	fi
 
 	return 0
@@ -191,6 +193,10 @@ testOrderStatus() {
 	RC=$?
 	echo "${OUTPUT}"
 	assertTrue "order status" ${RC}
+
+	# Every customer has an order in the initial population.
+	echo "${OUTPUT}" | grep -q "^o_id = 0$"
+	assertFalse "existing order found" $?
 
 	return 0
 }
