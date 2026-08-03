@@ -23,7 +23,7 @@ testPostProcessR() {
 		startSkipping
 		assertTrue "R not installed" 0
 		endSkipping
-		return
+		return 0
 	fi
 
 	# shellcheck disable=SC2086
@@ -32,6 +32,8 @@ testPostProcessR() {
 			> "$ACTUALOUTPUT"
 	diff "$ACTUALOUTPUT" "$EXPECTEDOUTPUT"
 	assertEquals "match" 0 $?
+
+	return 0
 }
 
 testPostProcessSQLite() {
@@ -39,11 +41,11 @@ testPostProcessSQLite() {
 		startSkipping
 		assertTrue "sqlite3 not installed" 0
 		endSkipping
-		return
+		return 0
 	fi
 	if [ ! -x "${POSTPROCESS}" ]; then
 		fail "dbt2-post-process.sqlite3 not found: ${POSTPROCESS}"
-		return
+		return 0
 	fi
 
 	# shellcheck disable=SC2086
@@ -52,6 +54,8 @@ testPostProcessSQLite() {
 			> "$ACTUALOUTPUT"
 	diff "$ACTUALOUTPUT" "$EXPECTEDOUTPUT"
 	assertEquals "match" 0 $?
+
+	return 0
 }
 
 SHUNIT2=$(command -v shunit2)

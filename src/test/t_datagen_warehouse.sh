@@ -1,25 +1,8 @@
 #!/bin/sh
 
 THISDIR=$(dirname "$0")
-TOPDIR="${THISDIR}/../.."
-
-# The location of the datagen binary may be given as the first argument,
-# otherwise assume a debug build exists.
-if [ $# -gt 0 ]; then
-	DATAGEN="$1"
-	shift
-else
-	DATAGEN="${TOPDIR}/build/debug/src/dbt2-datagen"
-fi
-
-if [ ! -x "${DATAGEN}" ]; then
-	echo "ERROR: dbt2-datagen not found: ${DATAGEN}" 1>&2
-	exit 1
-fi
-
-count_lines() {
-	wc -l < "$1" | tr -d "[:space:]"
-}
+# shellcheck source=src/test/datagen_common.sh
+. "${THISDIR}/datagen_common.sh"
 
 oneTimeSetUp() {
 	SEED=23
@@ -30,6 +13,8 @@ oneTimeSetUp() {
 	$DATAGEN -d "${SHUNIT_TMPDIR}/1" -w 1 --table warehouse --seed $SEED
 
 	# Generate a 10 warehouses datafile and ten 1 warehouse data files.
+	# Generate the chunks concurrently to also catch any interference
+	# between simultaneous datagen invocations.
 	SCALE_FACTOR=10
 	mkdir -p "${SHUNIT_TMPDIR}/${SCALE_FACTOR}"
 	DATAFILE="${SHUNIT_TMPDIR}/${SCALE_FACTOR}/warehouse.data"
@@ -37,7 +22,10 @@ oneTimeSetUp() {
 			--table warehouse --seed $SEED
 	for PART in 1 2 3 4 5 6 7 8 9 10; do
 		$DATAGEN -d "${SHUNIT_TMPDIR}/${SCALE_FACTOR}" -w $SCALE_FACTOR \
-				--table warehouse --seed $SEED -P $SCALE_FACTOR -p $PART
+				--table warehouse --seed $SEED -P $SCALE_FACTOR -p $PART &
+	done
+	wait
+	for PART in 1 2 3 4 5 6 7 8 9 10; do
 		cat "${DATAFILE}.${PART}" >> "${DATAFILE}.rebuilt"
 	done
 
@@ -48,9 +36,13 @@ oneTimeSetUp() {
 	$DATAGEN -d "${SHUNIT_TMPDIR}/${SCALE_FACTOR}" -w $SCALE_FACTOR \
 			--table warehouse --seed $SEED
 	$DATAGEN -d "${SHUNIT_TMPDIR}/${SCALE_FACTOR}" -w $SCALE_FACTOR \
-			--table warehouse --seed $SEED -P 2 -p 1
+			--table warehouse --seed $SEED -P 2 -p 1 &
+	PID1=$!
 	$DATAGEN -d "${SHUNIT_TMPDIR}/${SCALE_FACTOR}" -w $SCALE_FACTOR \
-			--table warehouse --seed $SEED -P 2 -p 2
+			--table warehouse --seed $SEED -P 2 -p 2 &
+	PID2=$!
+	wait $PID1
+	wait $PID2
 }
 
 testSingleFileCardinality() {
@@ -59,6 +51,8 @@ testSingleFileCardinality() {
 
 	COUNT=$(count_lines "${DATAFILE}")
 	assertEquals "cardinality" $SCALE_FACTOR "$COUNT"
+
+	return 0
 }
 
 testPartitionedFileByLine() {
@@ -70,6 +64,8 @@ testPartitionedFileByLine() {
 
 	diff "${DATAFILE}" "${DATAFILE}.rebuilt"
 	assertEquals "match" 0 $?
+
+	return 0
 }
 
 testPartitionedFileSplit() {
@@ -82,12 +78,9 @@ testPartitionedFileSplit() {
 	cat "${DATAFILE}.1" "${DATAFILE}.2" > "${DATAFILE}.rebuilt"
 	diff "${DATAFILE}" "${DATAFILE}.rebuilt"
 	assertEquals "match" 0 $?
+
+	return 0
 }
 
-SHUNIT2=$(command -v shunit2)
-if [ "${SHUNIT2}" = "" ]; then
-	echo "ERROR: shunit2 not found in PATH" 1>&2
-	exit 1
-fi
 # shellcheck source=/dev/null
 . "${SHUNIT2}"
