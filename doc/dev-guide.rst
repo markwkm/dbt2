@@ -78,7 +78,15 @@ A test per database management system builds a small database and executes
 each of the five transactions through `dbt2-transaction-test`, verifying the
 stored procedures or client side SQL against that system.  These tests are
 labeled `integration` and report as skipped when the database system is
-unavailable.  Currently only SQLite is covered.
+unavailable.  SQLite and PostgreSQL are currently covered.  Each
+PostgreSQL test runs a private server on a socket in its temporary
+directory, so they need the server binaries in addition to psql but no
+running server.  One test each exercises the pl/pgsql stored
+functions, the pl/C stored functions, and the client side SQL
+implementation.  The pl/C functions are built and loaded without
+being installed, which additionally needs the server development
+headers, make, and PostgreSQL 18 or later, and that test skips when
+they are unavailable.
 
 AppImage
 ========
