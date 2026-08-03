@@ -30,6 +30,7 @@ int mode_altered = 0;
 int main(int argc, char *argv[]) {
 	int i;
 	int dbms;
+	int rc;
 	int transaction = -1;
 	struct db_context_t dbc;
 	union transaction_data_t transaction_data;
@@ -250,8 +251,13 @@ int main(int argc, char *argv[]) {
 			printf("cannot establish a database connection\n");
 			return 6;
 		}
-		if (process_transaction(
-					transaction, &dbc, (void *) &transaction_data) != OK) {
+		rc = process_transaction(
+				transaction, &dbc, (void *) &transaction_data);
+		if (rc == STATUS_ROLLBACK && transaction == NEW_ORDER &&
+			transaction_data.new_order.rollback) {
+			/* The New-Order transactions that must roll back, ~1%. */
+			printf("transaction rolled back\n");
+		} else if (rc != OK) {
 			disconnect_from_db(&dbc);
 			printf("transaction failed\n");
 			return 11;

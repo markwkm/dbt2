@@ -9,6 +9,15 @@
 
 #include <nonsp_common.h>
 
+/* Copy a fetched value into a fixed size output field, tolerating NULL. */
+void dbt2_copy_value(char *dest, char *src, size_t n) {
+	if (src == NULL || n == 0) {
+		return;
+	}
+	strncpy(dest, src, n - 1);
+	dest[n - 1] = '\0';
+}
+
 void dbt2_escape_str(char *orig_str, char *esc_str) {
 	int i, j;
 

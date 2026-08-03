@@ -24,6 +24,9 @@ int execute_stock_level_nonsp(
 		return ERROR;
 	}
 
+	/* On success the return value is the low stock count. */
+	data->low_stock = rc;
+
 	return OK;
 }
 

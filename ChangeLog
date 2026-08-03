@@ -238,6 +238,9 @@ vX.Y.Z (YYYY-MM-DD)
   dbt2-post-process.sqlite3 exits cleanly on signals
 - transaction-test: accept sqlite as a dbms option
 - logging: write to stderr when no output path is set
+- nonsp: return the transaction output data for New-Order, Payment,
+  Order-Status, and Stock-Level, and flag the intentional New-Order
+  rollback
 
 v0.61.7 (2025-07-01)
 

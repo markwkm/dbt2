@@ -43,6 +43,7 @@ int order_status_nonsp(
 	struct sql_result_t result;
 
 	int i;
+	int j;
 	int my_c_id = 0;
 
 	int TMP_C_ID = 0;
@@ -246,6 +247,31 @@ int order_status_nonsp(
 	} else // error
 	{
 		return -1;
+	}
+
+	/* Copy the results into the transaction output data. */
+	data->c_id = my_c_id;
+	dbt2_copy_value(data->c_first, vals[C_FIRST], sizeof(data->c_first));
+	dbt2_copy_value(data->c_middle, vals[C_MIDDLE], sizeof(data->c_middle));
+	/* vals[MY_C_BALANCE] holds c_last, the third ORDER_STATUS_2 column. */
+	if (vals[MY_C_BALANCE]) {
+		mbstowcs(data->c_last, vals[MY_C_BALANCE], C_LAST_LEN + 1);
+	}
+	data->c_balance = vals[C_BALANCE] ? atof(vals[C_BALANCE]) : 0;
+	data->o_id = vals[O_ID] ? atoi(vals[O_ID]) : 0;
+	data->o_carrier_id = vals[O_CARRIER_ID] ? atoi(vals[O_CARRIER_ID]) : 0;
+	dbt2_copy_value(data->o_entry_d, vals[O_ENTRY_D],
+					sizeof(data->o_entry_d));
+	data->o_ol_cnt = i;
+	for (j = 0; j < i; j++) {
+		data->order_line[j].ol_i_id = ol_i_id[j] ? atoi(ol_i_id[j]) : 0;
+		data->order_line[j].ol_supply_w_id =
+				ol_supply_w_id[j] ? atoi(ol_supply_w_id[j]) : 0;
+		data->order_line[j].ol_quantity =
+				ol_quantity[j] ? atoi(ol_quantity[j]) : 0;
+		data->order_line[j].ol_amount = ol_amount[j] ? atof(ol_amount[j]) : 0;
+		dbt2_copy_value(data->order_line[j].ol_delivery_d, ol_delivery_d[j],
+						sizeof(data->order_line[j].ol_delivery_d));
 	}
 
 	dbt2_free_values(vals, nvals);

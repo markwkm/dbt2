@@ -5,6 +5,8 @@
  * Copyright The DBT-2 Authors
  */
 
+#include <string.h>
+
 #include <nonsp_new_order.h>
 
 int execute_new_order_nonsp(
@@ -72,6 +74,8 @@ int new_order_nonsp(
 	dbt2_init_values(s_quantity, 15);
 	dbt2_init_values(my_s_dist, 15);
 	dbt2_init_values(s_data, 15);
+
+	data->rollback = 0;
 
 	/* Loop through the last set of parameters. */
 	for (i = 0; i < 15; i++) {
@@ -194,6 +198,7 @@ int new_order_nonsp(
 					"query:\nNEW_ORDER_7: %s",
 					i, query);
 #endif
+			data->rollback = 1;
 			rc = 2;
 			break;
 		}
@@ -247,6 +252,33 @@ int new_order_nonsp(
 			LOG_ERROR_MESSAGE("NEW_ORDER_10 query: %s", query);
 			rc = 18;
 			break;
+		}
+	}
+
+	/* Copy the results into the transaction output data. */
+	if (rc == 0) {
+		data->w_tax = vals[W_TAX] ? atof(vals[W_TAX]) : 0;
+		data->d_tax = vals[D_TAX] ? atof(vals[D_TAX]) : 0;
+		data->o_id = vals[D_NEXT_O_ID] ? atoi(vals[D_NEXT_O_ID]) : 0;
+		data->c_discount = vals[C_DISCOUNT] ? atof(vals[C_DISCOUNT]) : 0;
+		dbt2_copy_value(data->c_last, vals[C_LAST], sizeof(data->c_last));
+		dbt2_copy_value(data->c_credit, vals[C_CREDIT],
+						sizeof(data->c_credit));
+		data->total_amount = 0;
+		for (i = 0; i < o_ol_cnt; i++) {
+			data->order_line[i].i_price = i_price[i] ? atof(i_price[i]) : 0;
+			dbt2_copy_value(data->order_line[i].i_name, i_name[i],
+							sizeof(data->order_line[i].i_name));
+			data->order_line[i].s_quantity =
+					s_quantity[i] ? atoi(s_quantity[i]) : 0;
+			data->order_line[i].ol_amount = ol_amount[i];
+			if (i_data[i] && s_data[i] && strstr(i_data[i], "ORIGINAL") &&
+				strstr(s_data[i], "ORIGINAL")) {
+				data->order_line[i].brand_generic = 'B';
+			} else {
+				data->order_line[i].brand_generic = 'G';
+			}
+			data->total_amount += ol_amount[i];
 		}
 	}
 

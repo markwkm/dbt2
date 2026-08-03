@@ -327,6 +327,46 @@ int payment_nonsp(
 		return -1;
 	}
 
+	/* Copy the results into the transaction output data. */
+	data->c_id = my_c_id;
+	dbt2_copy_value(data->w_name, vals[W_NAME], sizeof(data->w_name));
+	dbt2_copy_value(data->w_street_1, vals[W_STREET_1],
+					sizeof(data->w_street_1));
+	dbt2_copy_value(data->w_street_2, vals[W_STREET_2],
+					sizeof(data->w_street_2));
+	dbt2_copy_value(data->w_city, vals[W_CITY], sizeof(data->w_city));
+	dbt2_copy_value(data->w_state, vals[W_STATE], sizeof(data->w_state));
+	dbt2_copy_value(data->w_zip, vals[W_ZIP], sizeof(data->w_zip));
+	dbt2_copy_value(data->d_name, vals[D_NAME], sizeof(data->d_name));
+	dbt2_copy_value(data->d_street_1, vals[D_STREET_1],
+					sizeof(data->d_street_1));
+	dbt2_copy_value(data->d_street_2, vals[D_STREET_2],
+					sizeof(data->d_street_2));
+	dbt2_copy_value(data->d_city, vals[D_CITY], sizeof(data->d_city));
+	dbt2_copy_value(data->d_state, vals[D_STATE], sizeof(data->d_state));
+	dbt2_copy_value(data->d_zip, vals[D_ZIP], sizeof(data->d_zip));
+	dbt2_copy_value(data->c_first, vals[C_FIRST], sizeof(data->c_first));
+	dbt2_copy_value(data->c_middle, vals[C_MIDDLE], sizeof(data->c_middle));
+	if (vals[MY_C_LAST]) {
+		mbstowcs(data->c_last, vals[MY_C_LAST], C_LAST_LEN + 1);
+	}
+	dbt2_copy_value(data->c_street_1, vals[C_STREET_1],
+					sizeof(data->c_street_1));
+	dbt2_copy_value(data->c_street_2, vals[C_STREET_2],
+					sizeof(data->c_street_2));
+	dbt2_copy_value(data->c_city, vals[C_CITY], sizeof(data->c_city));
+	dbt2_copy_value(data->c_state, vals[C_STATE], sizeof(data->c_state));
+	dbt2_copy_value(data->c_zip, vals[C_ZIP], sizeof(data->c_zip));
+	dbt2_copy_value(data->c_phone, vals[C_PHONE], sizeof(data->c_phone));
+	dbt2_copy_value(data->c_since, vals[C_SINCE], sizeof(data->c_since));
+	dbt2_copy_value(data->c_credit, vals[C_CREDIT], sizeof(data->c_credit));
+	data->c_credit_lim = vals[C_CREDIT_LIM] ? atof(vals[C_CREDIT_LIM]) : 0;
+	data->c_discount = vals[C_DISCOUNT] ? atof(vals[C_DISCOUNT]) : 0;
+	/* Display the balance as of after this payment. */
+	data->c_balance =
+			(vals[C_BALANCE] ? atof(vals[C_BALANCE]) : 0) - h_amount;
+	dbt2_copy_value(data->c_data, vals[C_DATA], sizeof(data->c_data));
+
 	dbt2_free_values(vals, nvals);
 
 	return 1;
