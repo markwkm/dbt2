@@ -31,6 +31,31 @@ Testing the Kit
 ===============
 
 The CMake testing infrastructure is used with shUnit2 to provide some testing.
+shUnit2 must be in the PATH.
+
+Running the complete test suite, after building the kit for debugging::
+
+    make test
+
+The tests can also be run directly from the build directory, where `ctest`
+offers finer control::
+
+    cd build/debug
+    ctest
+    ctest -R datagen_stock
+    ctest -LE integration
+    ctest --output-on-failure
+    ctest -R transaction_sqlite -V
+
+The `-V` option shows each test's complete output while
+`--output-on-failure` only shows the output of tests that fail.  `ctest`
+arguments can be passed through `make test` with e.g. `ARGS="-V"`.  Every
+test's full output is also written to `Testing/Temporary/LastTest.log` in
+the build directory whether verbose output is enabled or not.
+
+Tests whose additional requirements are not met report as skipped: the
+post-process test needs `sqlite3` or R installed, and the integration tests
+need the DBMS to have been available when the kit was built.
 
 datagen
 -------
@@ -45,6 +70,15 @@ post-process
 
 A test is provided to make sure that the post-process output continues to work
 with multiple mix files as well as with various statistical analysis packages.
+
+integration
+-----------
+
+A test per database management system builds a small database and executes
+each of the five transactions through `dbt2-transaction-test`, verifying the
+stored procedures or client side SQL against that system.  These tests are
+labeled `integration` and report as skipped when the database system is
+unavailable.  Currently only SQLite is covered.
 
 AppImage
 ========
