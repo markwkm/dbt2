@@ -22,3 +22,9 @@ add_test(NAME datagen_stock
 add_test(NAME datagen_warehouse
          COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_warehouse.sh
                  $<TARGET_FILE:${DATAGEN}>)
+add_test(NAME transaction_sqlite
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_sqlite.sh
+                 $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>
+                 ${CMAKE_BINARY_DIR}/dbt2-sqlite-build-db)
+set_tests_properties(transaction_sqlite
+                     PROPERTIES LABELS integration SKIP_RETURN_CODE 77)
