@@ -200,7 +200,9 @@ stop_processes() {
 		find "${OUTPUT_DIR}" -type f -name dbt2_driver.pid 2> /dev/null |
 				while IFS= read -r PIDFILE; do
 			DRIVERPID=$(cat "${PIDFILE}")
-			kill -9 "${DRIVERPID}"
+			if [ ! "${DRIVERPID}" = "" ]; then
+				kill -9 "${DRIVERPID}"
+			fi
 		done
 		if [ ! "$DRIVER3" = "1" ]; then
 			if [ "${CLIENT_HOSTNAME}" = "localhost" ]; then
@@ -210,8 +212,12 @@ stop_processes() {
 			fi
 			PIDFILE=$(eval "${CMD} find ${OUTPUT_DIR} -name dbt2_client.pid" \
 					2> /dev/null)
-			CLIENTPID=$(eval "${CMD} cat ${PIDFILE}")
-			eval "${CMD} kill -9 ${CLIENTPID}"
+			if [ ! "${PIDFILE}" = "" ]; then
+				CLIENTPID=$(eval "${CMD} cat ${PIDFILE}")
+				if [ ! "${CLIENTPID}" = "" ]; then
+					eval "${CMD} kill -9 ${CLIENTPID}"
+				fi
+			fi
 		fi
 
 		if [ ${PRIVILEGED} -eq 1 ]; then
@@ -227,7 +233,9 @@ stop_processes() {
 			for PIDFILE in $(eval "${CMD} find ${OUTPUT_DIR} \
 					-name dbt2_client.pid" 2> /dev/null); do
 				CLIENTPID=$(eval "${CMD} cat ${PIDFILE}")
-				eval "${CMD} kill -9 ${CLIENTPID}"
+				if [ ! "${CLIENTPID}" = "" ]; then
+					eval "${CMD} kill -9 ${CLIENTPID}"
+				fi
 			done
 		done
 		for SYSTEM in ${DRIVERLIST}; do
@@ -239,7 +247,9 @@ stop_processes() {
 			for PIDFILE in $(eval "${CMD} find ${OUTPUT_DIR} \
 					-name dbt2_driver.pid" 2> /dev/null); do
 				DRIVERPID=$(eval "${CMD} cat ${PIDFILE}")
-				eval "${CMD} kill -9 ${DRIVERPID}"
+				if [ ! "${DRIVERPID}" = "" ]; then
+					eval "${CMD} kill -9 ${DRIVERPID}"
+				fi
 			done
 		done
 	fi
@@ -248,8 +258,23 @@ stop_processes() {
 	stat_collection -s
 }
 
-trap 'printf "\n***Interrupted by Control-C.***\n\n"; stop_processes' INT
-trap 'printf "\n***Interrupted by TERM signal.***\n\n"; stop_processes' TERM
+interrupted() {
+	# Ignore further signals so a second interrupt cannot re-enter this
+	# handler and so the process group sweep below does not kill the
+	# script itself.
+	trap '' INT TERM
+	printf "\n***Interrupted by %s.***\n\n" "${1}"
+	stop_processes
+	# Blindly sweep any local child processes that remain.  This only
+	# works when the script is a process group leader, e.g. run as a job
+	# from an interactive shell, and is otherwise a harmless no-op.
+	kill -- -$$ 2> /dev/null
+	# Execution resumes after the interrupted command so a test stopped
+	# mid-run still tries to salvage the results collected so far.
+}
+
+trap 'interrupted "Control-C"' INT
+trap 'interrupted "TERM signal"' TERM
 
 usage()
 {
@@ -1304,8 +1329,12 @@ if [ "${CONFIGFILE}" = "" ]; then
 		# Client doesn't go away by itself like the driver does, so kill it.
 		PIDFILE=$(eval "${CLIENT_COMMAND} find ${OUTPUT_DIR} \
 				-name dbt2_client.pid" 2> /dev/null)
-		CLIENTPID=$(eval "${CLIENT_COMMAND} cat ${PIDFILE}")
-		eval "${CLIENT_COMMAND} kill -9 ${CLIENTPID}"
+		if [ ! "${PIDFILE}" = "" ]; then
+			CLIENTPID=$(eval "${CLIENT_COMMAND} cat ${PIDFILE}")
+			if [ ! "${CLIENTPID}" = "" ]; then
+				eval "${CLIENT_COMMAND} kill -9 ${CLIENTPID}"
+			fi
+		fi
 	fi
 
 	# Make sure all the drivers have exited, so all the mix files have flushed

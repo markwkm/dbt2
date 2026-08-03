@@ -18,7 +18,9 @@ usage() {
 }
 
 cleanup() {
-    rm -rf "${TMPDIR}"
+	if [ ! "${WORKDIR}" = "" ]; then
+		rm -rf "${WORKDIR}"
+	fi
 }
 
 if [ $# -lt 1 ]; then
@@ -26,7 +28,11 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-trap cleanup EXIT INT QUIT ABRT TERM
+# Run cleanup exactly once on any exit.  Signals exit through the EXIT
+# trap instead of running cleanup and then resuming the script with its
+# work directory deleted.
+trap cleanup EXIT
+trap 'exit 1' INT QUIT ABRT TERM
 
 VERBOSE=0
 
@@ -61,9 +67,9 @@ if [ $VERBOSE -eq 1 ]; then
 	SQLOPTIONS="@SQLITEOPTIONS@"
 fi
 
-TMPDIR=$(mktemp -d)
+WORKDIR=$(mktemp -d) || exit 1
 
-DBFILE="${TMPDIR}/dbt2.db"
+DBFILE="${WORKDIR}/dbt2.db"
 
 sqlite3 "$DBFILE" << EOF
 $SQLOPTIONS

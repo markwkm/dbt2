@@ -75,7 +75,20 @@ fi
 CONTAINER_TAG="dbt2-database-${DBMS}-${WAREHOUSES}w"
 CONTAINER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
 
-trap 'stop_containers; exit 1' INT TERM
+# Stop the containers on any exit, normal or not, once they have been
+# started.  Signals route through the EXIT trap so cleanup runs exactly
+# once, including on error paths that exit early.
+STARTED=0
+
+cleanup()
+{
+	if [ "$STARTED" -eq 1 ]; then
+		stop_containers
+	fi
+}
+
+trap cleanup EXIT
+trap 'exit 1' INT TERM
 
 if [ "$DBMS" = "yugabyte" ]; then
 	$ENGINE start "$CONTAINER_NAME" || exit 1
@@ -94,6 +107,8 @@ else
 			--name "$CONTAINER_NAME" \
 			"$CONTAINER_TAG" || exit 1
 fi
+
+STARTED=1
 
 if [ "$DBCONTAINER" = "" ]; then
 	DBCONTAINER="$CONTAINER_NAME"
@@ -157,7 +172,6 @@ if ! $ENGINE exec \
 				$PORTARG \
 				"$RUNDBMS" "$RESULTSDIR"; then
 	echo "ERROR: test failed"
-	stop_containers
 	exit 1
 fi
 
@@ -168,5 +182,3 @@ $ENGINE exec \
 		dbt2-generate-report -i "$RESULTSDIR"
 
 $ENGINE cp "dbt2-driver-0:$RESULTSDIR" "${LOCALDIR}"
-
-stop_containers

@@ -233,6 +233,9 @@ vX.Y.Z (YYYY-MM-DD)
   it tracks the project version
 - appimage: stop masking failures when copying licenses and python into the
   AppDir
+- scripts: run-test stops containers on error exits, dbt2-run validates
+  pids and sweeps its process group when interrupted, and
+  dbt2-post-process.sqlite3 exits cleanly on signals
 
 v0.61.7 (2025-07-01)
 
