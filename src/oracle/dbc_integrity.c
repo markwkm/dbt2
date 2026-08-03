@@ -4,6 +4,8 @@
    2006 Anurag Vora & Oracle Corporation. All rights reserved.
 */
 
+#include <string.h>
+
 #include <oracle_integrity.h>
 
 #include "logging.h"

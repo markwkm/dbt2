@@ -254,6 +254,9 @@ vX.Y.Z (YYYY-MM-DD)
   and Order-Status
 - oracle: payment and order status convert the wide character last
   name instead of copying its raw bytes
+- oracle: return the transaction output data for New-Order, Payment,
+  and Order-Status
+- oracle: include string.h in the transaction callers
 
 v0.61.7 (2025-07-01)
 

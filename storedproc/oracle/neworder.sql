@@ -14,6 +14,10 @@
 -- Oracle roll the whole call back and the client counts the
 -- transaction as rolled back.
 --
+-- Output parameters for CHAR values are declared VARCHAR2: a CHAR
+-- OUT parameter is blank padded past the caller's buffer, which the
+-- OCI caller receives as a truncated value with the indicator set.
+--
 
 CREATE OR REPLACE PROCEDURE neworder(tmp_w_id     warehouse.w_id%TYPE,
 				tmp_d_id         district.d_id%TYPE,
@@ -64,9 +68,93 @@ CREATE OR REPLACE PROCEDURE neworder(tmp_w_id     warehouse.w_id%TYPE,
 				ol_quantity14    order_line.ol_quantity%TYPE,
 				ol_i_id15        order_line.ol_i_id%TYPE,
 				ol_supply_w_id15 order_line.ol_supply_w_id%TYPE,
-				ol_quantity15    order_line.ol_quantity%TYPE) AS
+				ol_quantity15    order_line.ol_quantity%TYPE,
+				out_w_tax        OUT warehouse.w_tax%TYPE,
+				out_d_tax        OUT district.d_tax%TYPE,
+				out_o_id         OUT orders.o_id%TYPE,
+				out_c_last       OUT customer.c_last%TYPE,
+				out_c_credit     OUT VARCHAR2,
+				out_c_discount   OUT customer.c_discount%TYPE,
+				out_total_amount OUT order_line.ol_amount%TYPE,
+				out_i_price1     OUT item.i_price%TYPE,
+				out_i_price2     OUT item.i_price%TYPE,
+				out_i_price3     OUT item.i_price%TYPE,
+				out_i_price4     OUT item.i_price%TYPE,
+				out_i_price5     OUT item.i_price%TYPE,
+				out_i_price6     OUT item.i_price%TYPE,
+				out_i_price7     OUT item.i_price%TYPE,
+				out_i_price8     OUT item.i_price%TYPE,
+				out_i_price9     OUT item.i_price%TYPE,
+				out_i_price10    OUT item.i_price%TYPE,
+				out_i_price11    OUT item.i_price%TYPE,
+				out_i_price12    OUT item.i_price%TYPE,
+				out_i_price13    OUT item.i_price%TYPE,
+				out_i_price14    OUT item.i_price%TYPE,
+				out_i_price15    OUT item.i_price%TYPE,
+				out_i_name1      OUT item.i_name%TYPE,
+				out_i_name2      OUT item.i_name%TYPE,
+				out_i_name3      OUT item.i_name%TYPE,
+				out_i_name4      OUT item.i_name%TYPE,
+				out_i_name5      OUT item.i_name%TYPE,
+				out_i_name6      OUT item.i_name%TYPE,
+				out_i_name7      OUT item.i_name%TYPE,
+				out_i_name8      OUT item.i_name%TYPE,
+				out_i_name9      OUT item.i_name%TYPE,
+				out_i_name10     OUT item.i_name%TYPE,
+				out_i_name11     OUT item.i_name%TYPE,
+				out_i_name12     OUT item.i_name%TYPE,
+				out_i_name13     OUT item.i_name%TYPE,
+				out_i_name14     OUT item.i_name%TYPE,
+				out_i_name15     OUT item.i_name%TYPE,
+				out_s_quantity1  OUT stock.s_quantity%TYPE,
+				out_s_quantity2  OUT stock.s_quantity%TYPE,
+				out_s_quantity3  OUT stock.s_quantity%TYPE,
+				out_s_quantity4  OUT stock.s_quantity%TYPE,
+				out_s_quantity5  OUT stock.s_quantity%TYPE,
+				out_s_quantity6  OUT stock.s_quantity%TYPE,
+				out_s_quantity7  OUT stock.s_quantity%TYPE,
+				out_s_quantity8  OUT stock.s_quantity%TYPE,
+				out_s_quantity9  OUT stock.s_quantity%TYPE,
+				out_s_quantity10 OUT stock.s_quantity%TYPE,
+				out_s_quantity11 OUT stock.s_quantity%TYPE,
+				out_s_quantity12 OUT stock.s_quantity%TYPE,
+				out_s_quantity13 OUT stock.s_quantity%TYPE,
+				out_s_quantity14 OUT stock.s_quantity%TYPE,
+				out_s_quantity15 OUT stock.s_quantity%TYPE,
+				out_ol_amount1   OUT order_line.ol_amount%TYPE,
+				out_ol_amount2   OUT order_line.ol_amount%TYPE,
+				out_ol_amount3   OUT order_line.ol_amount%TYPE,
+				out_ol_amount4   OUT order_line.ol_amount%TYPE,
+				out_ol_amount5   OUT order_line.ol_amount%TYPE,
+				out_ol_amount6   OUT order_line.ol_amount%TYPE,
+				out_ol_amount7   OUT order_line.ol_amount%TYPE,
+				out_ol_amount8   OUT order_line.ol_amount%TYPE,
+				out_ol_amount9   OUT order_line.ol_amount%TYPE,
+				out_ol_amount10  OUT order_line.ol_amount%TYPE,
+				out_ol_amount11  OUT order_line.ol_amount%TYPE,
+				out_ol_amount12  OUT order_line.ol_amount%TYPE,
+				out_ol_amount13  OUT order_line.ol_amount%TYPE,
+				out_ol_amount14  OUT order_line.ol_amount%TYPE,
+				out_ol_amount15  OUT order_line.ol_amount%TYPE,
+				out_brand_generic1  OUT VARCHAR2,
+				out_brand_generic2  OUT VARCHAR2,
+				out_brand_generic3  OUT VARCHAR2,
+				out_brand_generic4  OUT VARCHAR2,
+				out_brand_generic5  OUT VARCHAR2,
+				out_brand_generic6  OUT VARCHAR2,
+				out_brand_generic7  OUT VARCHAR2,
+				out_brand_generic8  OUT VARCHAR2,
+				out_brand_generic9  OUT VARCHAR2,
+				out_brand_generic10 OUT VARCHAR2,
+				out_brand_generic11 OUT VARCHAR2,
+				out_brand_generic12 OUT VARCHAR2,
+				out_brand_generic13 OUT VARCHAR2,
+				out_brand_generic14 OUT VARCHAR2,
+				out_brand_generic15 OUT VARCHAR2) AS
 
 	TYPE t_number_list IS VARRAY(15) OF NUMBER;
+	TYPE t_name_list IS VARRAY(15) OF item.i_name%TYPE;
+	TYPE t_char_list IS VARRAY(15) OF CHAR(1);
 
 	a_ol_i_id t_number_list := t_number_list(
 			ol_i_id1, ol_i_id2, ol_i_id3, ol_i_id4, ol_i_id5,
@@ -84,19 +172,21 @@ CREATE OR REPLACE PROCEDURE neworder(tmp_w_id     warehouse.w_id%TYPE,
 			ol_quantity9, ol_quantity10, ol_quantity11, ol_quantity12,
 			ol_quantity13, ol_quantity14, ol_quantity15);
 
-	out_w_tax        warehouse.w_tax%TYPE;
-	out_d_tax        district.d_tax%TYPE;
-	out_d_next_o_id  district.d_next_o_id%TYPE;
-	out_c_discount   customer.c_discount%TYPE;
-	out_c_last       customer.c_last%TYPE;
-	out_c_credit     customer.c_credit%TYPE;
-	tmp_i_price      item.i_price%TYPE;
-	tmp_i_name       item.i_name%TYPE;
-	tmp_i_data       item.i_data%TYPE;
-	tmp_ol_amount    order_line.ol_amount%TYPE;
-	tmp_total_amount order_line.ol_amount%TYPE;
-	tmp_s_quantity   stock.s_quantity%TYPE;
-	o_id             district.d_next_o_id%TYPE;
+	a_i_price t_number_list := t_number_list();
+	a_i_name t_name_list := t_name_list();
+	a_s_quantity t_number_list := t_number_list();
+	a_ol_amount t_number_list := t_number_list();
+	a_brand_generic t_char_list := t_char_list();
+
+	out_d_next_o_id   district.d_next_o_id%TYPE;
+	tmp_i_price       item.i_price%TYPE;
+	tmp_i_name        item.i_name%TYPE;
+	tmp_i_data        item.i_data%TYPE;
+	tmp_ol_amount     order_line.ol_amount%TYPE;
+	tmp_total_amount  order_line.ol_amount%TYPE;
+	tmp_s_quantity    stock.s_quantity%TYPE;
+	tmp_brand_generic CHAR(1);
+	o_id              district.d_next_o_id%TYPE;
 
 	PROCEDURE new_order_2 (in_w_id  warehouse.w_id%TYPE,
 				in_d_id           district.d_id%TYPE,
@@ -109,12 +199,12 @@ CREATE OR REPLACE PROCEDURE neworder(tmp_w_id     warehouse.w_id%TYPE,
 				in_ol_amount      order_line.ol_amount%TYPE,
 				in_ol_supply_w_id order_line.ol_supply_w_id%TYPE,
 				in_ol_number      order_line.ol_number%TYPE,
-				out_s_quantity    OUT stock.s_quantity%TYPE) IS
+				out_s_quantity    OUT stock.s_quantity%TYPE,
+				out_brand_generic OUT VARCHAR2) IS
 
-		tmp_s_dist        stock.s_dist_01%TYPE;
-		tmp_s_data        stock.s_data%TYPE;
-		tmp_brand_generic CHAR(1);
-		tmp_remote        INTEGER;
+		tmp_s_dist stock.s_dist_01%TYPE;
+		tmp_s_data stock.s_data%TYPE;
+		tmp_remote INTEGER;
 
 	BEGIN
 
@@ -134,9 +224,9 @@ CREATE OR REPLACE PROCEDURE neworder(tmp_w_id     warehouse.w_id%TYPE,
 
 		IF INSTR(in_i_data, 'ORIGINAL') > 0
 			AND INSTR(tmp_s_data, 'ORIGINAL') > 0 THEN
-			tmp_brand_generic := 'B';
+			out_brand_generic := 'B';
 		ELSE
-			tmp_brand_generic := 'G';
+			out_brand_generic := 'G';
 		END IF;
 
 		IF in_ol_supply_w_id <> in_w_id THEN
@@ -229,10 +319,134 @@ BEGIN
 		new_order_2(tmp_w_id, tmp_d_id, a_ol_i_id(i),
 				a_ol_quantity(i), tmp_i_price, tmp_i_name,
 				tmp_i_data, o_id, tmp_ol_amount,
-				a_ol_supply_w_id(i), i, tmp_s_quantity);
+				a_ol_supply_w_id(i), i, tmp_s_quantity,
+				tmp_brand_generic);
 
 		tmp_total_amount := tmp_total_amount + tmp_ol_amount;
+
+		a_i_price.EXTEND;
+		a_i_price(i) := tmp_i_price;
+		a_i_name.EXTEND;
+		a_i_name(i) := tmp_i_name;
+		a_s_quantity.EXTEND;
+		a_s_quantity(i) := tmp_s_quantity;
+		a_ol_amount.EXTEND;
+		a_ol_amount(i) := tmp_ol_amount;
+		a_brand_generic.EXTEND;
+		a_brand_generic(i) := tmp_brand_generic;
 	END LOOP;
+
+	out_o_id := o_id;
+
+	-- The total amount before the discount and tax adjustment that
+	-- the client applies.
+	out_total_amount := tmp_total_amount;
+
+	IF tmp_o_ol_cnt >= 1 THEN
+		out_i_price1 := a_i_price(1);
+		out_i_name1 := a_i_name(1);
+		out_s_quantity1 := a_s_quantity(1);
+		out_ol_amount1 := a_ol_amount(1);
+		out_brand_generic1 := a_brand_generic(1);
+	END IF;
+	IF tmp_o_ol_cnt >= 2 THEN
+		out_i_price2 := a_i_price(2);
+		out_i_name2 := a_i_name(2);
+		out_s_quantity2 := a_s_quantity(2);
+		out_ol_amount2 := a_ol_amount(2);
+		out_brand_generic2 := a_brand_generic(2);
+	END IF;
+	IF tmp_o_ol_cnt >= 3 THEN
+		out_i_price3 := a_i_price(3);
+		out_i_name3 := a_i_name(3);
+		out_s_quantity3 := a_s_quantity(3);
+		out_ol_amount3 := a_ol_amount(3);
+		out_brand_generic3 := a_brand_generic(3);
+	END IF;
+	IF tmp_o_ol_cnt >= 4 THEN
+		out_i_price4 := a_i_price(4);
+		out_i_name4 := a_i_name(4);
+		out_s_quantity4 := a_s_quantity(4);
+		out_ol_amount4 := a_ol_amount(4);
+		out_brand_generic4 := a_brand_generic(4);
+	END IF;
+	IF tmp_o_ol_cnt >= 5 THEN
+		out_i_price5 := a_i_price(5);
+		out_i_name5 := a_i_name(5);
+		out_s_quantity5 := a_s_quantity(5);
+		out_ol_amount5 := a_ol_amount(5);
+		out_brand_generic5 := a_brand_generic(5);
+	END IF;
+	IF tmp_o_ol_cnt >= 6 THEN
+		out_i_price6 := a_i_price(6);
+		out_i_name6 := a_i_name(6);
+		out_s_quantity6 := a_s_quantity(6);
+		out_ol_amount6 := a_ol_amount(6);
+		out_brand_generic6 := a_brand_generic(6);
+	END IF;
+	IF tmp_o_ol_cnt >= 7 THEN
+		out_i_price7 := a_i_price(7);
+		out_i_name7 := a_i_name(7);
+		out_s_quantity7 := a_s_quantity(7);
+		out_ol_amount7 := a_ol_amount(7);
+		out_brand_generic7 := a_brand_generic(7);
+	END IF;
+	IF tmp_o_ol_cnt >= 8 THEN
+		out_i_price8 := a_i_price(8);
+		out_i_name8 := a_i_name(8);
+		out_s_quantity8 := a_s_quantity(8);
+		out_ol_amount8 := a_ol_amount(8);
+		out_brand_generic8 := a_brand_generic(8);
+	END IF;
+	IF tmp_o_ol_cnt >= 9 THEN
+		out_i_price9 := a_i_price(9);
+		out_i_name9 := a_i_name(9);
+		out_s_quantity9 := a_s_quantity(9);
+		out_ol_amount9 := a_ol_amount(9);
+		out_brand_generic9 := a_brand_generic(9);
+	END IF;
+	IF tmp_o_ol_cnt >= 10 THEN
+		out_i_price10 := a_i_price(10);
+		out_i_name10 := a_i_name(10);
+		out_s_quantity10 := a_s_quantity(10);
+		out_ol_amount10 := a_ol_amount(10);
+		out_brand_generic10 := a_brand_generic(10);
+	END IF;
+	IF tmp_o_ol_cnt >= 11 THEN
+		out_i_price11 := a_i_price(11);
+		out_i_name11 := a_i_name(11);
+		out_s_quantity11 := a_s_quantity(11);
+		out_ol_amount11 := a_ol_amount(11);
+		out_brand_generic11 := a_brand_generic(11);
+	END IF;
+	IF tmp_o_ol_cnt >= 12 THEN
+		out_i_price12 := a_i_price(12);
+		out_i_name12 := a_i_name(12);
+		out_s_quantity12 := a_s_quantity(12);
+		out_ol_amount12 := a_ol_amount(12);
+		out_brand_generic12 := a_brand_generic(12);
+	END IF;
+	IF tmp_o_ol_cnt >= 13 THEN
+		out_i_price13 := a_i_price(13);
+		out_i_name13 := a_i_name(13);
+		out_s_quantity13 := a_s_quantity(13);
+		out_ol_amount13 := a_ol_amount(13);
+		out_brand_generic13 := a_brand_generic(13);
+	END IF;
+	IF tmp_o_ol_cnt >= 14 THEN
+		out_i_price14 := a_i_price(14);
+		out_i_name14 := a_i_name(14);
+		out_s_quantity14 := a_s_quantity(14);
+		out_ol_amount14 := a_ol_amount(14);
+		out_brand_generic14 := a_brand_generic(14);
+	END IF;
+	IF tmp_o_ol_cnt >= 15 THEN
+		out_i_price15 := a_i_price(15);
+		out_i_name15 := a_i_name(15);
+		out_s_quantity15 := a_s_quantity(15);
+		out_ol_amount15 := a_ol_amount(15);
+		out_brand_generic15 := a_brand_generic(15);
+	END IF;
 
 	tmp_total_amount := tmp_total_amount * (1 - out_c_discount)
 			* (1 + out_w_tax + out_d_tax);
