@@ -14,6 +14,10 @@ if (MYSQLCLIENT_FOUND)
 	add_subdirectory (mysql)
 endif (MYSQLCLIENT_FOUND)
 
+if (ORACLE_FOUND)
+	add_subdirectory (oracle)
+endif (ORACLE_FOUND)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set (SQLITEOPTIONS ".echo on
 .eqp on")
