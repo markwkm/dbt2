@@ -263,6 +263,8 @@ vX.Y.Z (YYYY-MM-DD)
   the tables and stored procedures
 - container: update Containerfile.oracle to a database server and
   build environment image that can run the oracle integration test
+- mysql: link with the pkg-config linker flags so the client library
+  is found outside the default linker search path
 
 v0.61.7 (2025-07-01)
 
