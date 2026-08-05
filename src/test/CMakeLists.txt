@@ -22,6 +22,12 @@ add_test(NAME datagen_stock
 add_test(NAME datagen_warehouse
          COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_warehouse.sh
                  $<TARGET_FILE:${DATAGEN}>)
+add_test(NAME transaction_cockroach
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_cockroach.sh
+                 $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>
+                 ${CMAKE_BINARY_DIR}/dbt2-cockroach-build-db)
+set_tests_properties(transaction_cockroach
+                     PROPERTIES LABELS integration SKIP_RETURN_CODE 77)
 add_test(NAME transaction_mysql
          COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_mysql.sh
                  $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>

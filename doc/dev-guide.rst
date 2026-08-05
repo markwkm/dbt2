@@ -78,15 +78,24 @@ A test per database management system builds a small database and executes
 each of the five transactions through `dbt2-transaction-test`, verifying the
 stored procedures or client side SQL against that system.  These tests are
 labeled `integration` and report as skipped when the database system is
-unavailable.  MySQL, Oracle, PostgreSQL, and SQLite are currently covered.
-The MySQL and PostgreSQL tests run a private server on a socket in
-their temporary directories, so they need the server binaries in
-addition to the client programs but no running server.  One test each exercises the pl/pgsql stored
+unavailable.  CockroachDB, MySQL, Oracle, PostgreSQL, and SQLite are
+currently covered.  The CockroachDB, MySQL, and PostgreSQL tests run a
+private server on a socket in their temporary directories, so they need
+the server binaries in addition to the client programs but no running
+server.  One test each exercises the pl/pgsql stored
 functions, the pl/C stored functions, and the client side SQL
 implementation.  The pl/C functions are built and loaded without
 being installed, which additionally needs the server development
 headers, make, and PostgreSQL 18 or later, and that test skips when
 they are unavailable.
+
+The CockroachDB test starts a single node cluster with `cockroach
+start-single-node --insecure` in its temporary directory, listening on
+a socket there and on loopback ports derived from the process id, and
+needs `cockroach` and `psql` in the path.  The client side SQL it
+exercises is the same implementation the PostgreSQL client side test
+covers, so what this test adds is that SQL running on a CockroachDB
+server and the CockroachDB build scripts.
 
 An Oracle server cannot run as a throwaway process in a temporary
 directory, so the Oracle test connects as the user `dbt`, password
