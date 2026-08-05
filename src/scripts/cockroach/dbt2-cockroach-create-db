@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-2 Authors
+#
+
+if [ -z "${DBT2DBNAME}" ]; then
+    echo "DBT2DBNAME not defined."
+    exit 1
+fi
+
+while getopts "l:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	\?)
+		exit 1
+		;;
+	esac
+done
+
+# dbt2-cockroach-build-db passes the option and its value as a single
+# argument, which leaves the value with a leading space that the URL
+# below cannot carry.
+PORT="${PORT# }"
+if [ "${PORT}" = "" ]; then
+	PORT="${PGPORT:-26257}"
+fi
+
+# cockroach sql connects with a URL, so build one from the
+# environment.  Its host parameter carries either a host name or the
+# directory holding a socket.  The database being created cannot be
+# connected to, so name defaultdb, where a client lands when the URL
+# names no database.
+CRDBURL="postgresql://${PGUSER:-root}@/defaultdb"
+CRDBURL="${CRDBURL}?host=${PGHOST:-localhost}&port=${PORT}"
+CRDBURL="${CRDBURL}&sslmode=disable"
+
+# IF NOT EXISTS leaves an existing database alone, so the script does
+# not have to look for one first.
+cockroach sql --url "${CRDBURL}" \
+		--execute "CREATE DATABASE IF NOT EXISTS ${DBT2DBNAME};" || exit 1
+
+exit 0

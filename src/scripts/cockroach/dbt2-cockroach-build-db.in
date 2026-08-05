@@ -82,7 +82,7 @@ if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
 	LOADARGS="--rows-per-commit=${ROWS_PER_COMMIT}"
 fi
 
-dbt2 pgsql-create-db "${PORTARG}" || exit 1
+dbt2 cockroach-create-db "${PORTARG}" || exit 1
 dbt2 cockroach-create-tables "${PORTARG}" || exit 1
 
 SEED=$(dbt2 rand 1 18446744073709551615 0)

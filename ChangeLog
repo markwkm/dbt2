@@ -265,6 +265,8 @@ vX.Y.Z (YYYY-MM-DD)
   build environment image that can run the oracle integration test
 - mysql: link with the pkg-config linker flags so the client library
   is found outside the default linker search path
+- cockroach: add a dbt2-cockroach-create-db script that creates the
+  database with cockroach sql
 
 v0.61.7 (2025-07-01)
 
