@@ -75,7 +75,7 @@ if [ ! "${PORT}" = "" ]; then
 fi
 
 if [ $REBUILD_DB -eq 1 ]; then
-	dbt2 pgsql-drop-db "${PORTARG}"
+	dbt2 cockroach-drop-db "${PORTARG}"
 fi
 
 if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then

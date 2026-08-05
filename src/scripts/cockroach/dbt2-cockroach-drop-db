@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-2 Authors
+#
+
+if [ -z "${DBT2DBNAME}" ]; then
+    echo "DBT2DBNAME not defined."
+    exit 1
+fi
+
+while getopts "l:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	\?)
+		exit 1
+		;;
+	esac
+done
+
+# See dbt2-cockroach-create-db for why the leading space is removed.
+PORT="${PORT# }"
+if [ "${PORT}" = "" ]; then
+	PORT="${PGPORT:-26257}"
+fi
+
+# See dbt2-cockroach-create-db for the connection URL, and for why
+# this connects to defaultdb.
+CRDBURL="postgresql://${PGUSER:-root}@/defaultdb"
+CRDBURL="${CRDBURL}?host=${PGHOST:-localhost}&port=${PORT}"
+CRDBURL="${CRDBURL}&sslmode=disable"
+
+# CASCADE drops the tables along with the database, and IF EXISTS
+# keeps a first run, where there is nothing to drop yet, from
+# reporting an error.
+cockroach sql --url "${CRDBURL}" \
+		--execute "DROP DATABASE IF EXISTS ${DBT2DBNAME} CASCADE;" || exit 1
+
+exit 0

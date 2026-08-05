@@ -267,6 +267,8 @@ vX.Y.Z (YYYY-MM-DD)
   is found outside the default linker search path
 - cockroach: add a dbt2-cockroach-create-db script that creates the
   database with cockroach sql
+- cockroach: add a dbt2-cockroach-drop-db script that drops the
+  database with cockroach sql
 
 v0.61.7 (2025-07-01)
 
