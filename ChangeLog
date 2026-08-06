@@ -1,209 +1,105 @@
 vX.Y.Z (YYYY-MM-DD)
 
-- Added support for Oracle Single Instance and Real Application Clusters.
-- Added directory scripts/oracle, which includes all oracle related scripts and
-  templates.
-- Added directory src/oracle, which include oracle oci implementation.
-- Added header files src/include/oracle_* for oracle oci implementation.
-- Change in generic odbc layer to add support for Oracle and performance
-  enhancements.
-- oracle: update CMakeList.txt to search for oci.h and libclntsh
-- oracle: port the OCI backend to the multi-backend database context
-  interface and wire runtime dispatch into the client, driver, and
-  transaction test programs
-- oracle: new order reads and updates stock at the supplying warehouse,
-  maintains s_ytd, s_order_cnt, and s_remote_cnt, applies the +91
-  quantity adjustment only when stock does not exceed the ordered
-  quantity by 10 or more, inserts every order line instead of skipping
-  them on a never-opened cursor, and raises ORA-20001 for an unused
-  item so the one percent rollback case rolls back atomically and is
-  counted as a rollback, per TPC-C Clause 2.4.2
-- oracle: payment selects the median customer matching a last name
-  instead of an arbitrary one, increases c_ytd_payment by the payment
-  amount instead of one, increments c_payment_cnt, prepends the
-  formatted payment amount to c_data instead of replacing it, and
-  separates w_name and d_name with four spaces in h_data,
-  per TPC-C Clause 2.5.2
-- oracle: order status selects the median customer matching a last
-  name, reads the customer's most recent order instead of an arbitrary
-  one, and retrieves every line of the order instead of the first,
-  per TPC-C Clause 2.6.2
-- oracle: delivery processes the oldest undelivered order instead of
-  an arbitrary one, sums ol_amount without multiplying by quantity,
-  and sums every order line instead of the first six, per TPC-C Clause 2.7.4
-- oracle: stock level counts distinct items below the threshold
-  instead of at most one join row, per TPC-C Clause 2.8.2
-- pl/c: new order uses the pre-increment d_next_o_id as the order id, reads
-  and updates stock at the supplying warehouse, maintains s_ytd, s_order_cnt,
-  and s_remote_cnt, applies the +91 quantity adjustment only when stock does
-  not exceed the ordered quantity by 10 or more, stores the s_dist_xx
-  contents in ol_dist_info instead of the column name, and returns the order
-  line amount instead of a Datum bit pattern, per TPC-C Clause 2.4.2
-- pl/pgsql: new order uses the pre-increment d_next_o_id as the order id,
-  reads and updates stock at the supplying warehouse, maintains s_ytd,
-  s_order_cnt, and s_remote_cnt, and applies the +91 quantity adjustment
-  only when stock does not exceed the ordered quantity by 10 or more,
-  per TPC-C Clause 2.4.2
-- pl/c: payment searches by last name in the customer's warehouse and
-  district, selects the median matching customer, increases c_ytd_payment
-  by the payment amount, increments c_payment_cnt, returns the post-payment
-  balance, and formats the amount in c_data with two decimal places,
-  per TPC-C Clause 2.5.2
-- pl/pgsql: payment selects the median customer matching a last name
-  instead of the first, updates and records in history the customer
-  selected by last name instead of customer number zero, increases
-  c_ytd_payment by the payment amount, increments c_payment_cnt, returns
-  the post-payment balance, and formats the amount in c_data with two
-  decimal places, per TPC-C Clause 2.5.2
-- pl/c: order status selects the median customer matching a last name
-  instead of one past the median, per TPC-C Clause 2.6.2
-- pl/pgsql: order status selects the median customer matching a last name
-  instead of the first, per TPC-C Clause 2.6.2
-- pl/c: delivery credits the customer with the sum of ol_amount instead of
-  ol_amount * ol_quantity and locks the oldest new order row so concurrent
-  deliveries cannot process the same order twice, per TPC-C Clause 2.7.4
-- pl/pgsql: delivery credits the customer with the sum of ol_amount instead
-  of ol_amount * ol_quantity and locks the oldest new order row,
-  per TPC-C Clause 2.7.4
-- pl/c: stock level no longer transposes the warehouse and district ids in
-  the order line and stock predicates, per TPC-C Clause 2.8.2
-- cockroach: new order inserts each order line with its own amount instead of a
-  running total, stores the s_dist_xx contents in ol_dist_info instead of the
-  column name, returns the pre-increment d_next_o_id as the order id, maintains
-  s_ytd, s_order_cnt, and s_remote_cnt, and applies the +91 quantity adjustment
-  only when stock does not exceed the ordered quantity by 10 or more,
-  per TPC-C Clause 2.4.2
-- cockroach: payment selects the median customer matching a last name instead
-  of the first, per TPC-C Clause 2.5.2
-- cockroach: order status selects the median customer matching a last name
-  instead of the first and lists the lines of the selected order instead of
-  reusing the customer id as the order id, per TPC-C Clause 2.6.2
-- cockroach: delivery credits the customer with the sum of ol_amount instead of
-  ol_amount * ol_quantity and skips districts with no pending order,
-  per TPC-C Clause 2.7.4
-- cockroach: stock level no longer transposes the warehouse and district ids,
-  examines the last 20 orders instead of an empty order id range, and reports
-  the counted low stock value, per TPC-C Clause 2.8.2
-- nonsp: new order applies the +91 quantity adjustment only when stock does not
-  exceed the ordered quantity by 10 or more, per TPC-C Clause 2.4.2
-- nonsp: payment searches by last name in the customer's warehouse and
-  district, selects the median matching customer, and stores the bad credit
-  payment information in c_data, per TPC-C Clause 2.5.2
-- nonsp: delivery credits the customer with the sum of ol_amount instead of
-  ol_amount * ol_quantity and processes the oldest undelivered order instead of
-  an arbitrary one, per TPC-C Clause 2.7.4
-- driver: new order order line counts are generated within [5 .. 15] and
-  payment amounts within [1.00 .. 5000.00], per TPC-C Clauses 2.4.1.3 and
-  2.5.1.3
-- driver: remote warehouse selection draws uniformly from the warehouses other
-  than the home warehouse instead of wrapping to an invalid or home warehouse,
-  per TPC-C Clause 2.5.1.2
+- Added support for Oracle
+- container: update Containerfile.oracle to a database server and build
+  environment image that can run the oracle integration test
+- new order: read and update stock at the supplying warehouse, maintain
+  s_ytd, s_order_cnt, and s_remote_cnt, apply the +91 quantity adjustment
+  only when stock does not exceed the ordered quantity by 10 or more, take
+  the order id from the pre-increment d_next_o_id, store the s_dist_xx
+  contents in ol_dist_info, insert every order line with its own amount, and
+  roll back atomically on an unused item (cockroach, mysql, nonsp, oracle,
+  pl/c, pl/pgsql), per TPC-C Clause 2.4.2
+- payment: select the median customer matching a last name in the customer's
+  warehouse and district, increase c_ytd_payment by the payment amount,
+  increment c_payment_cnt, return the post-payment balance, and record the
+  formatted amount in c_data and the warehouse and district names in h_data
+  (cockroach, mysql, nonsp, oracle, pl/c, pl/pgsql), per TPC-C Clause 2.5.2
+- order status: select the median customer matching a last name, read the
+  customer's most recent order, and list every line of that order (cockroach,
+  mysql, oracle, pl/c, pl/pgsql), per TPC-C Clause 2.6.2
+- delivery: process and lock the oldest undelivered order so concurrent
+  deliveries cannot process it twice, credit the customer with the sum of
+  ol_amount instead of ol_amount * ol_quantity, sum every order line, and
+  skip districts with no pending order (cockroach, mysql, nonsp, oracle,
+  pl/c, pl/pgsql), per TPC-C Clause 2.7.4
+- stock level: count distinct items below the threshold over the last 20
+  orders, and no longer transpose the warehouse and district ids (cockroach,
+  mysql, oracle, pl/c), per TPC-C Clause 2.8.2
 - common: NURand draws its inner random value within [x .. y] instead of
   [x .. x + y], which skewed the non-uniform customer id selection,
   per TPC-C Clause 2.1.6
-- driver2: think time is drawn from the negative exponential distribution
-  instead of a constant mean, per TPC-C Clause 5.2.5.4
-- driver3: think time is drawn from the negative exponential distribution
-  instead of a constant mean, per TPC-C Clause 5.2.5.4
+- driver: new order order line counts are generated within [5 .. 15] and
+  payment amounts within [1.00 .. 5000.00], and remote warehouse selection
+  draws uniformly from the warehouses other than the home warehouse instead
+  of wrapping to an invalid or home warehouse, per TPC-C Clauses 2.4.1.3,
+  2.5.1.2, and 2.5.1.3
+- driver2, driver3: think time is drawn from the negative exponential
+  distribution instead of a constant mean, per TPC-C Clause 5.2.5.4
 - datagen: generated values cover the spec's inclusive ranges instead of
-  stopping one value short of each maximum, per TPC-C Clause 4.3.3.1
-- datagen: the o_c_id permutation can place any customer last instead of always
-  customer 1, per TPC-C Clause 4.3.3.1
-- mysql: new order reads and updates stock at the supplying warehouse,
-  maintains s_ytd, s_order_cnt, and s_remote_cnt, applies the +91 quantity
-  adjustment only when stock does not exceed the ordered quantity by 10 or
-  more, no longer rounds order line amounts to whole dollars through a bare
-  NUMERIC parameter, examines i_data and s_data for the brand or generic
-  classification, and computes the order total, per TPC-C Clause 2.4.2
-- mysql: payment selects the median customer matching a last name instead
-  of the first, updates the customer in place under a row lock so no
-  fractional balance or concurrent update is lost, increases c_ytd_payment
-  by the payment amount, increments c_payment_cnt, includes the payment
-  amount in the bad credit c_data information, and separates the history
-  warehouse and district names with four spaces, per TPC-C Clause 2.5.2
-- mysql: order status selects the median customer matching a last name
-  instead of the first, per TPC-C Clause 2.6.2
-- mysql: delivery credits the customer with the sum of ol_amount instead of
-  ol_amount * ol_quantity, no longer truncates the sum to an integer, and
-  locks the oldest new order row so concurrent deliveries cannot process
-  the same order twice, per TPC-C Clause 2.7.4
-- mysql: stock level counts distinct items below the threshold instead of
-  counting every order line, per TPC-C Clause 2.8.2
-- run: support enabling software profiling in the config file
-- run: required config file options are now optional, allowing them to be set
-  with command line arguments
-- pgsql-plans: update usage and command line arguments
-- Fix CPack description and license file settings to use absolute paths
-- Disable in-source builds
-- Rename Makefile.cmake to Makefile
-- appimage: fix AppStream metadata to match the component identifier and
-  desktop file naming
-- appimage: fix AppRun quoting, empty ARGV0 handling, and usage output
-- appimage: move Containerfile.appimage to appimage/Containerfile so all
-  AppImage related files are in the appimage/ directory
-- appimage: use archive.debian.org apt repositories in the container image
-  now that debian 10 (buster) is end-of-life
-- appimage: download appimagetool v1.9.1 from its new project location, the
-  AppImageKit release assets no longer exist
-- appimage: mount the project at /src/dbt2 instead of /usr/local/src/dbt2
-- Use build/ instead of builds/ for out of source builds, conforming to more
-  common conventions
-- Fix bashisms in the POSIX shell scripts
-- Convert the remaining bash scripts to POSIX shell
-- Remove eval from the container tool scripts where it served no purpose
-- pgsql: the report charts use the database name recorded in the results
-  instead of hardcoding dbt2, and -i is validated before use
-- get-os-info: find sysctl in sbin directories and default the output
-  directory to the current directory
-- report: validate that a results directory was given
-- tools: run-test invokes the current dbt2 run interface instead of the
-  removed run-workload script, starts the CockroachDB cluster containers
-  that build-database actually creates, stops its containers when a test
-  fails or is interrupted, and reports that 3-tier container tests are not
-  currently supported
-- tools: build the client and driver images before the database image,
-  whose data load runs through the driver image, and propagate build
-  failures; name the yugabyte and driver containers after the warehouse
-  count; keep the podman build isolation flags for the pgsql image build;
-  honor a preset DBVER and the ENGINE variable everywhere; fix the
-  AppImage container group id; correct the client image tag in the shell
-  helper; format the sqlite backend with clang-format; and update the
-  README to the current script names
-- yugabyte: parse and forward the documented --rows-per-commit build
-  option and remove references to tablespace settings that were never set
-- cockroach: initialize the rows-per-commit default so every build stops
-  printing an integer expression error
-- pgsql: drop-db no longer requires DBT2PGDATA, and -r rebuilds attempt the
-  drop even without a local data directory
-- pgsql: fix the plans -oFILE spelling assigning the file name to the port
-- cockroach: db-stat passes the database name to pgsql-plans so plan
-  collection works without an inherited DBT2DBNAME
+  stopping one value short of each maximum, and the o_c_id permutation can
+  place any customer last instead of always customer 1,
+  per TPC-C Clause 4.3.3.1
+- Return the transaction output data for New-Order, Payment, Order-Status,
+  and Stock-Level, and flag the intentional New-Order rollback (cockroach,
+  mysql, nonsp, oracle, pgsql); pgsql reports the rollback with a dedicated
+  SQLSTATE and the dbt2 extension is updated to 0.46.0
+- transaction-test: accept mysql, oracle, and sqlite as dbms options
+- transaction-test: a connect string of 32 or more bytes no longer overflows
+  a fixed buffer
+- yugabyte: build-db declares the primary keys with the tables, creates the
+  indexes with a yugabyte specific script instead of the pgsql one that
+  issued the statements in parallel and lost them to catalog version
+  conflicts, takes -i to load the plpgsql stored functions from another
+  directory, and forwards the documented --rows-per-commit option; yugabyte
+  is accepted as a DBMS by the client, the driver, the transaction test, and
+  run
+- cockroach: add dbt2-cockroach-create-db and dbt2-cockroach-drop-db scripts
+  that create and drop the database with cockroach sql, initialize the
+  rows-per-commit default, and pass the database name from db-stat to
+  pgsql-plans
+- pgsql: build-db no longer exits 0 on failure, reporting a failed database
+  creation or unreachable server, failed index and primary key creation,
+  failed parallel data loading, and a failed final VACUUM ANALYZE;
+  create-indexes creates tablespaces again
+- pgsql: only use VACUUM PARALLEL on PostgreSQL 13 or later and never
+  combine it with VACUUM FULL
+- pgsql: fix an inverted pg_config check that made load-stored-procs, and
+  with it the default database build, always fail outside the AppImage
+- pgsql: drop-db no longer requires DBT2PGDATA and -r rebuilds attempt the
+  drop without a local data directory, plans no longer assigns -oFILE to the
+  port, and the report charts use the database name recorded in the results
+  instead of hardcoding dbt2
 - Only export PGPORT when a port was requested so the build scripts no
   longer clobber an inherited PGPORT with an empty value, and pgsql-load-db
   now passes its -l port to the datagen processes
+- mysql: fix build-db option parsing and the stored procedure load ignoring
+  failures and connection settings, pass the port and password to
+  load-stored-procs with valid mysql client syntax, and let plans connect by
+  host instead of requiring a socket
+- mysql: link with the pkg-config linker flags so the client library is
+  found outside the default linker search path, and fix the install rule for
+  dbt2-mysql-plans
+- client, driver: list odbc and sqlite in the -a usage text
+- Disable in-source builds, use build/ instead of builds/ for out of source
+  builds conforming to more common conventions, and rename Makefile.cmake to
+  Makefile
+- Fix CPack description and license file settings to use absolute paths
+- Convert the remaining bash scripts to POSIX shell, fix bashisms in the
+  existing POSIX shell scripts, and remove eval from the container tool
+  scripts where it served no purpose
 - build: forward connection settings to cockroach and yugabyte builds, pass
   --db-user to mysql, and reject --data, -g, and --privileged for DBMSes
   whose build scripts would misinterpret them; --data with pgsql previously
   became the vacuum full flag and renamed the database
-- generate-report: create a missing summary through dbt2 report instead of
-  a nonexistent command and path, only embed DBMS report sections when the
-  DBMS has a report script, fix the inverted pandoc check, and stop
-  documenting options that were never implemented
-- Fix the dbt2 wrapper's rst2html5 fallback testing the wrong variable
-- mysql: fix build-db brace typos that mangled the -d and -e values, a -v
-  case that swallowed the following option, the documented -r flag being
-  unconditional, and the stored procedure load ignoring failures and
-  connection settings
-- mysql: plans no longer requires a socket and can connect by host, as the
-  run script invokes it
-- mysql: load-stored-procs passes the port and password with valid mysql
-  client syntax and accepts the documented -c option
-- pgsql: fix an inverted pg_config check that made load-stored-procs, and
-  with it the default database build, always fail outside the AppImage
-- post-process: fix the R analyzer's per-warehouse district chi-square
-  using a stale count, count unknown errors within the steady state window
-  like the sqlite3 analyzer, align the sqlite3 90th percentile rank with
-  the R quantile definition, and clean up temporary files on any exit
+- run: support enabling software profiling in the config file, and make
+  required config file options optional so they can be set with command line
+  arguments
+- run: fix remote database control commands running locally when --stats was
+  not given, the client password being passed with the wrong flag, the
+  interrupted-run cleanup targeting an unset host, the config file driver
+  ramp up calculation using unset variables, and waiting for drivers on all
+  driver systems instead of only the last
 - test-connection-scaling: apply the documented processor-count default for
   --stop (a default invocation previously ran zero tests), stop forgetting
   --dbaas, forward --db-name, accept --stop=N, stop the series when a test
@@ -211,77 +107,46 @@ vX.Y.Z (YYYY-MM-DD)
 - test-db-parameter: stop when setting the parameter or restarting the
   database fails instead of recording results for an unchanged parameter,
   and reject config files missing required keys
-- run: fix remote database control commands running locally when --stats
-  was not given, the client password being passed with the wrong flag, the
-  interrupted-run cleanup targeting an unset host, the config file driver
-  ramp up calculation using unset variables, and waiting for drivers on all
-  driver systems instead of only the last
-- pgsql: create-db reports a failed CREATE DATABASE or an unreachable
-  server instead of exiting 0
-- pgsql: only use VACUUM PARALLEL on PostgreSQL 13 or later, never combine
-  it with VACUUM FULL, and fail the build if the final VACUUM ANALYZE fails
-- pgsql: load-db stops with an error when any parallel data loading process
-  fails instead of continuing with a partially loaded database
-- pgsql: create-indexes actually creates tablespaces again and reports
-  failed index or primary key creation instead of always exiting 0
-- appimage: fix the libnsl symlink for aarch64 container image builds and
-  the version pinning of the gnuplot and touchstone-tools downloads
-- appimage: verify TLS certificates, fail on download errors, and pin the
-  Rust toolchain in the container image
-- appimage: remove an unused copy of python from the container image
-- appimage: generate the AppStream release information at configure time so
-  it tracks the project version
-- appimage: stop masking failures when copying licenses and python into the
-  AppDir
-- scripts: run-test stops containers on error exits, dbt2-run validates
-  pids and sweeps its process group when interrupted, and
-  dbt2-post-process.sqlite3 exits cleanly on signals
-- transaction-test: accept sqlite as a dbms option
+- post-process: fix the R analyzer's per-warehouse district chi-square using
+  a stale count, count unknown errors within the steady state window like
+  the sqlite3 analyzer, align the sqlite3 90th percentile rank with the R
+  quantile definition, and clean up temporary files on any exit
+- generate-report: create a missing summary through dbt2 report instead of a
+  nonexistent command and path, only embed DBMS report sections when the
+  DBMS has a report script, fix the inverted pandoc check, and stop
+  documenting options that were never implemented
+- report: validate that a results directory was given, and fix the dbt2
+  wrapper's rst2html5 fallback testing the wrong variable
+- get-os-info: find sysctl in sbin directories and default the output
+  directory to the current directory
+- pgsql-plans: update usage and command line arguments
 - logging: write to stderr when no output path is set
-- nonsp: return the transaction output data for New-Order, Payment,
-  Order-Status, and Stock-Level, and flag the intentional New-Order
-  rollback
-- transaction-test: a connect string of 32 or more bytes no longer
-  overflows a fixed buffer
-- cockroach: return the transaction output data for New-Order, Payment,
-  and Order-Status, and flag the intentional New-Order rollback
-- pgsql: return the transaction output data for New-Order, Payment,
-  Order-Status, and Stock-Level, and report the intentional New-Order
-  rollback with a dedicated SQLSTATE; the dbt2 extension is updated to
-  0.46.0
-- transaction-test: accept mysql as a dbms option
-- mysql: return the transaction output data for New-Order, Payment,
-  and Order-Status
-- oracle: payment and order status convert the wide character last
-  name instead of copying its raw bytes
-- oracle: return the transaction output data for New-Order, Payment,
-  and Order-Status
-- oracle: include string.h in the transaction callers
-- transaction-test: describe the oracle dbms option in the usage
-  message
-- oracle: add a dbt2-oracle-build-db script that creates and loads
-  the tables and stored procedures
-- container: update Containerfile.oracle to a database server and
-  build environment image that can run the oracle integration test
-- mysql: link with the pkg-config linker flags so the client library
-  is found outside the default linker search path
-- cockroach: add a dbt2-cockroach-create-db script that creates the
-  database with cockroach sql
-- cockroach: add a dbt2-cockroach-drop-db script that drops the
-  database with cockroach sql
-- yugabyte: build-db takes -i to load the plpgsql stored functions
-  from a directory other than the default
-- yugabyte: add a dbt2-yugabyte-create-tables script that declares
-  the primary keys with the tables
-- yugabyte: build-db creates the primary keys and indexes with
-  dbt2-yugabyte-create-indexes instead of the pgsql script, which
-  issues the statements in parallel and loses them to catalog
-  version conflicts
-- yugabyte: accept yugabyte as a -a value in the client, the driver,
-  and the transaction test
-- client, driver: list odbc and sqlite in the -a usage text
-- mysql: fix the install rule for dbt2-mysql-plans
-- run: support yugabyte as a DBMS option
+- scripts: stop containers on error exits, validate pids and sweep the
+  process group when a run is interrupted, and exit cleanly on signals
+- tools: run-test invokes the current dbt2 run interface instead of the
+  removed run-workload script, starts and stops the CockroachDB cluster
+  containers that build-database actually creates, and reports that 3-tier
+  container tests are not currently supported
+- tools: build the client and driver images before the database image, whose
+  data load runs through the driver image, and propagate build failures;
+  name the yugabyte and driver containers after the warehouse count; honor a
+  preset DBVER and the ENGINE variable everywhere; fix the AppImage
+  container group id and the client image tag; and update the README to the
+  current script names
+- appimage: fix the AppStream metadata to match the component identifier and
+  desktop file naming, and generate the release information at configure
+  time so it tracks the project version
+- appimage: fix AppRun quoting, empty ARGV0 handling, and usage output
+- appimage: fix the container image for debian 10 (buster) going end of life
+  and appimagetool moving from the AppImageKit release assets, verify TLS
+  certificates, fail on download errors, pin the Rust toolchain and the
+  gnuplot and touchstone-tools versions, and fix the libnsl symlink for
+  aarch64
+- appimage: move Containerfile.appimage to appimage/Containerfile so all
+  AppImage related files are in the appimage/ directory, mount the project
+  at /src/dbt2 instead of /usr/local/src/dbt2, remove an unused copy of
+  python, and stop masking failures when copying licenses and python into
+  the AppDir
 
 v0.61.7 (2025-07-01)
 
