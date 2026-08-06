@@ -2,7 +2,7 @@
 @SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
-# Please see # the file LICENSE, included in this package, for details.
+# Please see the file LICENSE, included in this package, for details.
 #
 # Copyright The DBT-2 Authors
 #
@@ -21,7 +21,7 @@ Usage:
   $(basename "${0}") [OPTION]
 
 Options:
-  -l PORT        PostgreSQL PORT
+  -l PORT        YugabyteDB PORT
   --rows-per-commit ROWS
                  number of ROWS to load per transaction, default is to load all
                  data in a single transaction
@@ -118,7 +118,8 @@ run_datagen()
 
 echo "loading up to $RATE warehouses at a time"
 
-# Load one table at a time, but each table load will be parallelized.
+# Load one table at a time, and one partition of each table at a
+# time.
 for TABLE in item warehouse stock district customer history orders new_order;
 do
 	load_table "$TABLE" "$WAREHOUSES" "$SEED"
