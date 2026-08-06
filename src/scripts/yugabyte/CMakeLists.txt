@@ -1,5 +1,7 @@
 set (PROGRAMFILES "")
 foreach (FILE dbt2-yugabyte-build-db
+              dbt2-yugabyte-create-indexes
+              dbt2-yugabyte-create-tables
               dbt2-yugabyte-load-db
         )
     configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
@@ -9,7 +11,5 @@ endforeach()
 install (
     PROGRAMS
     ${PROGRAMFILES}
-    ${CMAKE_SOURCE_DIR}/src/scripts/yugabyte/dbt2-yugabyte-create-indexes
-    ${CMAKE_SOURCE_DIR}/src/scripts/yugabyte/dbt2-yugabyte-create-tables
     DESTINATION "bin"
 )

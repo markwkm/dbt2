@@ -56,15 +56,10 @@ if [ ! -x "${BUILDDB}" ]; then
 	exit ${SKIP}
 fi
 
-# dbt2-yugabyte-build-db resolves the dbt2 wrapper, the generated
-# scripts, the plain scripts, and the datagen binary from the PATH.
-# It builds the database with the pgsql scripts apart from loading
-# the data and creating the indexes, so both script directories are
-# needed.
 BUILDDIR=$(cd "$(dirname "${BUILDDB}")" && pwd)
 DATAGENDIR=$(cd "$(dirname "${DATAGEN}")" && pwd)
 SCRIPTSDIR=$(cd "${TOPDIR}/src/scripts" && pwd)
-PATH="${SCRIPTSDIR}/yugabyte:${SCRIPTSDIR}/pgsql:${SCRIPTSDIR}:${PATH}"
+PATH="${SCRIPTSDIR}/pgsql:${SCRIPTSDIR}:${PATH}"
 PATH="${BUILDDIR}:${DATAGENDIR}:${PATH}"
 export PATH
 
