@@ -275,6 +275,9 @@ vX.Y.Z (YYYY-MM-DD)
   dbt2-yugabyte-create-indexes instead of the pgsql script, which
   issues the statements in parallel and loses them to catalog
   version conflicts
+- yugabyte: accept yugabyte as a -a value in the client, the driver,
+  and the transaction test
+- client, driver: list odbc and sqlite in the -a usage text
 
 v0.61.7 (2025-07-01)
 

@@ -118,6 +118,9 @@ int main(int argc, char *argv[]) {
 #endif /* HAVE_ORACLE */
 			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
+			} else if (strcmp(argv[i + 1], "yugabyte") == 0) {
+				/* YugabyteDB serves the PostgreSQL wire protocol. */
+				dbms = DBMSLIBPQ;
 #ifdef HAVE_SQLITE3
 			} else if (strcmp(argv[i + 1], "sqlite") == 0) {
 				dbms = DBMSSQLITE;

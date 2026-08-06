@@ -171,6 +171,9 @@ int parse_arguments(int argc, char *argv[]) {
 				dbms = DBMSMYSQL;
 			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
+			} else if (strcmp(argv[i + 1], "yugabyte") == 0) {
+				/* YugabyteDB serves the PostgreSQL wire protocol. */
+				dbms = DBMSLIBPQ;
 			} else if (strcmp(argv[i + 1], "sqlite") == 0) {
 				dbms = DBMSSQLITE;
 			} else {
@@ -326,7 +329,8 @@ void usage(char *name) {
 	printf("  %s [OPTION]\n", name);
 	printf("\nGeneral options:\n");
 #ifdef DRIVER3
-	printf("  -a <dbms>      cockroach|mysql|oracle|pgsql|yugabyte\n");
+	printf("  -a <dbms>      "
+		   "cockroach|mysql|odbc|oracle|pgsql|sqlite|yugabyte\n");
 #endif /* DRIVER3 */
 #if defined(DRIVER1) || defined(DRIVER2)
 	printf("  -d <address>   client network address\n");

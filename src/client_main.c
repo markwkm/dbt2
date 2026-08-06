@@ -96,6 +96,9 @@ int parse_arguments(int argc, char *argv[]) {
 				dbms = DBMSORACLE;
 			} else if (strcmp(optarg, "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
+			} else if (strcmp(optarg, "yugabyte") == 0) {
+				/* YugabyteDB serves the PostgreSQL wire protocol. */
+				dbms = DBMSLIBPQ;
 			} else if (strcmp(optarg, "sqlite") == 0) {
 				dbms = DBMSSQLITE;
 			} else {
@@ -206,7 +209,8 @@ void usage(char *name) {
 	printf("Usage:\n");
 	printf("  %s [OPTION]\n\n", name);
 	printf("General options:\n");
-	printf("  -a <dbms>      cockroach|mysql|oracle|pgsql|yugabyte\n");
+	printf("  -a <dbms>      "
+		   "cockroach|mysql|odbc|oracle|pgsql|sqlite|yugabyte\n");
 #ifdef CLIENT1
 	printf("  -f             set forced sleep\n");
 	printf("  -c #           number of database connections\n");
