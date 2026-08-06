@@ -22,8 +22,6 @@ Options:
   --rows-per-commit ROWS
                  number of ROWS to load per transaction, default is to load all
                  data in a single transaction
-  -s TYPE        user defined functions TYPE to install 'c' or 'plpgsql',
-                 default: plpgsql
   -w WAREHOUSES  number of WAREHOUSES to build, default: 1
   -?, --help     show this help, then exit
 
@@ -34,7 +32,6 @@ EOF
 WAREHOUSES=1
 REBUILD_DB=0
 ROWS_PER_COMMIT=0
-UDF_TYPE="plpgsql"
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(-i)
@@ -54,10 +51,6 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--rows-per-commit=?*)
 		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
-		;;
-	(-s)
-		shift
-		UDF_TYPE="${1}"
 		;;
 	(-w)
 		shift
@@ -106,8 +99,11 @@ fi
 eval "dbt2 yugabyte-load-db ${PORTARG} -s ${SEED} -w ${WAREHOUSES} \
 		${LOADARGS}" || exit 1
 dbt2 yugabyte-create-indexes "${PORTARG}" || exit 1
+# The C user defined functions are a PostgreSQL extension installed
+# alongside the server, and YugabyteDB ships no such extension, so
+# plpgsql is the only type that can be loaded.
 eval "dbt2 pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} \
-		-t ${UDF_TYPE}" || exit 1
+		-t plpgsql" || exit 1
 
 if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
