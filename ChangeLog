@@ -280,6 +280,7 @@ vX.Y.Z (YYYY-MM-DD)
 - yugabyte: accept yugabyte as a -a value in the client, the driver,
   and the transaction test
 - client, driver: list odbc and sqlite in the -a usage text
+- mysql: fix the install rule for dbt2-mysql-plans
 
 v0.61.7 (2025-07-01)
 
