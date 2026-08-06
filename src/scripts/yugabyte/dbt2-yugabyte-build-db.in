@@ -81,7 +81,7 @@ if [ "$REBUILD_DB" -eq 1 ]; then
 fi
 
 dbt2 pgsql-create-db "${PORTARG}" || exit 1
-dbt2 pgsql-create-tables "${PORTARG}" || exit 1
+dbt2 yugabyte-create-tables "${PORTARG}" || exit 1
 
 SEED=$(dbt2 rand 1 18446744073709551615 0)
 

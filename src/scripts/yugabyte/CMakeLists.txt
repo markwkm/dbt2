@@ -10,5 +10,6 @@ install (
     PROGRAMS
     ${PROGRAMFILES}
     ${CMAKE_SOURCE_DIR}/src/scripts/yugabyte/dbt2-yugabyte-create-indexes
+    ${CMAKE_SOURCE_DIR}/src/scripts/yugabyte/dbt2-yugabyte-create-tables
     DESTINATION "bin"
 )
