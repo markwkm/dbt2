@@ -55,6 +55,12 @@ add_test(NAME transaction_pgsql_plpgsql
 set_tests_properties(transaction_pgsql_c transaction_pgsql_client
                      transaction_pgsql_plpgsql
                      PROPERTIES LABELS integration SKIP_RETURN_CODE 77)
+add_test(NAME transaction_yugabyte
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_yugabyte.sh
+                 $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>
+                 ${CMAKE_BINARY_DIR}/dbt2-yugabyte-build-db)
+set_tests_properties(transaction_yugabyte
+                     PROPERTIES LABELS integration SKIP_RETURN_CODE 77)
 add_test(NAME transaction_sqlite
          COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_transaction_sqlite.sh
                  $<TARGET_FILE:${DATAGEN}> $<TARGET_FILE:${TXN_TEST}>
