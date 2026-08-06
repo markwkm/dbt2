@@ -269,6 +269,10 @@ vX.Y.Z (YYYY-MM-DD)
   database with cockroach sql
 - cockroach: add a dbt2-cockroach-drop-db script that drops the
   database with cockroach sql
+- yugabyte: build-db creates the primary keys and indexes with
+  dbt2-yugabyte-create-indexes instead of the pgsql script, which
+  issues the statements in parallel and loses them to catalog
+  version conflicts
 
 v0.61.7 (2025-07-01)
 

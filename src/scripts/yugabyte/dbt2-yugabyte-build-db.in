@@ -100,7 +100,7 @@ fi
 
 eval "dbt2 yugabyte-load-db ${PORTARG} -s ${SEED} -w ${WAREHOUSES} \
 		${LOADARGS}" || exit 1
-dbt2 pgsql-create-indexes "${PORTARG}" || exit 1
+dbt2 yugabyte-create-indexes "${PORTARG}" || exit 1
 dbt2 pgsql-load-stored-procs "${PORTARG}" -t "${UDF_TYPE}" || exit 1
 
 if [ ! "${PORT}" = "" ]; then
