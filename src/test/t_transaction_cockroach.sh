@@ -56,15 +56,8 @@ if [ ! -x "${BUILDDB}" ]; then
 	exit ${SKIP}
 fi
 
-# dbt2-cockroach-build-db resolves the dbt2 wrapper, the generated
-# scripts, the plain scripts, and the datagen binary from the PATH.  It
-# builds the tables and indexes with the cockroach scripts but creates
-# the database with the pgsql one, so both script directories are
-# needed.
 BUILDDIR=$(cd "$(dirname "${BUILDDB}")" && pwd)
 DATAGENDIR=$(cd "$(dirname "${DATAGEN}")" && pwd)
-SCRIPTSDIR=$(cd "${TOPDIR}/src/scripts" && pwd)
-PATH="${SCRIPTSDIR}/cockroach:${SCRIPTSDIR}/pgsql:${SCRIPTSDIR}:${PATH}"
 PATH="${BUILDDIR}:${DATAGENDIR}:${PATH}"
 export PATH
 
