@@ -16,6 +16,7 @@ Usage:
   $(basename "${0}") [OPTION]
 
 Options:
+  -i DIRECTORY   DIRECTORY with plpgsql stored functions
   -l PORT        YugabyteDB PORT
   -r             drop existing database before building a new database
   --rows-per-commit ROWS
@@ -36,6 +37,10 @@ ROWS_PER_COMMIT=0
 UDF_TYPE="plpgsql"
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
+	(-i)
+		shift
+		SHAREDIRARG="-i ${1}"
+		;;
 	(-l)
 		shift
 		PORT="${1}"
@@ -101,7 +106,8 @@ fi
 eval "dbt2 yugabyte-load-db ${PORTARG} -s ${SEED} -w ${WAREHOUSES} \
 		${LOADARGS}" || exit 1
 dbt2 yugabyte-create-indexes "${PORTARG}" || exit 1
-dbt2 pgsql-load-stored-procs "${PORTARG}" -t "${UDF_TYPE}" || exit 1
+eval "dbt2 pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} \
+		-t ${UDF_TYPE}" || exit 1
 
 if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
