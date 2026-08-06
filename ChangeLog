@@ -281,6 +281,7 @@ vX.Y.Z (YYYY-MM-DD)
   and the transaction test
 - client, driver: list odbc and sqlite in the -a usage text
 - mysql: fix the install rule for dbt2-mysql-plans
+- run: support yugabyte as a DBMS option
 
 v0.61.7 (2025-07-01)
 

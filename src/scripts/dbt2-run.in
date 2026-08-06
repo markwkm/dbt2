@@ -355,6 +355,7 @@ DBMS options are:
   mysql      MySQL
   pgsql      PostgreSQL
   sqlite     SQLite
+  yugabyte   YugabyteDB
 
 DIRECTORY is the path to save test results.
 
@@ -668,7 +669,7 @@ mysql)
 		EXTRA_DB_ARGS="${EXTRA_DB_ARGS} -u ${DB_USER}"
 	fi
 	;;
-pgsql)
+pgsql|yugabyte)
 	# Set extra argument variables.
 	DBSTATARGS="-h $DB_HOSTNAME -d $DBNAME"
 	if [ ! "${DB_USER}" = "" ]; then
@@ -900,7 +901,8 @@ if [ "${CONFIGFILE}" = "" ]; then
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
-		elif [ "${DBMS}" = "pgsql" ]; then
+		elif [ "${DBMS}" = "pgsql" ] || \
+				[ "${DBMS}" = "yugabyte" ]; then
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
 		elif [ "${DBMS}" = "sqlite" ]; then
@@ -1030,7 +1032,8 @@ else
 				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -d ${DBNAME}"
 				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} ${SOCK_FILE_ARG} -u root"
 				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -h ${DB_HOSTNAME}"
-			elif [ "${DBMS}" = "pgsql" ]; then
+			elif [ "${DBMS}" = "pgsql" ] || \
+					[ "${DBMS}" = "yugabyte" ]; then
 				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -d ${DB_HOSTNAME}"
 				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -b ${DBNAME}"
 			elif [ "${DBMS}" = "sqlite" ]; then
