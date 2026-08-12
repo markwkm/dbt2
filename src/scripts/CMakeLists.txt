@@ -32,16 +32,16 @@ foreach (FILE dbt2
               dbt2-test-connection-scaling
               dbt2-test-db-parameter
         )
-    configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
-    set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})
+    configure_file(${FILE}.in ${PROJECT_BINARY_DIR}/${FILE} @ONLY)
+    set (PROGRAMFILES ${PROGRAMFILES} ${PROJECT_BINARY_DIR}/${FILE})
 endforeach()
 
 install (
 	PROGRAMS
     ${PROGRAMFILES}
-    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
-    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info
-    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process.r
+    ${PROJECT_SOURCE_DIR}/src/scripts/dbt2-generate-report
+    ${PROJECT_SOURCE_DIR}/src/scripts/dbt2-get-os-info
+    ${PROJECT_SOURCE_DIR}/src/scripts/dbt2-post-process.r
 	DESTINATION "bin"
 )
 

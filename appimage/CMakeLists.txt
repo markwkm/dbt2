@@ -1,8 +1,8 @@
 string (TIMESTAMP APPDATA_RELEASE_DATE "%Y-%m-%d")
 
-configure_file (AppRun.in ${CMAKE_BINARY_DIR}/AppRun @ONLY)
+configure_file (AppRun.in ${PROJECT_BINARY_DIR}/AppRun @ONLY)
 configure_file (org.osdl.dbt2.appdata.xml.in
-                ${CMAKE_BINARY_DIR}/org.osdl.dbt2.appdata.xml @ONLY)
+                ${PROJECT_BINARY_DIR}/org.osdl.dbt2.appdata.xml @ONLY)
 
 # Keep in sync with PYTHONMMVER in appimage/Containerfile.
 set (PYTHONMMVER 3.11)

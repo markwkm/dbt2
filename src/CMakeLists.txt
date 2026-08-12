@@ -407,11 +407,11 @@ set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
 set_source_files_properties (
         ${PCG_SOURCE}
         rand.c
-        COMPILE_FLAGS "-DHAVE_DEV_RANDOM -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "-DHAVE_DEV_RANDOM -I${PROJECT_SOURCE_DIR}/src/pcg -I${PROJECT_SOURCE_DIR}/src/pcg/extras"
 )
 set_source_files_properties (
         datagen.c
-        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "-I${PROJECT_SOURCE_DIR}/src/include ${LFS_CFLAGS} -I${PROJECT_SOURCE_DIR}/src/pcg -I${PROJECT_SOURCE_DIR}/src/pcg/extras"
 )
 set_source_files_properties (
         client_interface.c
@@ -425,16 +425,16 @@ set_source_files_properties (
         logging.c
         transaction_data.c
         transaction_queue.c
-        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBCFLAGS} -I${PROJECT_SOURCE_DIR}/src/include -I${PROJECT_SOURCE_DIR}/src/pcg -I${PROJECT_SOURCE_DIR}/src/pcg/extras"
 )
 set_source_files_properties (
         driver_main.c
-        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBCFLAGS} -I${PROJECT_SOURCE_DIR}/src/include -I${PROJECT_SOURCE_DIR}/src/pcg -I${PROJECT_SOURCE_DIR}/src/pcg/extras"
 )
 set_source_files_properties (
         _semaphore.c
         _socket.c
-        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
+        COMPILE_FLAGS "-I${PROJECT_SOURCE_DIR}/src/include ${LFS_CFLAGS}")
 set_source_files_properties (
         ${DB_SOURCE}
         client.c
@@ -444,7 +444,7 @@ set_source_files_properties (
         db.c
         db_threadpool.c
         transaction_test.c
-        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBCFLAGS} -I${PROJECT_SOURCE_DIR}/src/include -I${PROJECT_SOURCE_DIR}/src/pcg -I${PROJECT_SOURCE_DIR}/src/pcg/extras"
 )
 
 #
@@ -460,14 +460,14 @@ set_target_properties (${TXN_TEST} PROPERTIES LINK_FLAGS "${DB_LIBS}")
 #
 
 install (PROGRAMS
-         ${CMAKE_BINARY_DIR}/src/${CLIENT}
-         ${CMAKE_BINARY_DIR}/src/${CLIENT2}
-         ${CMAKE_BINARY_DIR}/src/${DATAGEN}
-         ${CMAKE_BINARY_DIR}/src/${DRIVER}
-         ${CMAKE_BINARY_DIR}/src/${DRIVER2}
-         ${CMAKE_BINARY_DIR}/src/${DRIVER3}
-         ${CMAKE_BINARY_DIR}/src/${RAND}
-         ${CMAKE_BINARY_DIR}/src/${TXN_TEST}
+         ${PROJECT_BINARY_DIR}/src/${CLIENT}
+         ${PROJECT_BINARY_DIR}/src/${CLIENT2}
+         ${PROJECT_BINARY_DIR}/src/${DATAGEN}
+         ${PROJECT_BINARY_DIR}/src/${DRIVER}
+         ${PROJECT_BINARY_DIR}/src/${DRIVER2}
+         ${PROJECT_BINARY_DIR}/src/${DRIVER3}
+         ${PROJECT_BINARY_DIR}/src/${RAND}
+         ${PROJECT_BINARY_DIR}/src/${TXN_TEST}
          DESTINATION "bin"
 )
 
