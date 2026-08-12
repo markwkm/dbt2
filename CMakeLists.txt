@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10...4.0)
-project (dbt2 VERSION 0.61.7 LANGUAGES C)
+project (dbt2 VERSION 0.62.0 LANGUAGES C)
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message (FATAL_ERROR

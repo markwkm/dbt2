@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.62.0 (2026-09-12)
 
 - Added support for Oracle
 - container: update Containerfile.oracle to a database server and build
