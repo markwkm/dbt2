@@ -81,7 +81,7 @@ set (CPACK_SOURCE_IGNORE_FILES
      "${CPACK_SOURCE_IGNORE_FILES};/CPackConfig\\\\.cmake\\$"
 )
 set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/\\\\.github\\$"
+     "${CPACK_SOURCE_IGNORE_FILES};/\\\\.github/"
 )
 set (CPACK_SOURCE_IGNORE_FILES
      "${CPACK_SOURCE_IGNORE_FILES};/\\\\.gitignore\\$"

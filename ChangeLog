@@ -147,6 +147,7 @@ vX.Y.Z (YYYY-MM-DD)
   at /src/dbt2 instead of /usr/local/src/dbt2, remove an unused copy of
   python, and stop masking failures when copying licenses and python into
   the AppDir
+- package: exclude the .github directory from source packages
 
 v0.61.7 (2025-07-01)
 
