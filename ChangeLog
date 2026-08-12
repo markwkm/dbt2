@@ -150,6 +150,8 @@ vX.Y.Z (YYYY-MM-DD)
 - package: exclude the .github directory from source packages
 - build: default to a Release build when no build type is given, so the
   binaries are no longer compiled without optimization
+- build: require CMake 3.10 or later, which the test suite already needed
+  for ctest to report skipped tests as skipped instead of failed
 
 v0.61.7 (2025-07-01)
 

@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.5...4.0)
-project (dbt2 C)
+cmake_minimum_required (VERSION 3.10...4.0)
+project (dbt2 VERSION 0.61.7 LANGUAGES C)
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message (FATAL_ERROR
@@ -9,13 +9,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
              "attempt created in the source directory.")
 endif ()
 
-set (PROJECT_VERSION_MAJOR 0)
-set (PROJECT_VERSION_MINOR 61)
-set (PROJECT_VERSION_PATCH 7)
 set (CMAKE_C_STANDARD 99)
-
-set (PROJECT_VERSION
-     ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
 
 # Without a build type the compiler is invoked with no optimization flags,
 # which is never what is wanted when measuring a database.
@@ -51,12 +45,11 @@ set (CPACK_PACKAGE_NAME "dbt2")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Database Test 2")
 set (CPACK_PACKAGE_VENDOR "osdl")
 
-set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-set (CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-set (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-set (CPACK_PACKAGE_VERSION
-    "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-set (CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+# CPack derives CPACK_PACKAGE_VERSION and its components from the project
+# version.  Only the file name needs overriding, to leave off the system
+# name that the default would append.
+
+set (CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}")
 
 set (CPACK_INSTALL_CMAKE_PROJECTS "")
 

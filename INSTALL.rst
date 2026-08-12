@@ -6,7 +6,7 @@ Perquisites
 Required software:
 
 * C compiler
-* `CMake <https://cmake.org/>`_ is the build system used
+* `CMake <https://cmake.org/>`_ 3.10 or later is the build system used
 
 Recommended software:
 
