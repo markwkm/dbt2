@@ -176,7 +176,7 @@ RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -fSsL \
 
 # Install DBT Tools
 
-ARG DBTTOOLSVER="0.5.1"
+ARG DBTTOOLSVER="0.5.2"
 RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -fSsL \
          https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
@@ -230,7 +230,7 @@ RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs \
          -o /tmp/sh.rustup.sh && \
     sh /tmp/sh.rustup.sh -y --default-toolchain ${RUSTVER}
 
-ARG TSTOOLSVER="0.9.1"
+ARG TSTOOLSVER="0.10.3"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -fSsL \
          https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v${TSTOOLSVER}.tar.gz && \
     mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
