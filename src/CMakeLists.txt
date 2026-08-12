@@ -28,6 +28,8 @@ endif (GETCONF_FOUND)
 
 # Check for libraries.
 
+include (CheckLibraryExists)
+
 # Solaris links nanosleep via librt.  Linux does not.  Check if the library
 # exists and set the linker flags below if it does.  If we don't find this
 # library, then assume we don't need to link anything.

@@ -10,6 +10,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 endif ()
 
 set (CMAKE_C_STANDARD 99)
+set (CMAKE_C_STANDARD_REQUIRED ON)
 
 # Without a build type the compiler is invoked with no optimization flags,
 # which is never what is wanted when measuring a database.
@@ -20,8 +21,6 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 enable_testing()
-
-include (CheckLibraryExists)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set (SHELLOPTIONS "set -x")
@@ -38,8 +37,6 @@ add_subdirectory (src)
 add_subdirectory (storedproc)
 
 # CPack rules for creating distribution files.
-
-include (InstallRequiredSystemLibraries)
 
 set (CPACK_PACKAGE_NAME "dbt2")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Database Test 2")
@@ -91,9 +88,9 @@ find_program(APPIMAGE NAMES appimagetool)
 
 if (APPIMAGE)
     set (APPIMAGETOOL ${APPIMAGE})
-else()
+else ()
     set (APPIMAGETOOL /usr/local/squashfs-root/AppRun)
-endif(APPIMAGE)
+endif ()
 
 set (DRIVER3 ../AppDir/usr/bin/dbt2-driver3)
 set (GNUPLOT ../AppDir/usr/bin/gnuplot)
