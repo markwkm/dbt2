@@ -59,35 +59,25 @@ set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 set (CPACK_SOURCE_GENERATOR "TBZ2;TXZ;ZIP")
 set (CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
 
+# These patterns are regular expressions that CPack writes into the
+# generated CPack configuration and parses a second time when it runs, so
+# every backslash has to survive two rounds of CMake string parsing.
+
 set (CPACK_SOURCE_IGNORE_FILES
-     "\\\\.bz2\\$;\\\\.gz\\$;\\\\.xz\\$;\\\\.Z\\$;\\\\.zip\\$"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/CMakeCache\\\\.txt\\$"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/CMakeFiles/"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/cmake_install\\\\.cmake\\$"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/CPackConfig\\\\.cmake\\$"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/\\\\.github/"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/\\\\.gitignore\\$"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/\\\\_CPack\\\\_Packages/"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/CPackSourceConfig\\\\.cmake\\$"
-)
-set (CPACK_SOURCE_IGNORE_FILES
-     "${CPACK_SOURCE_IGNORE_FILES};/CTestTestfile\\\\.cmake\\$"
+     "\\\\.bz2\\$"
+     "\\\\.gz\\$"
+     "\\\\.xz\\$"
+     "\\\\.Z\\$"
+     "\\\\.zip\\$"
+     "/CMakeCache\\\\.txt\\$"
+     "/CMakeFiles/"
+     "/cmake_install\\\\.cmake\\$"
+     "/CPackConfig\\\\.cmake\\$"
+     "/\\\\.github/"
+     "/\\\\.gitignore\\$"
+     "/\\\\_CPack\\\\_Packages/"
+     "/CPackSourceConfig\\\\.cmake\\$"
+     "/CTestTestfile\\\\.cmake\\$"
 )
 
 include (CPack)
