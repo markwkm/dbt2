@@ -17,6 +17,14 @@ set (CMAKE_C_STANDARD 99)
 set (PROJECT_VERSION
      ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
 
+# Without a build type the compiler is invoked with no optimization flags,
+# which is never what is wanted when measuring a database.
+
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set (CMAKE_BUILD_TYPE Release CACHE STRING
+         "Build type: Debug, Release, RelWithDebInfo or MinSizeRel." FORCE)
+endif ()
+
 enable_testing()
 
 include (CheckLibraryExists)

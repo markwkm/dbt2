@@ -148,6 +148,8 @@ vX.Y.Z (YYYY-MM-DD)
   python, and stop masking failures when copying licenses and python into
   the AppDir
 - package: exclude the .github directory from source packages
+- build: default to a Release build when no build type is given, so the
+  binaries are no longer compiled without optimization
 
 v0.61.7 (2025-07-01)
 
